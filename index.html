@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clip Magic — AI Video Editing Platform</title>
+  <meta name="description"
+    content="Clip Magic uses AI to transform your raw footage into cinematic masterpieces. Auto-captions, smart cuts, filters, and more." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* === Hero === */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 140px 40px 80px;
+      max-width: 1200px;
+      margin: 0 auto;
+      gap: 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-content {
+      flex: 1;
+      max-width: 620px;
+    }
+
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.8rem, 6vw, 4.4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      letter-spacing: -1px;
+    }
+
+    .hero-title span {
+      display: block;
+    }
+
+    .hero-desc {
+      font-size: 1.12rem;
+      color: var(--text-secondary);
+      line-height: 1.75;
+      margin-bottom: 36px;
+      max-width: 500px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .hero-stat .stat-value {
+      font-size: 1.8rem;
+    }
+
+    /* Hero Visual */
+    .hero-visual {
+      flex: 1;
+      max-width: 560px;
+      position: relative;
+    }
+
+    .video-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), var(--glow-purple);
+      animation: fadeInUp 0.8s ease 0.3s both;
+    }
+
+    .video-card-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .video-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .video-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-red {
+      background: #ff5f57;
+    }
+
+    .dot-yellow {
+      background: #febc2e;
+    }
+
+    .dot-green {
+      background: #28c840;
+    }
+
+    .video-title-bar {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .video-screen {
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, #1a0a3a 0%, #0a1a3a 50%, #0a2a2a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-screen-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+    }
+
+    .play-btn {
+      width: 64px;
+      height: 64px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+      animation: pulse 2s infinite;
+      z-index: 1;
+    }
+
+    .play-btn:hover {
+      background: rgba(139, 92, 246, 0.3);
+      transform: scale(1.1);
+    }
+
+    .timeline {
+      padding: 14px 18px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .timeline-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .timeline-progress {
+      height: 100%;
+      width: 38%;
+      background: var(--gradient-main);
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .timeline-progress::after {
+      content: '';
+      position: absolute;
+      right: -4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: var(--glow-purple);
+    }
+
+    .timeline-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .timeline-chip {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border: 1px solid;
+    }
+
+    .chip-ai {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--purple-light);
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    .chip-cut {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--cyan-light);
+      border-color: rgba(6, 182, 212, 0.3);
+    }
+
+    .chip-cap {
+      background: rgba(236, 72, 153, 0.15);
+      color: #f9a8d4;
+      border-color: rgba(236, 72, 153, 0.3);
+    }
+
+    .chip-flt {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    /* Floating badges */
+    .float-badge {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: rgba(13, 13, 36, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.82rem;
+      font-weight: 600;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      animation: floatAnim 4s ease-in-out infinite;
+    }
+
+    .float-badge-1 {
+      top: -20px;
+      right: -20px;
+      animation-delay: 0s;
+    }
+
+    .float-badge-2 {
+      bottom: 60px;
+      left: -30px;
+      animation-delay: -2s;
+    }
+
+    @keyframes floatAnim {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* === Features Section === */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 56px;
+    }
+
+    .feature-card {
+      padding: 32px;
+    }
+
+    .feature-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon-purple {
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .feature-icon-cyan {
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .feature-icon-pink {
+      background: rgba(236, 72, 153, 0.15);
+      border: 1px solid rgba(236, 72, 153, 0.3);
+    }
+
+    .feature-icon-green {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .feature-icon-orange {
+      background: rgba(249, 115, 22, 0.15);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
+    .feature-icon-blue {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .feature-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.12rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    /* === How It Works === */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0;
+      margin-top: 56px;
+      position: relative;
+    }
+
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 36px;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), var(--border), transparent);
+    }
+
+    .step-item {
+      text-align: center;
+      padding: 0 24px 40px;
+      position: relative;
+    }
+
+    .step-number {
+      width: 72px;
+      height: 72px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 auto 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-number-wrap {
+      width: 72px;
+      height: 72px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      background: var(--bg-card);
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-item h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step-item p {
+      font-size: 0.87rem;
+      color: var(--text-secondary);
+    }
+
+    /* === Pricing === */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 56px;
+    }
+
+    .pricing-card {
+      padding: 36px;
+      position: relative;
+    }
+
+    .pricing-card.featured {
+      border-color: var(--purple);
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+    }
+
+    .pricing-card.featured::before {
+      content: 'Most Popular';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gradient-main);
+      color: white;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 16px;
+      border-radius: 100px;
+      letter-spacing: 0.5px;
+    }
+
+    .pricing-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .pricing-price {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .pricing-price sup {
+      font-size: 1.2rem;
+      vertical-align: super;
+    }
+
+    .pricing-price span {
+      font-size: 1rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .pricing-desc {
+      color: var(--text-secondary);
+      font-size: 0.87rem;
+      margin-bottom: 28px;
+    }
+
+    .pricing-features {
+      list-style: none;
+      margin-bottom: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pricing-features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      width: 20px;
+      height: 20px;
+      background: rgba(139, 92, 246, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--purple-light);
+      flex-shrink: 0;
+    }
+
+    /* === CTA Banner === */
+    .cta-banner {
+      margin: 0 40px 100px;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(6, 182, 212, 0.15) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: var(--radius-xl);
+      padding: 80px 60px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.15) 0%, transparent 60%);
+    }
+
+    .cta-banner h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .cta-banner p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      margin-bottom: 36px;
+      position: relative;
+    }
+
+    .cta-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      position: relative;
+    }
+
+    @media (max-width: 960px) {
+      .hero {
+        flex-direction: column;
+        padding: 130px 28px 70px;
+        gap: 36px;
+      }
+
+      .hero-visual {
+        width: 100%;
+        max-width: 640px;
+      }
+
+      .hero-stats {
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .float-badge-1 {
+        right: 10px;
+      }
+
+      .float-badge-2 {
+        left: 10px;
+      }
+
+      .cta-banner {
+        margin: 0 24px 80px;
+        padding: 64px 40px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero {
+        padding: 120px 20px 60px;
+        text-align: left;
+      }
+
+      .hero-title {
+        font-size: clamp(2.2rem, 9vw, 3.2rem);
+      }
+
+      .hero-desc {
+        font-size: 1rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .hero-stats {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+      }
+
+      .float-badge {
+        position: static;
+        margin-top: 12px;
+        width: fit-content;
+      }
+
+      .steps-grid::before {
+        display: none;
+      }
+
+      .cta-banner {
+        margin: 0 18px 70px;
+        padding: 54px 24px;
+      }
+
+      .cta-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .cta-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-wrapper">
+
+    <!-- Background Orbs -->
+    <div class="bg-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">🎬</div>
+        <span class="nav-logo-text">Clip Magic</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="upload.html">Upload</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+      </ul>
+      <div class="nav-cta">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" id="themeToggle">
+          <span class="icon-sun">☀️</span>
+          <span class="icon-moon">🌙</span>
+        </button>
+        <a href="login.html" class="btn btn-ghost btn-sm">Sign In</a>
+        <a href="upload.html" class="btn btn-primary btn-sm">Start Free</a>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <div class="hero-content animate-up">
+        <div class="hero-eyebrow">
+          <span class="badge badge-purple">✨ AI-Powered</span>
+          <span class="badge badge-cyan">New: Auto Smart Cuts</span>
+        </div>
+        <h1 class="hero-title">
+          <span>Edit Videos</span>
+          <span class="gradient-text">with AI Magic</span>
+          <span>in Seconds</span>
+        </h1>
+        <p class="hero-desc">
+          Clip Magic transforms your raw footage into cinematic masterpieces using cutting-edge AI.
+          Auto-captions, smart cuts, cinematic filters — all in your browser.
+        </p>
+        <div class="hero-actions">
+          <a href="upload.html" class="btn btn-primary btn-lg">
+            🚀 Start Editing Free
+          </a>
+          <a href="#features" class="btn btn-ghost btn-lg">
+            ▶ See How It Works
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="stat-value" data-count="50000">50K+</div>
+            <div class="stat-label">Videos Edited</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-value">4.9★</div>
+            <div class="stat-label">User Rating</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-value">10x</div>
+            <div class="stat-label">Faster Than Manual</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual animate-up-delay-2">
+        <div class="video-card">
+          <div class="video-card-header">
+            <div class="video-dots">
+              <div class="video-dot dot-red"></div>
+              <div class="video-dot dot-yellow"></div>
+              <div class="video-dot dot-green"></div>
+            </div>
+            <div class="video-title-bar">my-awesome-reel.mp4 — Clip Magic</div>
+          </div>
+          <div class="video-screen">
+            <div class="video-screen-overlay"></div>
+            <div class="play-btn">▶</div>
+          </div>
+          <div class="timeline">
+            <div class="timeline-bar">
+              <div class="timeline-progress"></div>
+            </div>
+            <div class="timeline-tools">
+              <span class="timeline-chip chip-ai">🤖 AI Cut</span>
+              <span class="timeline-chip chip-cap">💬 Captions</span>
+              <span class="timeline-chip chip-flt">🎨 Filter</span>
+              <span class="timeline-chip chip-cut">✂️ Trim</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="float-badge float-badge-1">
+          <span>⚡</span> Processing 2x faster
+        </div>
+        <div class="float-badge float-badge-2">
+          <span>🎯</span> 98% caption accuracy
+        </div>
+      </div>
+    </div>
+
+    <!-- About Me -->
+    <div class="section about-section scroll-reveal" id="about">
+      <div class="section-label">About Me</div>
+      <h2 class="section-title">About Clip Magic</h2>
+      <div class="about-card">
+        <p class="about-text">
+          Hi, I’m the creator of <span class="about-highlight">Clip Magic</span> — a platform built to make video
+          editing simple, smart, and accessible for everyone.
+        </p>
+        <p class="about-text">
+          I’m passionate about technology, creativity, and building digital solutions that make life easier. Clip Magic
+          was created with the vision of combining innovation and simplicity to help creators edit videos effortlessly
+          using AI-powered tools.
+        </p>
+        <p class="about-text">
+          With a strong interest in programming and web development, I focus on designing user-friendly platforms that
+          deliver powerful results without unnecessary complexity.
+        </p>
+        <p class="about-text">
+          My goal is to continuously improve Clip Magic by adding smarter features, improving performance, and creating
+          a seamless experience for every creator.
+        </p>
+        <div class="about-signature">Thank you for being part of this journey 🚀</div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="section scroll-reveal" id="features">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything you need to <span class="gradient-text">create magic</span></h2>
+      <p class="section-subtitle">From smart AI tools to professional-grade editing — Clip Magic has it all.</p>
+
+      <div class="features-grid">
+        <div class="card feature-card scroll-reveal">
+          <div class="feature-icon feature-icon-purple">🤖</div>
+          <h3>AI Smart Cuts</h3>
+          <p>Our AI analyzes your footage and automatically removes silences, awkward pauses, and filler words to create
+            a polished edit.</p>
+        </div>
+        <div class="card feature-card scroll-reveal">
+          <div class="feature-icon feature-icon-cyan">💬</div>
+          <h3>Auto Captions</h3>
+          <p>Generate accurate captions in 30+ languages instantly. Customize fonts, colors, and animations to match
+            your brand.</p>
+        </div>
+        <div class="card feature-card scroll-reveal">
+          <div class="feature-icon feature-icon-pink">🎨</div>
+          <h3>Cinematic Filters</h3>
+          <p>50+ professional color presets and LUTs that transform your raw footage into a cinematic experience with
+            one click.</p>
+        </div>
+        <div class="card feature-card scroll-reveal">
+          <div class="feature-icon feature-icon-green">🎵</div>
+          <h3>AI Music Sync</h3>
+          <p>Automatically sync your edits to music beats. Choose from our library of 10,000+ royalty-free tracks.</p>
+        </div>
+        <div class="card feature-card scroll-reveal">
+          <div class="feature-icon feature-icon-orange">📱</div>
+          <h3>Multi-Format Export</h3>
+          <p>Export for YouTube, TikTok, Instagram Reels, and more. AI automatically resizes and reframes for each
+            platform.</p>
+        </div>
+        <div class="card feature-card scroll-reveal">
+          <div class="feature-icon feature-icon-blue">☁️</div>
+          <h3>Cloud Storage</h3>
+          <p>All your projects are saved securely in the cloud. Access and edit from anywhere, anytime, on any device.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="section scroll-reveal" style="text-align:center;">
+      <div class="section-label">Process</div>
+      <h2 class="section-title">How it works</h2>
+      <p class="section-subtitle" style="margin: 0 auto 0;">Three simple steps to your perfect video.</p>
+
+      <div class="steps-grid">
+        <div class="step-item scroll-reveal">
+          <div class="step-number-wrap">
+            <div class="step-number">01</div>
+          </div>
+          <h3>Upload Your Footage</h3>
+          <p>Drag and drop your video files — any format, any size, up to 4K resolution.</p>
+        </div>
+        <div class="step-item scroll-reveal">
+          <div class="step-number-wrap">
+            <div class="step-number">02</div>
+          </div>
+          <h3>Let AI Do the Work</h3>
+          <p>Our AI analyzes, cuts, captions, and color-grades your video automatically.</p>
+        </div>
+        <div class="step-item scroll-reveal">
+          <div class="step-number-wrap">
+            <div class="step-number">03</div>
+          </div>
+          <h3>Export & Share</h3>
+          <p>Download in any format or share directly to YouTube, TikTok, and Instagram.</p>
+        </div>
+        <div class="step-item scroll-reveal">
+          <div class="step-number-wrap">
+            <div class="step-number">04</div>
+          </div>
+          <h3>Track Performance</h3>
+          <p>Monitor views, engagement, and reach across all platforms from your dashboard.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section scroll-reveal" id="pricing">
+      <div class="section-label">Pricing</div>
+      <h2 class="section-title">Simple, transparent <span class="gradient-text">pricing</span></h2>
+      <p class="section-subtitle">Start for free. Upgrade when you need more power.</p>
+
+      <div class="pricing-grid">
+        <div class="card pricing-card scroll-reveal">
+          <div class="pricing-name">Starter</div>
+          <div class="pricing-price gradient-text"><sup>$</sup>0<span>/mo</span></div>
+          <div class="pricing-desc">Perfect for creators just getting started.</div>
+          <ul class="pricing-features">
+            <li>5 video exports / month</li>
+            <li>720p max resolution</li>
+            <li>Basic AI cuts</li>
+            <li>5 GB cloud storage</li>
+            <li>Watermark on exports</li>
+          </ul>
+          <a href="login.html" class="btn btn-ghost" style="width:100%; justify-content:center;">Get Started Free</a>
+        </div>
+
+        <div class="card pricing-card featured scroll-reveal">
+          <div class="pricing-name">Pro</div>
+          <div class="pricing-price gradient-text"><sup>$</sup>19<span>/mo</span></div>
+          <div class="pricing-desc">For serious creators and content studios.</div>
+          <ul class="pricing-features">
+            <li>Unlimited video exports</li>
+            <li>4K resolution support</li>
+            <li>All AI tools included</li>
+            <li>100 GB cloud storage</li>
+            <li>No watermark</li>
+            <li>Priority processing</li>
+          </ul>
+          <a href="login.html" class="btn btn-primary" style="width:100%; justify-content:center;">Start Pro Trial</a>
+        </div>
+
+        <div class="card pricing-card scroll-reveal">
+          <div class="pricing-name">Studio</div>
+          <div class="pricing-price gradient-text"><sup>$</sup>49<span>/mo</span></div>
+          <div class="pricing-desc">For agencies and professional teams.</div>
+          <ul class="pricing-features">
+            <li>Everything in Pro</li>
+            <li>10 team seats</li>
+            <li>1 TB cloud storage</li>
+            <li>API access</li>
+            <li>Custom branding</li>
+            <li>Dedicated support</li>
+          </ul>
+          <a href="login.html" class="btn btn-secondary" style="width:100%; justify-content:center;">Contact Sales</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Banner -->
+    <div class="cta-banner scroll-reveal">
+      <h2>Ready to create something <span class="gradient-text">magical?</span></h2>
+      <p>Join 50,000+ creators who use Clip Magic to produce stunning videos.</p>
+      <div class="cta-actions">
+        <a href="upload.html" class="btn btn-primary btn-lg">🚀 Start Editing — It's Free</a>
+        <a href="dashboard.html" class="btn btn-ghost btn-lg">View Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-left">
+        <span style="font-size:1.3rem">🎬</span>
+        <span class="footer-brand">Clip Magic</span>
+        <span class="footer-copy">© 2026 All rights reserved.</span>
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Blog</a>
+        <a href="#">Help</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

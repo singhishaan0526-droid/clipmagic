@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — Clip Magic</title>
+    <meta name="description" content="Manage your video projects on the Clip Magic dashboard." />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        .dashboard-page {
+            padding-top: 90px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 40px;
+        }
+
+        /* Header */
+        .dash-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            gap: 20px;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.6s ease both;
+        }
+
+        .dash-greeting {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .dash-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            transition: var(--transition);
+            animation: fadeInUp 0.6s ease both;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+        }
+
+        .stat-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .stat-card:nth-child(2) {
+            animation-delay: 0.12s;
+        }
+
+        .stat-card:nth-child(3) {
+            animation-delay: 0.19s;
+        }
+
+        .stat-card:nth-child(4) {
+            animation-delay: 0.26s;
+        }
+
+        .stat-card-icon {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+        }
+
+        .stat-card-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.9rem;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+            margin-bottom: 4px;
+        }
+
+        .stat-card-label {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .stat-card-change {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #34d399;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Layout */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 28px;
+            align-items: start;
+        }
+
+        /* Projects */
+        .dash-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .dash-section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Project Cards */
+        .projects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .project-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .project-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+            transform: translateX(4px);
+        }
+
+        .project-thumb {
+            width: 100px;
+            height: 64px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .thumb-1 {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        }
+
+        .thumb-2 {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+        }
+
+        .thumb-3 {
+            background: linear-gradient(135deg, #be185d, #9d174d);
+        }
+
+        .thumb-4 {
+            background: linear-gradient(135deg, #065f46, #047857);
+        }
+
+        .thumb-5 {
+            background: linear-gradient(135deg, #92400e, #b45309);
+        }
+
+        .project-thumb-play {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: var(--transition);
+            font-size: 1.2rem;
+        }
+
+        .project-card:hover .project-thumb-play {
+            opacity: 1;
+        }
+
+        .project-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .project-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .project-meta {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .project-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-done {
+            background: #10b981;
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+        }
+
+        .status-processing {
+            background: #f59e0b;
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+        }
+
+        .status-draft {
+            background: var(--text-muted);
+        }
+
+        /* Sidebar */
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .sidebar-card-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.92rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Storage */
+        .storage-bar {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .storage-bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            background: var(--gradient-main);
+            width: 62%;
+        }
+
+        .storage-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* Recent Activity */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .a-upload {
+            background: rgba(139, 92, 246, 0.15);
+        }
+
+        .a-edit {
+            background: rgba(6, 182, 212, 0.15);
+        }
+
+        .a-export {
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        .a-share {
+            background: rgba(236, 72, 153, 0.15);
+        }
+
+        .activity-text {
+            flex: 1;
+        }
+
+        .activity-text strong {
+            display: block;
+            font-size: 0.83rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .activity-time {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        /* AI Tools Quick Launch */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .tool-btn:hover {
+            background: rgba(139, 92, 246, 0.08);
+            border-color: var(--border-hover);
+        }
+
+        .tool-btn-icon {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+
+        .tool-btn-label {
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 900px) {
+            .dash-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .dashboard-container {
+                padding: 36px 20px;
+            }
+
+            .dash-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dash-header .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .dash-section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .project-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .project-actions {
+                width: 100%;
+            }
+
+            .project-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .project-meta {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <div class="bg-orbs">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+        </div>
+
+        <nav class="navbar">
+            <a href="index.html" class="nav-logo">
+                <div class="nav-logo-icon">🎬</div>
+                <span class="nav-logo-text">Clip Magic</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="upload.html">Upload</a></li>
+                <li><a href="dashboard.html" class="active">Dashboard</a></li>
+            </ul>
+            <div class="nav-cta">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+                    <span class="icon-sun">☀️</span>
+                    <span class="icon-moon">🌙</span>
+                </button>
+                <span style="font-size:0.83rem; color: var(--text-muted);">👤 Alex Rivera</span>
+                <a href="login.html" class="btn btn-ghost btn-sm">Sign Out</a>
+            </div>
+        </nav>
+
+        <div class="dashboard-page">
+            <div class="dashboard-container">
+
+                <!-- Header -->
+                <div class="dash-header">
+                    <div>
+                        <div class="dash-greeting">Good evening 🌙</div>
+                        <h1 class="dash-title">Welcome back, <span class="gradient-text">Alex</span></h1>
+                    </div>
+                    <a href="upload.html" class="btn btn-primary">
+                        ＋ New Project
+                    </a>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-card-icon">🎬</div>
+                        <div class="stat-card-value">12</div>
+                        <div class="stat-card-label">Total Projects</div>
+                        <div class="stat-card-change">↑ 3 this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon">⚡</div>
+                        <div class="stat-card-value">47</div>
+                        <div class="stat-card-label">Videos Exported</div>
+                        <div class="stat-card-change">↑ 12 this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon">☁️</div>
+                        <div class="stat-card-value">6.2<span
+                                style="font-size:1rem;-webkit-text-fill-color:var(--text-muted)"> GB</span></div>
+                        <div class="stat-card-label">Storage Used</div>
+                        <div class="stat-card-change" style="color:var(--text-muted)">3.8 GB free</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon">🎯</div>
+                        <div class="stat-card-value">2.4M</div>
+                        <div class="stat-card-label">Total Views</div>
+                        <div class="stat-card-change">↑ 18% vs last month</div>
+                    </div>
+                </div>
+
+                <!-- Main Grid -->
+                <div class="dash-grid">
+                    <div>
+                        <!-- Projects -->
+                        <div class="dash-section-header">
+                            <div class="dash-section-title">📁 Your Projects</div>
+                            <div class="nav-cta">
+                                <button class="btn btn-ghost btn-sm"
+                                    onclick="showToast('Filter coming soon!','🔍')">Filter</button>
+                                <button class="btn btn-ghost btn-sm"
+                                    onclick="showToast('Sort coming soon!','↕️')">Sort</button>
+                            </div>
+                        </div>
+
+                        <div class="projects-list">
+                            <div class="project-card">
+                                <div class="project-thumb thumb-1">
+                                    🎥
+                                    <div class="project-thumb-play">▶</div>
+                                </div>
+                                <div class="project-info">
+                                    <div class="project-name">Product Launch Reel 2026</div>
+                                    <div class="project-meta">
+                                        <span class="project-meta-item"><span class="status-dot status-done"></span>
+                                            Done</span>
+                                        <span class="project-meta-item">🕒 2:34</span>
+                                        <span class="project-meta-item">📅 Feb 26</span>
+                                        <span class="badge badge-purple"
+                                            style="font-size:0.68rem; padding:3px 8px;">4K</span>
+                                    </div>
+                                </div>
+                                <div class="project-actions">
+                                    <button class="btn btn-secondary btn-sm"
+                                        onclick="window.location.href='editor.html'">Edit</button>
+                                    <button class="btn btn-primary btn-sm"
+                                        onclick="showToast('Downloading…','⬇️')">Export</button>
+                                </div>
+                            </div>
+
+                            <div class="project-card">
+                                <div class="project-thumb thumb-2">
+                                    📱
+                                    <div class="project-thumb-play">▶</div>
+                                </div>
+                                <div class="project-info">
+                                    <div class="project-name">TikTok Weekly Vlog #14</div>
+                                    <div class="project-meta">
+                                        <span class="project-meta-item"><span class="status-dot status-done"></span>
+                                            Done</span>
+                                        <span class="project-meta-item">🕒 0:58</span>
+                                        <span class="project-meta-item">📅 Feb 24</span>
+                                        <span class="badge badge-cyan"
+                                            style="font-size:0.68rem; padding:3px 8px;">9:16</span>
+                                    </div>
+                                </div>
+                                <div class="project-actions">
+                                    <button class="btn btn-secondary btn-sm"
+                                        onclick="window.location.href='editor.html'">Edit</button>
+                                    <button class="btn btn-primary btn-sm"
+                                        onclick="showToast('Downloading…','⬇️')">Export</button>
+                                </div>
+                            </div>
+
+                            <div class="project-card">
+                                <div class="project-thumb thumb-3">
+                                    🎞️
+                                    <div class="project-thumb-play">▶</div>
+                                </div>
+                                <div class="project-info">
+                                    <div class="project-name">Travel Montage — Japan 2026</div>
+                                    <div class="project-meta">
+                                        <span class="project-meta-item"><span
+                                                class="status-dot status-processing"></span> Processing</span>
+                                        <span class="project-meta-item">🕒 4:12</span>
+                                        <span class="project-meta-item">📅 Feb 27</span>
+                                        <span class="badge badge-green" style="font-size:0.68rem; padding:3px 8px;">AI
+                                            Active</span>
+                                    </div>
+                                </div>
+                                <div class="project-actions">
+                                    <button class="btn btn-ghost btn-sm"
+                                        onclick="showToast('Processing…please wait','⏳')">Preview</button>
+                                </div>
+                            </div>
+
+                            <div class="project-card">
+                                <div class="project-thumb thumb-4">
+                                    🏠
+                                    <div class="project-thumb-play">▶</div>
+                                </div>
+                                <div class="project-info">
+                                    <div class="project-name">Real Estate Tour — Apt 4B</div>
+                                    <div class="project-meta">
+                                        <span class="project-meta-item"><span class="status-dot status-done"></span>
+                                            Done</span>
+                                        <span class="project-meta-item">🕒 3:20</span>
+                                        <span class="project-meta-item">📅 Feb 20</span>
+                                        <span class="badge badge-purple"
+                                            style="font-size:0.68rem; padding:3px 8px;">4K</span>
+                                    </div>
+                                </div>
+                                <div class="project-actions">
+                                    <button class="btn btn-secondary btn-sm"
+                                        onclick="window.location.href='editor.html'">Edit</button>
+                                    <button class="btn btn-primary btn-sm"
+                                        onclick="showToast('Downloading…','⬇️')">Export</button>
+                                </div>
+                            </div>
+
+                            <div class="project-card">
+                                <div class="project-thumb thumb-5">
+                                    🎤
+                                    <div class="project-thumb-play">▶</div>
+                                </div>
+                                <div class="project-info">
+                                    <div class="project-name">Podcast Clip — Episode 32</div>
+                                    <div class="project-meta">
+                                        <span class="project-meta-item"><span class="status-dot status-draft"></span>
+                                            Draft</span>
+                                        <span class="project-meta-item">🕒 1:45</span>
+                                        <span class="project-meta-item">📅 Feb 18</span>
+                                    </div>
+                                </div>
+                                <div class="project-actions">
+                                    <button class="btn btn-secondary btn-sm"
+                                        onclick="window.location.href='editor.html'">Edit</button>
+                                    <button class="btn btn-ghost btn-sm"
+                                        onclick="showToast('Deleted!','🗑️')">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="sidebar-section">
+                        <!-- Storage -->
+                        <div class="sidebar-card">
+                            <div class="sidebar-card-title">☁️ Cloud Storage</div>
+                            <div
+                                style="display:flex; justify-content:space-between; font-size:0.82rem; color:var(--text-muted)">
+                                <span>6.2 GB used</span>
+                                <span>10 GB total</span>
+                            </div>
+                            <div class="storage-bar">
+                                <div class="storage-bar-fill"></div>
+                            </div>
+                            <div class="storage-labels">
+                                <span>62% used</span>
+                                <span>3.8 GB free</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm"
+                                style="width:100%; justify-content:center; margin-top:16px;"
+                                onclick="showToast('Upgrade to Pro for 100 GB!','⬆️')">Upgrade Storage</button>
+                        </div>
+
+                        <!-- AI Quick Tools -->
+                        <div class="sidebar-card">
+                            <div class="sidebar-card-title">🤖 Quick AI Tools</div>
+                            <div class="tools-grid">
+                                <div class="tool-btn" onclick="showToast('AI Cut launched!','✂️')">
+                                    <div class="tool-btn-icon">✂️</div>
+                                    <div class="tool-btn-label">Smart Cut</div>
+                                </div>
+                                <div class="tool-btn" onclick="showToast('Captions tool launched!','💬')">
+                                    <div class="tool-btn-icon">💬</div>
+                                    <div class="tool-btn-label">Captions</div>
+                                </div>
+                                <div class="tool-btn" onclick="showToast('Color grade launched!','🎨')">
+                                    <div class="tool-btn-icon">🎨</div>
+                                    <div class="tool-btn-label">Color Grade</div>
+                                </div>
+                                <div class="tool-btn" onclick="showToast('Music sync launched!','🎵')">
+                                    <div class="tool-btn-icon">🎵</div>
+                                    <div class="tool-btn-label">Music Sync</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Feed -->
+                        <div class="sidebar-card">
+                            <div class="sidebar-card-title">🕒 Recent Activity</div>
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <div class="activity-icon a-export">⬇️</div>
+                                    <div class="activity-text">
+                                        <strong>Exported "Product Launch Reel"</strong>
+                                        <div class="activity-time">Today, 6:12 PM</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon a-upload">⬆️</div>
+                                    <div class="activity-text">
+                                        <strong>Uploaded "Travel Montage" (1.2 GB)</strong>
+                                        <div class="activity-time">Today, 3:45 PM</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon a-edit">✏️</div>
+                                    <div class="activity-text">
+                                        <strong>Edited captions on TikTok #14</strong>
+                                        <div class="activity-time">Yesterday, 10:30 AM</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon a-share">🔗</div>
+                                    <div class="activity-text">
+                                        <strong>Shared "Real Estate Tour" to YouTube</strong>
+                                        <div class="activity-time">Feb 20, 2:15 PM</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-left">
+                <span style="font-size:1.3rem">🎬</span>
+                <span class="footer-brand">Clip Magic</span>
+                <span class="footer-copy">© 2026 All rights reserved.</span>
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Help</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProjects();
+        });
+
+        function renderProjects() {
+            const list = document.querySelector('.projects-list');
+            const projects = ProjectService.getProjects();
+
+            if (projects.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align:center; padding: 60px 20px; border: 2px dashed var(--border); border-radius: var(--radius-xl); background: rgba(255,255,255,0.02);">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">🎬</div>
+                        <h3 style="margin-bottom: 10px;">No projects yet</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 24px;">Start your first AI-edited video in seconds.</p>
+                        <a href="upload.html" class="btn btn-primary">Create New Project</a>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = projects.map(p => `
+                <div class="project-card" onclick="window.location.href='editor.html?id=${p.id}'">
+                    <div class="project-thumb thumb-${p.thumbType || 1}">
+                        ${p.thumbIcon || '🎥'}
+                        <div class="project-thumb-play">▶</div>
+                    </div>
+                    <div class="project-info">
+                        <div class="project-name">${p.name}</div>
+                        <div class="project-meta">
+                            <span class="project-meta-item">
+                                <span class="status-dot status-${p.status}"></span>
+                                ${p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+                            </span>
+                            <span class="project-meta-item">🕒 ${p.duration}</span>
+                            <span class="project-meta-item">📅 ${new Date(p.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            ${p.status === 'done' ? '<span class="badge badge-purple" style="font-size:0.68rem; padding:3px 8px;">HD</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="project-actions" onclick="event.stopPropagation()">
+                        <button class="btn btn-secondary btn-sm" onclick="window.location.href='editor.html?id=${p.id}'">Edit</button>
+                        <button class="btn btn-ghost btn-sm" onclick="deleteProj('${p.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteProj(id) {
+            if (confirm('Are you sure you want to delete this project?')) {
+                ProjectService.deleteProject(id);
+                renderProjects();
+                showToast('Project deleted', '🗑️');
+            }
+        }
+    </script>
+</body>
+
+</html>

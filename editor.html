@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Editor — Clip Magic</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* ── Layout ── */
+        body {
+            overflow: hidden;
+        }
+
+        .editor-shell {
+            display: grid;
+            grid-template-rows: 52px 1fr;
+            grid-template-columns: 56px 1fr 280px;
+            height: 100vh;
+            padding-top: 0;
+        }
+
+        /* ── Top Bar ── */
+        .editor-topbar {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        .topbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .topbar-logo-icon {
+            width: 30px;
+            height: 30px;
+            background: var(--gradient-main);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .topbar-logo-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .topbar-divider {
+            width: 1px;
+            height: 28px;
+            background: var(--border);
+        }
+
+        .file-name-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            min-width: 160px;
+            border-bottom: 1px solid transparent;
+            padding: 2px 4px;
+            transition: var(--transition);
+        }
+
+        .file-name-input:focus {
+            border-color: var(--purple);
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 6px;
+            margin-left: auto;
+            align-items: center;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .icon-btn:hover {
+            background: rgba(139, 92, 246, 0.12);
+            color: var(--purple);
+            border-color: var(--border-hover);
+        }
+
+        .icon-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .topbar-status {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding: 0 8px;
+        }
+
+        /* ── Left Toolbar ── */
+        .editor-tools {
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .tool-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .tool-btn:hover,
+        .tool-btn.active {
+            background: rgba(139, 92, 246, 0.14);
+            color: var(--purple);
+        }
+
+        .tool-btn .tool-label {
+            font-size: 0.48rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 2px;
+            line-height: 1;
+        }
+
+        .tool-separator {
+            width: 28px;
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
+        /* ── Center: preview + timeline ── */
+        .editor-center {
+            display: grid;
+            grid-template-rows: 1fr auto;
+            overflow: hidden;
+            background: var(--bg-primary);
+        }
+
+        /* Preview */
+        .preview-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-screen {
+            max-width: 100%;
+            max-height: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #1a0a3a, #0a1a3a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-radius: 4px;
+        }
+
+        /* ── Sunset Vaporwave Special Effects ── */
+        [data-theme="vaporwave"] .editor-center {
+            background: linear-gradient(to bottom, #1a0633 0%, #2d0b5a 50%, #4b0d6b 100%) !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        [data-theme="vaporwave"] .preview-area {
+            background: transparent !important;
+        }
+
+        [data-theme="vaporwave"] .editor-center::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background:
+                linear-gradient(rgba(255, 0, 255, 0.25) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, rgba(255, 0, 255, 0.25) 1.5px, transparent 1.5px);
+            background-size: 50px 50px;
+            transform: perspective(400px) rotateX(60deg);
+            transform-origin: bottom;
+            animation: gridMove 3s linear infinite;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        @keyframes gridMove {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 0 50px;
+            }
+        }
+
+        [data-theme="vaporwave"] .editor-center::after {
+            content: '';
+            position: absolute;
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            height: 320px;
+            background: linear-gradient(#ff00ff, #ffbb00);
+            border-radius: 50%;
+            box-shadow: 0 0 100px rgba(255, 0, 255, 0.6);
+            z-index: -2;
+            opacity: 0.55;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 70%, 0% 70%, 0% 72%, 100% 72%, 100% 76%, 0% 76%, 0% 80%, 100% 80%, 100% 84%, 0% 84%, 0% 90%, 100% 90%, 100% 100%, 0% 100%);
+        }
+
+        [data-theme="vaporwave"] .bg-orbs {
+            display: none;
+        }
+
+        [data-theme="vaporwave"] .preview-screen {
+            border: 2px solid var(--purple);
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.4);
+            background: rgba(0, 0, 0, 0.7) !important;
+            backdrop-filter: blur(12px);
+        }
+
+        .preview-idle {
+            text-align: center;
+        }
+
+        .preview-idle p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        .preview-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            padding: 20px 16px 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ctrl-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            backdrop-filter: blur(4px);
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(139, 92, 246, 0.5);
+        }
+
+        .scrubber-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .scrubber {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .scrubber::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--purple);
+            border-radius: 50%;
+        }
+
+        .time-display {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.72rem;
+            font-family: monospace;
+            white-space: nowrap;
+        }
+
+        /* Timeline */
+        .timeline-area {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 10px 12px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .timeline-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .track {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .track-label {
+            width: 64px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .track-lane {
+            flex: 1;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .track-lane:hover {
+            border-color: var(--border-hover);
+        }
+
+        .track-clip {
+            position: absolute;
+            top: 3px;
+            bottom: 3px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .clip-video {
+            background: rgba(139, 92, 246, 0.35);
+            border: 1px solid rgba(139, 92, 246, 0.6);
+            color: #c4b5fd;
+            left: 0;
+            width: 55%;
+        }
+
+        .clip-caption {
+            background: rgba(6, 182, 212, 0.3);
+            border: 1px solid rgba(6, 182, 212, 0.5);
+            color: #67e8f9;
+            left: 8%;
+            width: 35%;
+        }
+
+        .clip-music {
+            background: rgba(236, 72, 153, 0.3);
+            border: 1px solid rgba(236, 72, 153, 0.5);
+            color: #f9a8d4;
+            left: 0;
+            width: 80%;
+        }
+
+        .track-clip:active {
+            cursor: grabbing;
+            opacity: 0.8;
+        }
+
+        /* Trim Handles */
+        .trim-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: ew-resize;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .trim-handle::after {
+            content: '';
+            width: 2px;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1px;
+        }
+
+        .trim-handle-left {
+            left: 0;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .trim-handle-right {
+            right: 0;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .trim-handle:hover {
+            background: #fff;
+        }
+
+        .clip-trimming {
+            border: 2px solid #fff !important;
+        }
+
+        .clip-dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+            z-index: 100;
+        }
+
+        .clip-delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 18px;
+            height: 18px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .track-clip:hover .clip-delete-btn {
+            display: flex;
+        }
+
+        /* ── Right Properties Panel ── */
+        .editor-props {
+            background: var(--bg-card);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .props-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .props-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 16px;
+        }
+
+        .prop-section {
+            margin-bottom: 20px;
+        }
+
+        .prop-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .prop-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .prop-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            width: 80px;
+            flex-shrink: 0;
+        }
+
+        .prop-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 6px 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .prop-input:focus {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.06);
+        }
+
+        .prop-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .prop-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--gradient-main);
+            border-radius: 50%;
+        }
+
+        .prop-color {
+            flex: 1;
+            height: 32px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .prop-select {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 6px 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .chip-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .chip-option {
+            padding: 7px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.73rem;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .chip-option:hover,
+        .chip-option.active {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--text-primary);
+        }
+
+        .waveform-canvas {
+            width: 100%;
+            height: 50px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .bpm-display {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .bpm-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .bpm-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .music-btn {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        /* ── Template Gallery Styles ── */
+        .template-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .template-card:hover {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .template-thumb {
+            transition: var(--transition);
+        }
+
+        .template-card:hover .template-thumb {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .music-btn:hover {
+            border-color: var(--border-hover);
+            background: rgba(139, 92, 246, 0.08);
+            color: var(--text-primary);
+        }
+
+        .light-theme-note {
+            display: none;
+        }
+
+        [data-theme="light"] .preview-screen {
+            background: linear-gradient(135deg, #3d2b7a, #1a3a5a);
+        }
+
+        /* ── Edit Mode Toggle ── */
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 3px;
+            gap: 0;
+        }
+
+        .mode-btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .mode-btn:hover {
+            color: var(--text-secondary);
+        }
+
+        .mode-btn.active {
+            background: var(--gradient-main);
+            color: white;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
+
+        /* ── AI Tools Panel ── */
+        .ai-tools-panel {
+            display: none;
+        }
+
+        .ai-tools-panel.visible {
+            display: block;
+        }
+
+        .ai-tool-card {
+            background: rgba(139, 92, 246, 0.06);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .ai-tool-card:hover {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.12);
+        }
+
+        .ai-tool-card.active {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3);
+        }
+
+        .ai-tool-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .ai-tool-icon {
+            font-size: 1.2rem;
+        }
+
+        .ai-tool-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .ai-tool-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .ai-run-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 14px;
+            background: var(--gradient-main);
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .ai-run-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--glow-purple);
+        }
+
+        .manual-tools-section {
+            display: block;
+        }
+
+        .manual-tools-section.hidden {
+            display: none;
+        }
+
+        /* ── Export Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .export-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active .export-modal {
+            transform: scale(1);
+        }
+
+        .export-progress-circle {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+            position: relative;
+        }
+
+        .export-progress-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 8;
+        }
+
+        .circle-fill {
+            fill: none;
+            stroke: var(--purple);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 314;
+            stroke-dashoffset: 314;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+
+        .export-pct {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                overflow: auto;
+            }
+
+            .editor-shell {
+                grid-template-columns: 1fr;
+                grid-template-rows: 52px auto 1fr auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .editor-topbar {
+                flex-wrap: wrap;
+                padding: 8px 12px;
+            }
+
+            .topbar-actions {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .editor-tools {
+                grid-column: 1;
+                grid-row: 2;
+                flex-direction: row;
+                justify-content: flex-start;
+                padding: 8px 10px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                overflow-x: auto;
+            }
+
+            .tool-btn {
+                width: 44px;
+                height: 44px;
+                flex-shrink: 0;
+            }
+
+            .editor-center {
+                grid-column: 1;
+                grid-row: 3;
+            }
+
+            .preview-area {
+                min-height: 260px;
+            }
+
+            .editor-props {
+                grid-column: 1;
+                grid-row: 4;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                max-height: 260px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="export-modal">
+            <h2 style="font-family:'Space Grotesk'; margin-bottom:12px;">Exporting Project</h2>
+            <p style="color:var(--text-secondary); margin-bottom:32px; font-size:0.9rem;" id="exportStatus">Preparing
+                assets...</p>
+
+            <div class="export-progress-circle">
+                <svg width="120" height="120">
+                    <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
+                    <circle class="circle-fill" id="exportCircle" cx="60" cy="60" r="50"></circle>
+                </svg>
+                <div class="export-pct" id="exportPct">0%</div>
+            </div>
+
+            <button class="btn btn-ghost" onclick="cancelExport()" id="cancelExportBtn">Cancel Export</button>
+            <button class="btn btn-primary" id="downloadBtn"
+                style="display:none; width:100%; justify-content:center;">Download Video</button>
+        </div>
+    </div>
+    <div class="page-wrapper">
+        <div class="bg-orbs">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+        </div>
+
+        <div class="editor-shell">
+
+            <!-- TOP BAR -->
+            <div class="editor-topbar">
+                <a href="index.html" class="topbar-logo">
+                    <div class="topbar-logo-icon">🎬</div>
+                    <span class="topbar-logo-text">Clip Magic</span>
+                </a>
+                <div class="topbar-divider"></div>
+                <input class="file-name-input" id="fileName" value="Untitled Project" title="Click to rename" />
+                <div class="topbar-divider"></div>
+                <div class="mode-toggle" id="modeToggle">
+                    <button class="mode-btn active" id="modeManual" onclick="setEditMode('manual')">🖊 Manual</button>
+                    <button class="mode-btn" id="modeAI" onclick="setEditMode('ai')">🤖 AI</button>
+                </div>
+                <div class="topbar-divider"></div>
+                <div class="topbar-actions">
+                    <button class="icon-btn" id="undoBtn" onclick="historyUndo()" title="Undo (Ctrl+Z)"
+                        disabled>↩</button>
+                    <button class="icon-btn" id="redoBtn" onclick="historyRedo()" title="Redo (Ctrl+Y)"
+                        disabled>↪</button>
+                    <button class="icon-btn" onclick="saveProject()" title="Save">💾</button>
+                    <div class="topbar-divider"></div>
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                        <span class="icon-sun">☀️</span><span class="icon-moon">🌙</span>
+                    </button>
+                    <a href="dashboard.html" class="btn btn-ghost btn-sm">← Dashboard</a>
+                    <button class="btn btn-primary btn-sm" onclick="exportProject()">⬇ Export</button>
+                </div>
+                <span class="topbar-status" id="statusBar">Ready</span>
+            </div>
+
+            <!-- LEFT TOOLS -->
+            <div class="editor-tools">
+                <button class="tool-btn active" id="tool-select" onclick="setTool('select')" title="Select">
+                    🖱️<span class="tool-label">Select</span>
+                </button>
+                <button class="tool-btn" id="tool-trim" onclick="setTool('trim')" title="Trim">
+                    ✂️<span class="tool-label">Trim</span>
+                </button>
+                <button class="tool-btn" id="tool-split" onclick="setTool('split')" title="Split">
+                    ⚡<span class="tool-label">Split</span>
+                </button>
+                <div class="tool-separator"></div>
+                <button class="tool-btn" id="tool-text" onclick="setTool('text')" title="Text / Captions">
+                    💬<span class="tool-label">Text</span>
+                </button>
+                <button class="tool-btn" id="tool-filter" onclick="setTool('filter')" title="Filters">
+                    🎨<span class="tool-label">Filter</span>
+                </button>
+                <button class="tool-btn" id="tool-audio" onclick="setTool('audio')" title="Audio">
+                    🔊<span class="tool-label">Audio</span>
+                </button>
+                <button class="tool-btn" id="tool-music" onclick="setTool('music')" title="Music (Rust Engine)">
+                    🎵<span class="tool-label">Music</span>
+                </button>
+                <div class="tool-separator"></div>
+                <button class="tool-btn" id="tool-transform" onclick="setTool('transform')" title="Transform">
+                    📐<span class="tool-label">Transform</span>
+                </button>
+                <button class="tool-btn" id="tool-speed" onclick="setTool('speed')" title="Speed">
+                    ⏩<span class="tool-label">Speed</span>
+                </button>
+                <button class="tool-btn" id="tool-templates" onclick="setTool('templates')" title="Templates">
+                    🎬<span class="tool-label">Templates</span>
+                </button>
+                <div class="tool-separator"></div>
+                <button class="tool-btn" onclick="document.getElementById('fileInput2').click()" title="Upload Video">
+                    📁<span class="tool-label">Import</span>
+                </button>
+                <input type="file" id="fileInput2" accept="video/*,image/*" style="display:none"
+                    onchange="loadVideo(event)" />
+                <input type="file" id="musicFileInput" accept="audio/*" style="display:none"
+                    onchange="handleMusicUpload(event)" />
+            </div>
+
+            <!-- CENTER -->
+            <div class="editor-center">
+                <!-- Preview -->
+                <div class="preview-area" id="previewArea">
+                    <div class="preview-screen" id="previewScreen">
+                        <div class="preview-idle" id="previewIdle">
+                            <div style="font-size:3rem">🎬</div>
+                            <p>Drop a video or click <strong>Import</strong> to start editing</p>
+                            <button class="btn btn-primary btn-sm" style="margin-top:12px"
+                                onclick="document.getElementById('fileInput2').click()">Import Video or Image</button>
+                        </div>
+                        <video id="previewVideo"
+                            style="display:none;width:100%;height:100%;object-fit:contain;border-radius:4px"></video>
+
+                        <div class="preview-controls" id="previewControls" style="display:none">
+                            <button class="ctrl-btn" onclick="stepBack()" title="Step back">⏮</button>
+                            <button class="ctrl-btn" id="playBtn" onclick="togglePlay()" title="Play/Pause">▶</button>
+                            <button class="ctrl-btn" onclick="stepForward()" title="Step forward">⏭</button>
+                            <div class="scrubber-wrap">
+                                <input type="range" class="scrubber" id="scrubber" min="0" max="100" value="0"
+                                    oninput="seekVideo(this.value)" />
+                            </div>
+                            <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+                            <div class="topbar-divider" style="height:20px; opacity:0.3"></div>
+                            <button class="ctrl-btn" onclick="toggleGrayscale()" title="Toggle Black & White"
+                                id="bwBtn">🏁</button>
+                            <button class="ctrl-btn" onclick="toggleMute()" title="Mute" id="muteBtn">🔊</button>
+                            <button class="ctrl-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="timeline-area">
+                    <div class="timeline-header">
+                        <span class="timeline-title">📏 Timeline</span>
+                        <div style="display:flex;gap:6px">
+                            <button class="icon-btn" onclick="addTrack('video')" title="Add Video Track">➕📹</button>
+                            <button class="icon-btn" onclick="addTrack('audio')" title="Add Audio Track">➕🎵</button>
+                            <button class="icon-btn" onclick="document.getElementById('fileInput2').click()"
+                                title="Import Asset">📥</button>
+                            <div class="topbar-divider" style="height:20px; margin:0 4px; opacity:0.3"></div>
+                            <button class="icon-btn" onclick="addClip()" title="Add Video Clip">📹</button>
+                            <button class="icon-btn" onclick="addMusic()" title="Add Music Track">🎵</button>
+                            <button class="icon-btn" onclick="addImage()" title="Add Image Overlay">🖼️</button>
+                            <div class="topbar-divider" style="height:20px; margin:0 4px; opacity:0.3"></div>
+                            <button class="icon-btn" onclick="splitAtPlayhead()" title="Split at playhead">✂</button>
+                            <select class="prop-select" style="width:90px;padding:3px 8px;font-size:0.72rem"
+                                onchange="setZoom(this.value)" title="Zoom">
+                                <option value="1">1x zoom</option>
+                                <option value="2">2x zoom</option>
+                                <option value="0.5">0.5x zoom</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="tracksContainer" style="position:relative; overflow-y:auto; flex:1"></div>
+
+                    <!-- Playhead -->
+                    <div id="timelinePlayhead"
+                        style="position:absolute; top:40px; left:100px; bottom:0; width:2px; background:white; z-index:10; pointer-events:none; box-shadow:0 0 10px rgba(255,255,255,0.5); transition: left 0.1s linear;">
+                        <div
+                            style="position:absolute; top:-6px; left:-5px; width:12px; height:12px; background:white; border-radius:50%;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PROPERTIES -->
+            <div class="editor-props" id="propsPanel">
+                <div class="props-header">
+                    <span id="propsIcon">🖱️</span>
+                    <span id="propsTitle">Select Tool</span>
+                </div>
+                <div class="props-body">
+                    <!-- Manual mode content (default) -->
+                    <div class="manual-tools-section" id="manualPropsBody">
+                        <!-- populated by setTool() -->
+                    </div>
+                    <!-- AI mode content -->
+                    <div class="ai-tools-panel" id="aiToolsPanel">
+                        <div class="ai-tool-card" onclick="toggleAITool(this, 'smartcuts')">
+                            <div class="ai-tool-header">
+                                <span class="ai-tool-icon">✂️</span>
+                                <span class="ai-tool-name">Smart Cuts</span>
+                            </div>
+                            <div class="ai-tool-desc">Automatically remove silences, pauses, and filler words from your
+                                video.</div>
+                        </div>
+                        <div class="ai-tool-card" onclick="toggleAITool(this, 'captions')">
+                            <div class="ai-tool-header">
+                                <span class="ai-tool-icon">💬</span>
+                                <span class="ai-tool-name">Auto Captions</span>
+                            </div>
+                            <div class="ai-tool-desc">Generate captions in 30+ languages with accurate timing.</div>
+                        </div>
+                        <div class="ai-tool-card" onclick="toggleAITool(this, 'colorgrade')">
+                            <div class="ai-tool-header">
+                                <span class="ai-tool-icon">🎨</span>
+                                <span class="ai-tool-name">AI Color Grade</span>
+                            </div>
+                            <div class="ai-tool-desc">Apply cinematic color grading that matches your footage style.
+                            </div>
+                        </div>
+                        <div class="ai-tool-card" onclick="toggleAITool(this, 'musicsync')">
+                            <div class="ai-tool-header">
+                                <span class="ai-tool-icon">🎵</span>
+                                <span class="ai-tool-name">Music Sync</span>
+                            </div>
+                            <div class="ai-tool-desc">Detect BPM and automatically sync your cuts to the beat.</div>
+                        </div>
+                        <div class="ai-tool-card" onclick="toggleAITool(this, 'denoise')">
+                            <div class="ai-tool-header">
+                                <span class="ai-tool-icon">🔊</span>
+                                <span class="ai-tool-name">Audio Enhance</span>
+                            </div>
+                            <div class="ai-tool-desc">Remove background noise and normalize audio levels.</div>
+                        </div>
+                        <div class="ai-tool-card" onclick="toggleAITool(this, 'reframe')">
+                            <div class="ai-tool-header">
+                                <span class="ai-tool-icon">📱</span>
+                                <span class="ai-tool-name">Auto Reframe</span>
+                            </div>
+                            <div class="ai-tool-desc">Reframe your video for any platform (TikTok, Reels, Shorts).</div>
+                        </div>
+                        <button class="ai-run-btn" onclick="runAIProcessing()">🤖 Run AI Processing</button>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /editor-shell -->
+    </div>
+
+    <script src="app.js"></script>
+    <script src="music-engine.js"></script>
+    <script>
+        let projectState = {
+            tracks: [
+                { id: 'track-v1', type: 'video', name: 'Video 1', clips: [] },
+                { id: 'track-a1', type: 'audio', name: 'Audio 1', clips: [] }
+            ]
+        };
+
+        // Cache for blob URLs to avoid leaks
+        const AssetManager = {
+            urls: new Map(),
+
+            async getUrl(projectId, assetId) {
+                const key = `${projectId}:${assetId}`;
+                if (this.urls.has(key)) return this.urls.get(key);
+
+                const file = await ProjectService.getAsset(projectId, assetId);
+                if (!file) return null;
+
+                const url = URL.createObjectURL(file);
+                this.urls.set(key, url);
+                return url;
+            },
+
+            revokeAll() {
+                this.urls.forEach(url => URL.revokeObjectURL(url));
+                this.urls.clear();
+            }
+        };
+
+        const clip = {
+            get duration() {
+                const vid = document.getElementById('previewVideo');
+                return vid ? vid.duration : 0;
+            },
+            trim(id, s, e) {
+                // Find clip in tracks
+                for (const track of projectState.tracks) {
+                    const c = track.clips.find(item => item.id === id);
+                    if (c) {
+                        c.trimStart = parseFloat(s);
+                        c.trimEnd = parseFloat(e);
+                        break;
+                    }
+                }
+                renderTimeline();
+            },
+            addCaption(text, opts = {}) {
+                const id = 'c' + Date.now();
+                // Find or create caption track
+                let track = projectState.tracks.find(t => t.type === 'caption');
+                if (!track) {
+                    track = { id: 'track-c1', type: 'caption', name: 'Captions', clips: [] };
+                    projectState.tracks.splice(1, 0, track); // Insert after first video track
+                }
+                track.clips.push({
+                    id, type: 'caption', name: text,
+                    start: opts.start || 0,
+                    duration: (opts.end || 5) - (opts.start || 0),
+                    trimStart: 0, trimEnd: (opts.end || 5) - (opts.start || 0),
+                    color: 'rgba(6, 182, 212, 0.3)', borderColor: 'rgba(6, 182, 212, 0.5)'
+                });
+                renderTimeline();
+            },
+            filter(name) { clipLog(`Filter applied: ${name}`, 'ok'); applyFilterPreview(name); },
+            setVolume(v) { const vid = document.getElementById('previewVideo'); if (vid) vid.volume = Math.max(0, Math.min(1, v)); },
+            speed(s, opts = {}) { clipLog(`Speed: ${s}x`, 'ok'); },
+            split(at) {
+                showToast(`Split at ${at.toFixed(1)}s`, '⚡');
+                for (const track of projectState.tracks) {
+                    if (track.type !== 'video') continue;
+                    for (let i = 0; i < track.clips.length; i++) {
+                        const c = track.clips[i];
+                        const relAt = at - c.start;
+                        if (relAt > 0 && relAt < (c.trimEnd - c.trimStart)) {
+                            const originalTrimEnd = c.trimEnd;
+                            c.trimEnd = c.trimStart + relAt;
+
+                            const newClip = JSON.parse(JSON.stringify(c));
+                            newClip.id = 'v' + Date.now();
+                            newClip.start = at;
+                            newClip.trimStart = c.trimStart + relAt;
+                            newClip.trimEnd = originalTrimEnd;
+
+                            track.clips.splice(i + 1, 0, newClip);
+                            return renderTimeline();
+                        }
+                    }
+                }
+            },
+            log(msg) { clipLog(msg, 'info'); },
+            music: {
+                fadeIn(d) { clipLog(`Music fade in: ${d}s`, 'ok'); },
+                fadeOut(d) { clipLog(`Music fade out: ${d}s`, 'ok'); },
+                setBPM(b) { clipLog(`BPM set to ${b}`, 'ok'); }
+            }
+        };
+
+        function renderTimeline() {
+            const container = document.getElementById('tracksContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const maxDuration = 120; // 2 minutes view
+
+            projectState.tracks.forEach(track => {
+                const trackEl = document.createElement('div');
+                trackEl.className = 'track';
+                trackEl.onmousedown = (e) => seekFromTimeline(e);
+
+                const label = document.createElement('span');
+                label.className = 'track-label';
+                label.innerText = track.name;
+
+                const lane = document.createElement('div');
+                lane.className = 'track-lane';
+                lane.id = `${track.id}Track`;
+                lane.setAttribute('ondragover', 'allowDrop(event)');
+                lane.setAttribute('ondrop', `dropClip(event, this)`);
+
+                track.clips.forEach(c => {
+                    const clipEl = document.createElement('div');
+                    clipEl.className = `track-clip clip-${c.type}`;
+                    clipEl.id = `clip-${c.id}`;
+                    clipEl.draggable = true;
+                    clipEl.ondragstart = (e) => handleDragStart(e, c, track.id);
+                    clipEl.ondragend = (e) => e.target.classList.remove('clip-dragging');
+
+                    const content = document.createElement('span');
+                    content.style.pointerEvents = 'none';
+                    content.innerText = (c.type === 'video' ? '📹 ' : c.type === 'music' ? '🎵 ' : c.type === 'image' ? '🖼️ ' : '💬 ') + c.name;
+                    clipEl.appendChild(content);
+
+                    clipEl.style.background = c.color;
+                    clipEl.style.border = `1px solid ${c.borderColor}`;
+
+                    const duration = c.trimEnd - c.trimStart;
+                    clipEl.style.left = (c.start / maxDuration * 100) + '%';
+                    clipEl.style.width = (duration / maxDuration * 100) + '%';
+
+                    // Selection handler
+                    clipEl.onclick = (e) => {
+                        e.stopPropagation();
+                        // Clear previous selection
+                        document.querySelectorAll('.track-clip').forEach(cl => cl.style.boxShadow = 'none');
+                        clipEl.style.boxShadow = '0 0 0 2px #fff';
+                        selectClip(c);
+                    };
+
+                    // Delete button
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'clip-delete-btn';
+                    delBtn.innerHTML = '×';
+                    delBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        track.clips = track.clips.filter(item => item.id !== c.id);
+                        renderTimeline();
+                        showToast('Clip removed', '🗑️');
+                    };
+                    clipEl.appendChild(delBtn);
+
+                    // Trim handles
+                    const leftHandle = document.createElement('div');
+                    leftHandle.className = 'trim-handle trim-handle-left';
+                    leftHandle.onmousedown = (e) => startTrim(e, c, 'left');
+
+                    const rightHandle = document.createElement('div');
+                    rightHandle.className = 'trim-handle trim-handle-right';
+                    rightHandle.onmousedown = (e) => startTrim(e, c, 'right');
+
+                    clipEl.appendChild(leftHandle);
+                    clipEl.appendChild(rightHandle);
+                    lane.appendChild(clipEl);
+                });
+
+                trackEl.appendChild(label);
+                trackEl.appendChild(lane);
+                container.appendChild(trackEl);
+            });
+        }
+
+        // ── Drag & Drop Logic ──
+        function handleDragStart(e, clip, trackId) {
+            e.dataTransfer.setData('clipId', clip.id);
+            e.dataTransfer.setData('fromTrackId', trackId);
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => e.target.classList.add('clip-dragging'), 0);
+        }
+
+        function allowDrop(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function dropClip(e, laneEl) {
+            e.preventDefault();
+            const clipId = e.dataTransfer.getData('clipId');
+            const fromTrackId = e.dataTransfer.getData('fromTrackId');
+            const toTrackId = laneEl.id.replace('Track', '');
+
+            const fromTrack = projectState.tracks.find(t => t.id === fromTrackId);
+            const toTrack = projectState.tracks.find(t => t.id === toTrackId);
+
+            if (!fromTrack || !toTrack) return;
+
+            const clipIdx = fromTrack.clips.findIndex(c => c.id === clipId);
+            if (clipIdx === -1) return;
+
+            const clip = fromTrack.clips[clipIdx];
+
+            const rect = laneEl.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const maxDuration = 120;
+            const newStart = Math.max(0, (x / rect.width) * maxDuration);
+
+            if (fromTrackId !== toTrackId) {
+                fromTrack.clips.splice(clipIdx, 1);
+                toTrack.clips.push(clip);
+            }
+
+            clip.start = newStart;
+            toTrack.clips.sort((a, b) => a.start - b.start);
+
+            renderTimeline();
+            showToast('Clip moved', '🎯');
+            syncPreviewDisplay();
+        }
+
+        let trimmingClip = null;
+        let trimSide = null;
+        let initialX = 0;
+        let initialTrimValue = 0;
+        let initialStart = 0;
+
+        function startTrim(e, clipObj, side) {
+            e.stopPropagation();
+            trimmingClip = clipObj;
+            trimSide = side;
+            initialX = e.clientX;
+            initialTrimValue = side === 'left' ? clipObj.trimStart : clipObj.trimEnd;
+            initialStart = clipObj.start;
+
+            document.getElementById(`clip-${clipObj.id}`).classList.add('clip-trimming');
+
+            window.addEventListener('mousemove', handleTrim);
+            window.addEventListener('mouseup', stopTrim);
+        }
+
+        function handleTrim(e) {
+            if (!trimmingClip) return;
+            const deltaX = e.clientX - initialX;
+            const laneWidth = document.querySelector('.track-lane').offsetWidth;
+            const secondsPerPixel = 120 / laneWidth;
+            const deltaSeconds = deltaX * secondsPerPixel;
+
+            if (trimSide === 'left') {
+                const newTrimStart = Math.max(0, initialTrimValue + deltaSeconds);
+                if (newTrimStart < trimmingClip.trimEnd - 0.5) {
+                    const shift = newTrimStart - trimmingClip.trimStart;
+                    trimmingClip.trimStart = newTrimStart;
+                    trimmingClip.start += shift;
+                }
+            } else {
+                const newTrimEnd = Math.max(trimmingClip.trimStart + 0.5, initialTrimValue + deltaSeconds);
+                trimmingClip.trimEnd = newTrimEnd;
+            }
+            renderTimeline();
+
+            // Preview seek
+            const vid = document.getElementById('previewVideo');
+            if (vid) {
+                vid.currentTime = trimmingClip.start + (trimSide === 'left' ? 0 : (trimmingClip.trimEnd - trimmingClip.trimStart));
+            }
+        }
+
+        function stopTrim() {
+            if (trimmingClip) {
+                document.getElementById(`clip-${trimmingClip.id}`).classList.remove('clip-trimming');
+            }
+            trimmingClip = null;
+            window.removeEventListener('mousemove', handleTrim);
+            window.removeEventListener('mouseup', stopTrim);
+            showToast('Trim updated', '✂️');
+        }
+
+        function clipLog(msg, type = 'info') {
+            console.log('[ClipMagic]', msg);
+        }
+
+        // ── Tool switching ──
+        const toolConfigs = {
+            select: {
+                icon: '🖱️', title: 'Select Tool',
+                html: `<div class="prop-section"><div class="prop-section-title">Clip Info</div>
+      <div class="prop-row"><span class="prop-label">Name</span><input class="prop-input" value="Main Clip"/></div>
+      <div class="prop-row"><span class="prop-label">Duration</span><input class="prop-input" id="durDisplay" value="—" readonly/></div>
+      <div class="prop-row"><span class="prop-label">Resolution</span><input class="prop-input" value="1920 × 1080" readonly/></div>
+      <div class="prop-row"><span class="prop-label">FPS</span><input class="prop-input" value="30" readonly/></div>
+    </div>`
+            },
+            trim: {
+                icon: '✂️', title: 'Trim Tool',
+                html: `<div class="prop-section">
+      <div class="prop-section-title">Interactive Trimming</div>
+      <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.4; margin-bottom:12px;">
+        Use the <strong>white handles</strong> on the edges of any clip in the timeline to trim its duration.
+      </p>
+      <div class="ai-tool-card" style="cursor:default; background:rgba(139, 92, 246, 0.05);">
+        <div class="ai-tool-header">
+          <span class="ai-tool-icon">💡</span>
+          <span class="ai-tool-name">Pro Tip</span>
+        </div>
+        <div class="ai-tool-desc">Drag handles for frame-accurate trimming. The preview updates in real-time.</div>
+      </div>
+    </div>`
+            },
+            split: {
+                icon: '⚡', title: 'Split Tool',
+                html: `<div class="prop-section">
+      <div class="prop-section-title">Clip Splitting</div>
+      <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.4; margin-bottom:12px;">
+        Move the playhead to where you want to cut, and use the <strong>Split (✂)</strong> button in the timeline header.
+      </p>
+      <button class="music-btn" onclick="splitAtPlayhead()">⚡ Split at Playhead</button>
+      <button class="music-btn" style="margin-top:8px;" onclick="showToast('AI smart cuts applied!','🤖')">🤖 AI Smart Cuts</button>
+    </div>`
+            },
+            text: {
+                icon: '💬', title: 'Text & Captions',
+                html: `<div class="prop-section"><div class="prop-section-title">Add Caption</div>
+      <div class="prop-row"><span class="prop-label">Text</span><input class="prop-input" id="capText" value="Hello World!" /></div>
+      <div class="prop-row"><span class="prop-label">Start (s)</span><input class="prop-input" type="number" id="capStart" value="0" step="0.5"/></div>
+      <div class="prop-row"><span class="prop-label">End (s)</span><input class="prop-input" type="number" id="capEnd" value="5" step="0.5"/></div>
+      <div class="prop-row"><span class="prop-label">Style</span>
+        <select class="prop-select" id="capStyle">
+          <option>bold</option><option>italic</option><option>outline</option><option>glow</option>
+        </select>
+      </div>
+      <div class="prop-row"><span class="prop-label">Color</span><input type="color" class="prop-color" value="#ffffff"/></div>
+      <div class="prop-row"><span class="prop-label">Size</span><input type="range" class="prop-slider" min="12" max="72" value="32"/></div>
+      <button class="music-btn" onclick="addCaption()">＋ Add Caption</button>
+      <button class="music-btn" onclick="showToast('AI captions generated!','🤖')">🤖 Auto-Generate Captions</button>
+    </div>`
+            },
+            filter: {
+                icon: '🎨', title: 'Color & Filters',
+                html: `<div class="prop-section"><div class="prop-section-title">Presets</div>
+      <div class="chip-grid">
+        <div class="chip-option active" onclick="applyFilter(this,'none')">Original</div>
+        <div class="chip-option" onclick="applyFilter(this,'cinematic')">🎬 Cinematic</div>
+        <div class="chip-option" onclick="applyFilter(this,'warm')">🌅 Warm</div>
+        <div class="chip-option" onclick="applyFilter(this,'cold')">❄️ Cold</div>
+        <div class="chip-option" onclick="applyFilter(this,'bw')">⬛ B&W</div>
+        <div class="chip-option" onclick="applyFilter(this,'vivid')">✨ Vivid</div>
+        <div class="chip-option" onclick="applyFilter(this,'vintage')">📷 Vintage</div>
+        <div class="chip-option" onclick="applyFilter(this,'neon')">🌈 Neon</div>
+      </div>
+    </div>
+    <div class="prop-section"><div class="prop-section-title">Adjustments</div>
+      <div class="prop-row"><span class="prop-label">Brightness</span><input type="range" class="prop-slider" min="0" max="200" value="100" oninput="adjustCSS('brightness',this.value+'%')"/></div>
+      <div class="prop-row"><span class="prop-label">Contrast</span><input type="range" class="prop-slider" min="0" max="200" value="100" oninput="adjustCSS('contrast',this.value+'%')"/></div>
+      <div class="prop-row"><span class="prop-label">Saturation</span><input type="range" class="prop-slider" min="0" max="200" value="100" oninput="adjustCSS('saturate',this.value+'%')"/></div>
+      <div class="prop-row"><span class="prop-label">Blur</span><input type="range" class="prop-slider" min="0" max="10" value="0" step="0.1" oninput="adjustCSS('blur',this.value+'px')"/></div>
+    </div>`
+            },
+            audio: {
+                icon: '🔊', title: 'Audio',
+                html: `<div class="prop-section"><div class="prop-section-title">Volume</div>
+      <div class="prop-row"><span class="prop-label">Volume</span><input type="range" class="prop-slider" min="0" max="150" value="100" oninput="clip.setVolume(this.value/100)"/></div>
+      <div class="prop-row"><span class="prop-label">Fade In</span><input class="prop-input" type="number" value="0" step="0.5"/> s</div>
+      <div class="prop-row"><span class="prop-label">Fade Out</span><input class="prop-input" type="number" value="0" step="0.5"/> s</div>
+    </div><div class="prop-section"><div class="prop-section-title">Noise Suppression</div>
+      <button class="music-btn" onclick="showToast('AI noise suppression applied!','🤖')">🤖 Remove Background Noise</button>
+      <button class="music-btn" onclick="showToast('Audio normalized!','✅')">📊 Normalize Audio</button>
+    </div>`
+            },
+            music: {
+                icon: '🎵', title: 'Music Engine (Rust/WASM)',
+                html: `<div class="prop-section"><div class="prop-section-title">🦀 Rust Music Engine</div>
+      <canvas class="waveform-canvas" id="waveformCanvas"></canvas>
+      <div class="bpm-display">
+        <div class="bpm-value gradient-text" id="bpmVal">—</div>
+        <div class="bpm-label">BPM Detected</div>
+      </div>
+      <button class="music-btn" onclick="analyzeAudio()">🎵 Analyze BPM</button>
+      <button class="music-btn" onclick="syncCuts()">🎯 Snap Cuts to Beats</button>
+      <button class="music-btn" onclick="generateWaveform()">📊 Draw Waveform</button>
+    </div>
+    <div class="prop-section">
+      <div class="prop-section-title">Bass Adjuster</div>
+      <div class="prop-row">
+        <span class="prop-label">Bass</span>
+        <input type="range" class="prop-slider" min="-20" max="20" value="0" step="1" oninput="adjustBass(this.value)"/>
+        <span id="bassValueDisp" style="font-size:0.75rem; width:25px; text-align:right;">0dB</span>
+      </div>
+    </div>
+    <div class="prop-section"><div class="prop-section-title">Music Library</div>
+      <button class="btn btn-primary btn-sm" style="width:100%; margin-bottom:12px; justify-content:center;" onclick="uploadLocalMusic()">📁 Upload Local Music</button>
+      <button class="music-btn" onclick="showToast('Chill lo-fi loaded!','🎵')">🎵 Chill Lo-Fi</button>
+      <button class="music-btn" onclick="showToast('Epic cinematic loaded!','🎬')">🎬 Epic Cinematic</button>
+      <button class="music-btn" onclick="showToast('Upbeat pop loaded!','🎤')">🎤 Upbeat Pop</button>
+    </div>`
+            },
+            transform: {
+                icon: '📐', title: 'Transform',
+                html: `<div class="prop-section"><div class="prop-section-title">Position & Size</div>
+      <div class="prop-row"><span class="prop-label">X</span><input class="prop-input" type="number" value="0"/></div>
+      <div class="prop-row"><span class="prop-label">Y</span><input class="prop-input" type="number" value="0"/></div>
+      <div class="prop-row"><span class="prop-label">Scale</span><input type="range" class="prop-slider" min="10" max="200" value="100" oninput="scaleVideo(this.value)"/></div>
+      <div class="prop-row"><span class="prop-label">Rotation</span><input type="range" class="prop-slider" min="-180" max="180" value="0" oninput="rotateVideo(this.value)"/></div>
+    </div><div class="prop-section"><div class="prop-section-title">Aspect Ratio</div>
+      <div class="chip-grid">
+        <div class="chip-option active" onclick="setAR(this,'16/9')">16:9</div>
+        <div class="chip-option" onclick="setAR(this,'9/16')">9:16</div>
+        <div class="chip-option" onclick="setAR(this,'1/1')">1:1</div>
+        <div class="chip-option" onclick="setAR(this,'4/3')">4:3</div>
+      </div>
+    </div>`
+            },
+            speed: {
+                icon: '⏩', title: 'Speed Control',
+                html: `<div class="prop-section"><div class="prop-section-title">Playback Speed</div>
+      <div class="chip-grid">
+        <div class="chip-option" onclick="setSpeedChip(this,0.25)">0.25x</div>
+        <div class="chip-option" onclick="setSpeedChip(this,0.5)">0.5x</div>
+        <div class="chip-option active" onclick="setSpeedChip(this,1)">1x</div>
+        <div class="chip-option" onclick="setSpeedChip(this,1.5)">1.5x</div>
+        <div class="chip-option" onclick="setSpeedChip(this,2)">2x</div>
+        <div class="chip-option" onclick="setSpeedChip(this,4)">4x</div>
+      </div>
+      <div class="prop-row" style="margin-top:12px"><span class="prop-label">Custom</span><input type="range" class="prop-slider" min="0.1" max="4" value="1" step="0.1" oninput="setSpeedCustom(this.value)"/></div>
+    </div>`
+            },
+            templates: {
+                icon: '🎬', title: 'Template Gallery',
+                html: `<div class="prop-section">
+      <div class="prop-section-title">Trending Presets</div>
+      <div class="template-grid" style="display:grid; grid-template-columns:1fr; gap:12px; margin-top:10px;">
+        <div class="template-card" onclick="applyTemplate('velocity')">
+          <div class="template-thumb" style="background:linear-gradient(45deg, #12063a, #1a0a4a); height:80px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.8rem;">⚡</div>
+          <div class="template-info" style="margin-top:10px;">
+            <div style="font-size:0.9rem; font-weight:700;">Velocity Edit</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">Trending TikTok style with fast, beat-synced cuts.</div>
+          </div>
+        </div>
+        <div class="template-card" onclick="applyTemplate('vlog')">
+          <div class="template-thumb" style="background:linear-gradient(45deg, #3a0612, #4a0a1a); height:80px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.8rem;">📸</div>
+          <div class="template-info" style="margin-top:10px;">
+            <div style="font-size:0.9rem; font-weight:700;">Cinematic Vlog</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">Smooth Reel intro with text overlays and 9:16 focus.</div>
+          </div>
+        </div>
+        <div class="template-card" onclick="applyTemplate('beatdrop')">
+          <div class="template-thumb" style="background:linear-gradient(45deg, #063a12, #0a4a1a); height:80px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.8rem;">🥁</div>
+          <div class="template-info" style="margin-top:10px;">
+            <div style="font-size:0.9rem; font-weight:700;">Beat Drop</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">High-intensity flashes synced to heavy bass drops.</div>
+          </div>
+        </div>
+      </div>
+    </div>`
+            }
+        };
+
+        function applyTemplate(id) {
+            if (!confirm('Apply this template? Your current timeline will be replaced.')) return;
+
+            showToast(`Applying ${id} template...`, '🪄');
+
+            const templates = {
+                velocity: {
+                    tracks: [
+                        {
+                            id: 't-v1', type: 'video', name: 'Main Content', clips: [
+                                { id: 'c1', type: 'video', name: 'Intro Placeholder', start: 0, duration: 1.5, trimStart: 0, trimEnd: 1.5, color: '#8b5cf633', borderColor: '#8b5cf6' },
+                                { id: 'c2', type: 'video', name: 'Fast Cut 1', start: 1.5, duration: 0.5, trimStart: 0, trimEnd: 0.5, color: '#8b5cf655', borderColor: '#8b5cf6' },
+                                { id: 'c3', type: 'video', name: 'Fast Cut 2', start: 2.0, duration: 0.5, trimStart: 0, trimEnd: 0.5, color: '#8b5cf655', borderColor: '#8b5cf6' },
+                                { id: 'c4', type: 'video', name: 'Fast Cut 3', start: 2.5, duration: 0.5, trimStart: 0, trimEnd: 0.5, color: '#8b5cf655', borderColor: '#8b5cf6' },
+                                { id: 'c5', type: 'video', name: 'Hook Scene', start: 3.0, duration: 4.0, trimStart: 0, trimEnd: 4.0, color: '#8b5cf688', borderColor: '#8b5cf6' }
+                            ]
+                        },
+                        { id: 't-a1', type: 'audio', name: 'Beat Track', clips: [] }
+                    ]
+                },
+                vlog: {
+                    tracks: [
+                        {
+                            id: 't-v1', type: 'video', name: 'Story Clips', clips: [
+                                { id: 'v1', type: 'video', name: 'Opening Scene', start: 0, duration: 3, trimStart: 0, trimEnd: 3, color: '#ec489933', borderColor: '#ec4899' },
+                                { id: 'v2', type: 'video', name: 'Transition', start: 3, duration: 2, trimStart: 0, trimEnd: 2, color: '#ec489955', borderColor: '#ec4899' },
+                                { id: 'v3', type: 'video', name: 'Main Vlog', start: 5, duration: 5, trimStart: 0, trimEnd: 5, color: '#ec489933', borderColor: '#ec4899' }
+                            ]
+                        },
+                        {
+                            id: 't-o1', type: 'video', name: 'Overlays', clips: [
+                                { id: 'i1', type: 'image', name: 'Title/Logo', start: 0.5, duration: 3, trimStart: 0, trimEnd: 3, color: '#fbbf2433', borderColor: '#fbbf24' }
+                            ]
+                        }
+                    ]
+                },
+                beatdrop: {
+                    tracks: [
+                        {
+                            id: 't-v1', type: 'video', name: 'Flash Sequence', clips: Array.from({ length: 8 }, (_, i) => ({
+                                id: `beat-c${i}`, type: 'video', name: `Drop ${i + 1}`, start: i * 0.3, duration: 0.15, trimStart: 0, trimEnd: 0.15,
+                                color: i % 2 === 0 ? '#06b6d444' : '#8b5cf644', borderColor: i % 2 === 0 ? '#06b6d4' : '#8b5cf6'
+                            }))
+                        },
+                        { id: 't-a1', type: 'audio', name: 'Heavy Bass', clips: [] }
+                    ]
+                }
+            };
+
+            const selected = templates[id];
+            if (selected) {
+                projectState.tracks = JSON.parse(JSON.stringify(selected.tracks));
+                renderTimeline();
+                setTool('select');
+                showToast('Template applied! Click a clip to replace it with your media.', '✅');
+            }
+        }
+
+        let selectedClip = null;
+
+        function selectClip(clip) {
+            selectedClip = clip;
+            setTool('select');
+            updateSelectPanel(clip);
+        }
+
+        function updateSelectPanel(c) {
+            const body = document.getElementById('manualPropsBody');
+            if (!body) return;
+
+            const duration = (c.trimEnd - c.trimStart).toFixed(2);
+            body.innerHTML = `
+                <div class="prop-section">
+                    <div class="prop-section-title">Clip: ${c.name}</div>
+                    <div class="prop-row"><span class="prop-label">Type</span><input class="prop-input" value="${c.type}" readonly/></div>
+                    <div class="prop-row"><span class="prop-label">Start</span><input class="prop-input" value="${c.start.toFixed(2)}s" readonly/></div>
+                    <div class="prop-row"><span class="prop-label">Duration</span><input class="prop-input" value="${duration}s" readonly/></div>
+                    
+                    <div style="margin-top:15px;">
+                        <button class="music-btn" onclick="triggerReplaceAsset()">
+                            🔄 Replace with My Media
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function triggerReplaceAsset() {
+            if (!selectedClip) return;
+            const input = document.getElementById('fileInput2');
+            if (input) {
+                input.onchange = (e) => handleReplaceAsset(e);
+                input.click();
+            }
+        }
+
+        async function handleReplaceAsset(e) {
+            const file = e.target.files[0];
+            if (!file || !selectedClip) return;
+
+            showToast('Loading asset...', '⏳');
+            try {
+                // Use ProjectService to store the asset
+                const assetId = `asset-${Date.now()}`;
+                await ProjectService.addProjectAsset(projectState.id, assetId, file);
+
+                // Update selected clip
+                selectedClip.assetId = assetId;
+                selectedClip.name = file.name;
+
+                // If it's a video, we might want to update the duration, 
+                // but for templates we often want to keep the original timing.
+                // We'll let the user trim if needed.
+
+                renderTimeline();
+                showToast('Asset replaced!', '✅');
+                syncPreviewDisplay();
+
+                // Reset input for next use
+                e.target.value = '';
+                // Restore default upload handler
+                e.target.onchange = (ev) => loadVideo(ev);
+            } catch (err) {
+                console.error('Replacement error:', err);
+                showToast('Error replacing asset', '❌');
+            }
+        }
+
+        function setTool(name) {
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tool-' + name)?.classList.add('active');
+            const cfg = toolConfigs[name] || toolConfigs.select;
+            document.getElementById('propsIcon').textContent = cfg.icon;
+            document.getElementById('propsTitle').textContent = cfg.title;
+            document.getElementById('manualPropsBody').innerHTML = cfg.html;
+            setStatus('Tool: ' + cfg.title);
+
+            // Restore bass value if switching to music tool
+            if (name === 'music') {
+                const slider = document.querySelector('input[oninput="adjustBass(this.value)"]');
+                const disp = document.getElementById('bassValueDisp');
+                if (slider && disp) {
+                    const currentBass = projectState.bassGain || 0;
+                    slider.value = currentBass;
+                    disp.textContent = (currentBass > 0 ? '+' : '') + currentBass + 'dB';
+                }
+            }
+
+            // Switch to manual mode when a tool is clicked
+            if (currentEditMode !== 'manual') {
+                setEditMode('manual');
+            }
+        }
+
+        // ── Edit Mode: Manual vs AI ──
+        let currentEditMode = 'manual';
+        function setEditMode(mode) {
+            currentEditMode = mode;
+            const manualSection = document.getElementById('manualPropsBody');
+            const aiSection = document.getElementById('aiToolsPanel');
+            const manualBtn = document.getElementById('modeManual');
+            const aiBtn = document.getElementById('modeAI');
+            const toolBar = document.querySelector('.editor-tools');
+
+            if (mode === 'manual') {
+                manualBtn.classList.add('active');
+                aiBtn.classList.remove('active');
+                manualSection.classList.remove('hidden');
+                manualSection.style.display = 'block';
+                aiSection.classList.remove('visible');
+                toolBar.style.opacity = '1';
+                toolBar.style.pointerEvents = 'auto';
+                document.getElementById('propsIcon').textContent = '🖊';
+                document.getElementById('propsTitle').textContent = 'Manual Editing';
+                setStatus('Mode: Manual Editing');
+                setTool('select');
+            } else {
+                aiBtn.classList.add('active');
+                manualBtn.classList.remove('active');
+                manualSection.style.display = 'none';
+                aiSection.classList.add('visible');
+                toolBar.style.opacity = '0.4';
+                toolBar.style.pointerEvents = 'none';
+                document.getElementById('propsIcon').textContent = '🤖';
+                document.getElementById('propsTitle').textContent = 'AI Editing';
+                setStatus('Mode: AI Editing');
+            }
+        }
+
+        function toggleAITool(card, tool) {
+            card.classList.toggle('active');
+        }
+
+        function runAIProcessing() {
+            const vid = document.getElementById('previewVideo');
+            if (!vid || !vid.src || vid.src === '') {
+                showToast('Load a video first!', '⚠️');
+                return;
+            }
+
+            const selected = document.querySelectorAll('.ai-tool-card.active');
+            if (selected.length === 0) {
+                showToast('Select at least one AI tool', '⚠️');
+                return;
+            }
+
+            const names = [];
+            selected.forEach(card => {
+                const name = card.querySelector('.ai-tool-name');
+                if (name) names.push(name.textContent);
+            });
+
+            showToast('Running: ' + names.join(', ') + '...', '🤖', 2000);
+            setStatus('AI Processing...');
+
+            // Simulate AI processing
+            let progress = 0;
+            const btn = document.querySelector('.ai-run-btn');
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    btn.innerHTML = '🤖 Run AI Processing';
+                    btn.disabled = false;
+                    showToast('AI processing complete!', '✅');
+                    setStatus('AI Processing ✓');
+                    pushHistory({ type: 'ai-process', tools: names });
+                }
+            }, 500);
+        }
+
+        // ── Project Loading ──
+        let currentProject = null;
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const mode = params.get('mode');
+            if (id) {
+                currentProject = ProjectService.getProject(id);
+                if (currentProject) {
+                    await loadProjectData(currentProject);
+                } else {
+                    showToast('Project not found', '⚠️');
+                }
+            }
+            // Set editing mode from URL parameter or project data
+            if (mode === 'ai' || (currentProject && currentProject.editMode === 'ai')) {
+                setEditMode('ai');
+            } else {
+                setEditMode('manual');
+            }
+        });
+
+        async function loadProjectData(project) {
+            document.getElementById('fileName').value = project.name;
+
+            // Restore projectState if it exists in the saved project
+            if (project.projectState) {
+                projectState = JSON.parse(JSON.stringify(project.projectState));
+            }
+
+            // Load the primary video if available
+            const videoClip = projectState.tracks.find(t => t.type === 'video')?.clips[0];
+            if (videoClip && videoClip.assetId) {
+                const url = await AssetManager.getUrl(project.id, videoClip.assetId);
+                if (url) {
+                    const vid = document.getElementById('previewVideo');
+                    vid.src = url;
+                    vid.style.display = 'block';
+                    document.getElementById('previewIdle').style.display = 'none';
+                    document.getElementById('previewControls').style.display = 'flex';
+                    vid.onloadedmetadata = () => {
+                        const d = document.getElementById('durDisplay');
+                        if (d) d.value = formatTime(vid.duration);
+                        // Update duration in state if it's 0 (first load)
+                        if (videoClip.duration === 0) {
+                            videoClip.duration = vid.duration;
+                            videoClip.trimEnd = vid.duration;
+                        }
+                        setStatus('Loaded: ' + project.name);
+                        renderTimeline();
+                    };
+                }
+            } else {
+                renderTimeline();
+            }
+            showToast(`Project "${project.name}" loaded`, '📂');
+        }
+
+        // ── Video playback ──
+        let playing = false, muted = false;
+        let currentVideoUrl = null;
+        async function loadVideo(e) {
+            const f = e.target.files[0]; if (!f) return;
+            const isVideo = f.type.startsWith('video/');
+            const isImage = f.type.startsWith('image/');
+
+            if (!isVideo && !isImage) {
+                showToast('Please select a video or image file.', '⚠️');
+                return;
+            }
+
+            showToast(`Importing ${f.name}...`, '📥');
+            const assetId = 'asset-' + Date.now();
+            await ProjectService.saveAsset(currentProject.id, assetId, f);
+
+            const url = await AssetManager.getUrl(currentProject.id, assetId);
+
+            if (isVideo) {
+                const vid = document.getElementById('previewVideo');
+                vid.src = url;
+                vid.style.display = 'block';
+                document.getElementById('previewIdle').style.display = 'none';
+                document.getElementById('previewControls').style.display = 'flex';
+                document.getElementById('fileName').value = f.name;
+
+                vid.onloadedmetadata = () => {
+                    // Add to timeline
+                    let track = projectState.tracks.find(t => t.type === 'video');
+                    if (!track) {
+                        track = { id: 'track-v' + Date.now(), type: 'video', name: 'Video', clips: [] };
+                        projectState.tracks.push(track);
+                    }
+
+                    const lastClip = track.clips[track.clips.length - 1];
+                    const startTime = lastClip ? lastClip.start + (lastClip.trimEnd - lastClip.trimStart) : 0;
+
+                    track.clips.push({
+                        id: 'c' + Date.now(), assetId, name: f.name, type: 'video',
+                        start: startTime, duration: vid.duration, trimStart: 0, trimEnd: vid.duration,
+                        color: 'rgba(139, 92, 246, 0.35)', borderColor: 'rgba(139, 92, 246, 0.6)'
+                    });
+                    renderTimeline();
+                    showToast('Video added to timeline', '🎬');
+                };
+            } else {
+                // Handle Image
+                let track = projectState.tracks.find(t => t.type === 'video');
+                if (!track) {
+                    track = { id: 'track-v' + Date.now(), type: 'video', name: 'Video', clips: [] };
+                    projectState.tracks.push(track);
+                }
+
+                const lastClip = track.clips[track.clips.length - 1];
+                const startTime = lastClip ? lastClip.start + (lastClip.trimEnd - lastClip.trimStart) : 0;
+
+                track.clips.push({
+                    id: 'c' + Date.now(), assetId, name: f.name, type: 'image',
+                    start: startTime, duration: 5, trimStart: 0, trimEnd: 5,
+                    color: 'rgba(251, 191, 36, 0.35)', borderColor: 'rgba(251, 191, 36, 0.6)'
+                });
+                renderTimeline();
+                showToast('Image added to timeline', '🖼️');
+            }
+        }
+
+        // Sequence Loader: Handles switching video sources and image overlays
+        let lastAssetId = null;
+        async function syncPreviewDisplay() {
+            const vid = document.getElementById('previewVideo');
+            if (!vid) return;
+            const time = vid.currentTime;
+
+            // Find the active clip across all video tracks (prioritizing higher tracks)
+            let activeClip = null;
+            const videoTracks = projectState.tracks.filter(t => t.type === 'video');
+
+            for (let i = videoTracks.length - 1; i >= 0; i--) {
+                const clip = videoTracks[i].clips.find(c => time >= c.start && time <= c.start + (c.trimEnd - c.trimStart));
+                if (clip) {
+                    activeClip = clip;
+                    break;
+                }
+            }
+
+            let imgPreview = document.getElementById('imgPreview') || createImgPreview();
+
+            if (activeClip) {
+                if (activeClip.type === 'video') {
+                    // Switch video source if it changed
+                    if (activeClip.assetId && activeClip.assetId !== lastAssetId) {
+                        const url = await AssetManager.getUrl(currentProject.id, activeClip.assetId);
+                        if (url) {
+                            const wasPaused = vid.paused;
+                            vid.src = url;
+                            vid.currentTime = time - activeClip.start + activeClip.trimStart;
+                            if (!wasPaused) vid.play();
+                            lastAssetId = activeClip.assetId;
+                        }
+                    } else if (!activeClip.assetId) {
+                        // It's a placeholder, hide video or show placeholder?
+                        // For now we just don't update src, effectively showing nothing or last frame.
+                        lastAssetId = null;
+                    }
+                    imgPreview.style.display = 'none';
+                } else if (activeClip.type === 'image') {
+                    if (activeClip.assetId) {
+                        const url = await AssetManager.getUrl(currentProject.id, activeClip.assetId);
+                        imgPreview.src = url;
+                        imgPreview.style.display = 'block';
+                        lastAssetId = activeClip.assetId;
+                    } else {
+                        imgPreview.style.display = 'none';
+                    }
+                }
+            } else {
+                imgPreview.style.display = 'none';
+                lastAssetId = null;
+            }
+        }
+
+        function createImgPreview() {
+            const img = document.createElement('img');
+            img.id = 'imgPreview';
+            img.style.cssText = 'display:none;width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;pointer-events:none;z-index:5';
+            document.getElementById('previewScreen').appendChild(img);
+            return img;
+        }
+
+        // Initialize video event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const vid = document.getElementById('previewVideo');
+            if (!vid) return;
+
+            vid.ontimeupdate = () => {
+                const s = document.getElementById('scrubber');
+                const t = document.getElementById('timeDisplay');
+                const playhead = document.getElementById('timelinePlayhead');
+                if (!s || !t) return;
+
+                const progress = (vid.currentTime / vid.duration) || 0;
+                s.value = progress * 100;
+                t.textContent = formatTime(vid.currentTime) + ' / ' + formatTime(vid.duration);
+
+                // Sync Playhead: start at 100px (label width), max 100% of lane
+                if (playhead) {
+                    const laneWidth = document.querySelector('.track-lane').offsetWidth;
+                    playhead.style.left = (100 + (progress * laneWidth)) + 'px';
+                }
+                syncPreviewDisplay();
+            };
+        });
+
+        function togglePlay() {
+            const vid = document.getElementById('previewVideo');
+            const btn = document.getElementById('playBtn');
+            if (vid.paused) { vid.play(); btn.textContent = '⏸'; playing = true; }
+            else { vid.pause(); btn.textContent = '▶'; playing = false; }
+        }
+        function seekVideo(v) {
+            const vid = document.getElementById('previewVideo');
+            if (vid && vid.duration) vid.currentTime = (v / 100) * vid.duration;
+            syncPreviewDisplay();
+        }
+        function stepBack() { const v = document.getElementById('previewVideo'); v.currentTime = Math.max(0, v.currentTime - 5); }
+        function stepForward() { const v = document.getElementById('previewVideo'); v.currentTime = Math.min(v.duration, v.currentTime + 5); }
+        function toggleMute() {
+            const vid = document.getElementById('previewVideo');
+            vid.muted = !vid.muted; muted = vid.muted;
+            document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+
+            // Sync music mute? (Optional, but usually expected)
+            const ctx = MusicEngine.getCtx();
+            if (ctx.state === 'running' && muted) ctx.suspend();
+            else if (ctx.state === 'suspended' && !muted) ctx.resume();
+        }
+        function toggleFullscreen() { document.getElementById('previewArea').requestFullscreen?.(); }
+        let grayscaleEnabled = false;
+        function toggleGrayscale() {
+            grayscaleEnabled = !grayscaleEnabled;
+            const vid = document.getElementById('previewVideo');
+            const btn = document.getElementById('bwBtn');
+            if (grayscaleEnabled) {
+                vid.style.filter = (vid.style.filter ? vid.style.filter + ' ' : '') + 'grayscale(1)';
+                btn.style.background = 'var(--purple)';
+                showToast('Black & White View Enabled', '🏁');
+            } else {
+                vid.style.filter = vid.style.filter.replace('grayscale(1)', '').trim();
+                btn.style.background = 'rgba(255, 255, 255, 0.15)';
+                showToast('Color View Restored', '🌈');
+            }
+        }
+        function formatTime(s) { const m = Math.floor(s / 60); return m + ':' + (Math.floor(s % 60)).toString().padStart(2, '0'); }
+
+        // ── Keyboard shortcuts ──
+        document.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+            if (e.code === 'KeyS' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveProject(); }
+            if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); historyUndo(); }
+        });
+
+        // ── History ──
+        const editHistory = [], editFuture = [];
+        function pushHistory(action) {
+            editHistory.push(action); editFuture.length = 0;
+            document.getElementById('undoBtn').disabled = false;
+        }
+        function historyUndo() { if (!editHistory.length) return; editFuture.push(editHistory.pop()); showToast('Undone', '↩'); if (!editHistory.length) document.getElementById('undoBtn').disabled = true; document.getElementById('redoBtn').disabled = false; }
+        function historyRedo() { if (!editFuture.length) return; editHistory.push(editFuture.pop()); showToast('Redone', '↪'); if (!editFuture.length) document.getElementById('redoBtn').disabled = true; document.getElementById('undoBtn').disabled = false; }
+
+        // ── Filters ──
+        const filterCSS = {
+            none: '', cinematic: 'contrast(1.1) saturate(0.85) sepia(0.15)',
+            warm: 'sepia(0.3) saturate(1.4) brightness(1.05)',
+            cold: 'hue-rotate(20deg) saturate(1.1) brightness(1.05)',
+            bw: 'grayscale(1)', vivid: 'saturate(1.8) contrast(1.1)',
+            vintage: 'sepia(0.5) contrast(0.9) brightness(1.05)',
+            neon: 'saturate(2) hue-rotate(90deg) invert(0.05)'
+        };
+        function applyFilter(el, name) {
+            document.querySelectorAll('.chip-option').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+
+            const vid = document.getElementById('previewVideo');
+            if (vid) {
+                vid.style.filter = filterCSS[name] || '';
+            }
+            showToast(`Filter "${name}" applied`, '🎨');
+            pushHistory({ type: 'filter', name });
+        }
+        function applyFilterPreview(name) {
+            const vid = document.getElementById('previewVideo');
+            if (vid) vid.style.filter = filterCSS[name] || '';
+        }
+        const cssFilters = {};
+        function adjustCSS(prop, val) {
+            cssFilters[prop] = val;
+            const vid = document.getElementById('previewVideo');
+            if (vid) { const combined = Object.entries(cssFilters).map(([k, v]) => `${k}(${v})`).join(' '); vid.style.filter = combined; }
+        }
+
+        // ── Other UI helpers ──
+        function addCaption() {
+            const text = document.getElementById('capText')?.value || 'Caption';
+            const s = parseFloat(document.getElementById('capStart')?.value || 0);
+            const e = parseFloat(document.getElementById('capEnd')?.value || 5);
+            const style = document.getElementById('capStyle')?.value || 'bold';
+            clip.addCaption(text, { start: s, end: e, style });
+            showToast('Caption added!', '💬');
+            pushHistory({ type: 'caption', text, s, e });
+        }
+        function splitAtPlayhead() { const vid = document.getElementById('previewVideo'); clip.split(vid.currentTime || 0); }
+        function scaleVideo(v) { const vid = document.getElementById('previewVideo'); if (vid) vid.style.transform = `scale(${v / 100}) rotate(${0}deg)`; }
+        function rotateVideo(v) { const vid = document.getElementById('previewVideo'); if (vid) vid.style.transform = `scale(1) rotate(${v}deg)`; }
+        function setAR(el, ar) { document.querySelectorAll('.chip-option').forEach(c => c.classList.remove('active')); el.classList.add('active'); document.getElementById('previewScreen').style.aspectRatio = ar; }
+        function setSpeedChip(el, s) { document.querySelectorAll('.chip-option').forEach(c => c.classList.remove('active')); el.classList.add('active'); clip.speed(s); const vid = document.getElementById('previewVideo'); if (vid) vid.playbackRate = s; }
+        function setSpeedCustom(v) { clip.speed(parseFloat(v)); const vid = document.getElementById('previewVideo'); if (vid) vid.playbackRate = parseFloat(v); }
+        function addTrack(type = 'video') {
+            const id = 'track-' + Date.now();
+            const name = (type === 'video' ? 'Video ' : type === 'audio' ? 'Audio ' : 'Overlay ') + (projectState.tracks.length + 1);
+            projectState.tracks.push({ id, type, name, clips: [] });
+            renderTimeline();
+            showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} track added`, '➕');
+        }
+
+        function addClip() {
+            let track = projectState.tracks.find(t => t.type === 'video');
+            if (!track) {
+                track = { id: 'track-v' + Date.now(), type: 'video', name: 'Video', clips: [] };
+                projectState.tracks.push(track);
+            }
+
+            const lastClip = track.clips[track.clips.length - 1];
+            const startTime = lastClip ? lastClip.start + (lastClip.trimEnd - lastClip.trimStart) : 0;
+
+            track.clips.push({
+                id: 'v' + Date.now(), type: 'video', name: 'New Clip',
+                start: startTime, duration: 5, trimStart: 0, trimEnd: 5,
+                color: 'rgba(139, 92, 246, 0.35)', borderColor: 'rgba(139, 92, 246, 0.6)'
+            });
+            renderTimeline();
+            showToast('Video clip added', '🎬');
+        }
+
+        function addMusic() {
+            let track = projectState.tracks.find(t => t.type === 'audio' || t.type === 'music');
+            if (!track) {
+                track = { id: 'track-a' + Date.now(), type: 'audio', name: 'Audio', clips: [] };
+                projectState.tracks.push(track);
+            }
+
+            const lastClip = track.clips[track.clips.length - 1];
+            const startTime = lastClip ? lastClip.start + (lastClip.trimEnd - lastClip.trimStart) : 0;
+
+            track.clips.push({
+                id: 'm' + Date.now(), type: 'music', name: 'New Music',
+                start: startTime, duration: 15, trimStart: 0, trimEnd: 15,
+                color: 'rgba(236, 72, 153, 0.3)', borderColor: 'rgba(236, 72, 153, 0.5)'
+            });
+            renderTimeline();
+            showToast('Music track added', '🎵');
+        }
+
+        function addImage() {
+            let track = projectState.tracks.find(t => t.type === 'video');
+            if (!track) {
+                track = { id: 'track-v' + Date.now(), type: 'video', name: 'Video', clips: [] };
+                projectState.tracks.push(track);
+            }
+
+            const lastClip = track.clips[track.clips.length - 1];
+            const startTime = lastClip ? lastClip.start + (lastClip.trimEnd - lastClip.trimStart) : 0;
+
+            track.clips.push({
+                id: 'i' + Date.now(), type: 'image', name: 'Image Overlay',
+                start: startTime, duration: 5, trimStart: 0, trimEnd: 5,
+                color: 'rgba(251, 191, 36, 0.35)', borderColor: 'rgba(251, 191, 36, 0.6)'
+            });
+            renderTimeline();
+            showToast('Image overlay added', '🖼️');
+        }
+        function updateTimeline() { renderTimeline(); setStatus('Timeline updated'); }
+        function setStatus(msg) { document.getElementById('statusBar').textContent = msg; }
+        function saveProject() {
+            if (currentProject) {
+                const name = document.getElementById('fileName').value;
+                ProjectService.updateProject(currentProject.id, {
+                    name,
+                    projectState: JSON.parse(JSON.stringify(projectState)) // Force deep copy
+                });
+                showToast('Project saved!', '💾');
+                setStatus('Saved ✓');
+            } else {
+                showToast('No project to save!', '⚠️');
+            }
+        }
+        function exportProject() {
+            const modal = document.getElementById('exportModal');
+            const circle = document.getElementById('exportCircle');
+            const pctText = document.getElementById('exportPct');
+            const statusText = document.getElementById('exportStatus');
+            const cancelBtn = document.getElementById('cancelExportBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            modal.classList.add('active');
+            cancelBtn.style.display = 'inline-flex';
+            downloadBtn.style.display = 'none';
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    statusText.textContent = 'Ready to download!';
+                    cancelBtn.style.display = 'none';
+                    downloadBtn.style.display = 'inline-flex';
+                    downloadBtn.onclick = () => {
+                        showToast('Downloading your masterpiece!', '🎉');
+                        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+                    };
+                }
+
+                const offset = 314 - (progress / 100) * 314;
+                circle.style.strokeDashoffset = offset;
+                pctText.textContent = Math.floor(progress) + '%';
+
+                if (progress > 30) statusText.textContent = 'Rendering timeline...';
+                if (progress > 60) statusText.textContent = 'Applying AI magic...';
+                if (progress > 85) statusText.textContent = 'Encoding project...';
+            }, 150);
+
+            window.currentExportInterval = interval;
+        }
+
+        function cancelExport() {
+            clearInterval(window.currentExportInterval);
+            document.getElementById('exportModal').classList.remove('active');
+            showToast('Export cancelled', '⚠️');
+        }
+        async function analyzeAudio() {
+            const vid = document.getElementById('previewVideo');
+            if (!vid || !vid.src) {
+                showToast('Load a video first!', '⚠️');
+                return;
+            }
+
+            showToast('Analyzing audio...', '🎵');
+            setStatus('Analyzing BPM...');
+
+            try {
+                // Fetch the video file as an array buffer
+                const response = await fetch(vid.src);
+                const arrayBuffer = await response.arrayBuffer();
+
+                // Use MusicEngine from music-engine.js
+                const bpm = await MusicEngine.analyzeBPM(arrayBuffer);
+
+                document.getElementById('bpmVal').textContent = Math.round(bpm);
+                showToast(`BPM Detected: ${Math.round(bpm)}`, '🎯');
+                setStatus('Analysis complete ✓');
+            } catch (e) {
+                console.error(e);
+                showToast('Analysis failed', '❌');
+            }
+        }
+
+        function generateWaveform() {
+            const canvas = document.getElementById('waveformCanvas');
+            if (canvas) {
+                MusicEngine.drawWaveform(canvas, []); // Data will be mocked inside drawWaveform for now
+                showToast('Waveform generated!', '📊');
+            }
+        }
+
+        function syncCuts() {
+            showToast('Syncing cuts to beats...', '🎯');
+            setTimeout(() => {
+                showToast('Cuts synced successfully!', '✅');
+            }, 1000);
+        }
+
+        // ── Music Enhancements ──
+        let currentMusicBuffer = null;
+        let musicStartTime = 0;
+
+        function uploadLocalMusic() {
+            document.getElementById('musicFileInput').click();
+        }
+
+        async function handleMusicUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast(`Uploading ${file.name}...`, '🎵');
+            setStatus('Loading music...');
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const ctx = MusicEngine.getCtx();
+                currentMusicBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+                // Add to project state
+                const id = 'm_local_' + Date.now();
+                projectState.tracks.music.push({
+                    id, type: 'music', name: file.name,
+                    start: 0, duration: currentMusicBuffer.duration,
+                    trimStart: 0, trimEnd: currentMusicBuffer.duration,
+                    color: 'rgba(236, 72, 153, 0.45)', borderColor: '#ec4899',
+                    isLocal: true
+                });
+
+                renderTimeline();
+                showToast('Music added to timeline!', '✅');
+                setStatus('Music loaded ✓');
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to load music', '❌');
+            }
+        }
+
+        function adjustBass(val) {
+            const db = parseFloat(val);
+            projectState.bassGain = db; // Save for persistence
+            MusicEngine.set_bass(db);
+            const disp = document.getElementById('bassValueDisp');
+            if (disp) disp.textContent = (db > 0 ? '+' : '') + db + 'dB';
+        }
+
+        // Synchronize music with video playback
+        const vid = document.getElementById('previewVideo');
+        if (vid) {
+            vid.addEventListener('play', () => {
+                if (currentMusicBuffer) {
+                    MusicEngine.play_music(currentMusicBuffer, vid.currentTime);
+                }
+            });
+            vid.addEventListener('pause', () => {
+                MusicEngine.stop_music();
+            });
+            vid.addEventListener('seeking', () => {
+                if (currentMusicBuffer && !vid.paused) {
+                    MusicEngine.play_music(currentMusicBuffer, vid.currentTime);
+                } else if (currentMusicBuffer && vid.paused) {
+                    // Just update internal state if needed, but play_music starts immediately
+                }
+            });
+        }
+
+        function seekFromTimeline(e) {
+            // Prevent seeking if clicking a clip specifically (handled by clip dragging later)
+            if (e.target.classList.contains('track-clip') || e.target.parentElement.classList.contains('track-clip')) return;
+
+            const lane = document.querySelector('.track-lane');
+            const rect = lane.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const pct = x / rect.width;
+
+            const vid = document.getElementById('previewVideo');
+            if (vid.duration) {
+                vid.currentTime = pct * vid.duration;
+            }
+        }
+
+        // Init
+        renderTimeline();
+        setTool('select');
+    </script>
+</body>
+
+</html>

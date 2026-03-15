@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In — Clip Magic</title>
+    <meta name="description" content="Sign in or create your Clip Magic account to start editing videos with AI." />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        .auth-page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Left Panel */
+        .auth-left {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.25) 0%, rgba(6, 182, 212, 0.15) 100%);
+            border-right: 1px solid var(--border);
+            padding: 60px 56px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-left::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at 30% 50%, rgba(139, 92, 246, 0.2) 0%, transparent 60%);
+        }
+
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 64px;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .auth-logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--gradient-main);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .auth-logo-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-pitch {
+            position: relative;
+        }
+
+        .auth-pitch h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .auth-pitch p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.75;
+            margin-bottom: 40px;
+        }
+
+        /* Feature checklist */
+        .auth-features {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+        }
+
+        .auth-feat {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .auth-feat-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .auth-feat-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .auth-feat-text strong {
+            color: var(--text-primary);
+            display: block;
+            font-size: 0.92rem;
+        }
+
+        /* User avatars */
+        .auth-users {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 48px;
+            position: relative;
+        }
+
+        .auth-avatars {
+            display: flex;
+        }
+
+        .auth-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-primary);
+            margin-left: -10px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-card);
+        }
+
+        .auth-avatar:first-child {
+            margin-left: 0;
+        }
+
+        .auth-users-text {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .auth-users-text strong {
+            color: var(--text-primary);
+            display: block;
+        }
+
+        /* Right Panel — Form */
+        .auth-right {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 56px;
+            animation: fadeInUp 0.6s ease both;
+        }
+
+        .auth-form-header {
+            margin-bottom: 36px;
+        }
+
+        .auth-form-header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .auth-form-header p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+        }
+
+        /* Tabs */
+        .auth-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            margin-bottom: 32px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .auth-tab.active {
+            background: var(--gradient-main);
+            color: white;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Social Auth */
+        .social-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        /* Forms */
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .signup-form {
+            display: none;
+            flex-direction: column;
+        }
+
+        /* Password input */
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper .form-input {
+            padding-right: 46px;
+        }
+
+        .input-eye {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            transition: var(--transition);
+            user-select: none;
+        }
+
+        .input-eye:hover {
+            color: var(--text-secondary);
+        }
+
+        /* Remember row */
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--purple);
+        }
+
+        .link-btn {
+            background: none;
+            border: none;
+            color: var(--purple-light);
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            text-decoration: underline;
+            transition: var(--transition);
+        }
+
+        .link-btn:hover {
+            color: var(--purple);
+        }
+
+        /* Submit */
+        .auth-submit {
+            margin-bottom: 20px;
+        }
+
+        /* Bottom link */
+        .auth-switch {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .auth-switch a {
+            color: var(--purple-light);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-switch a:hover {
+            color: var(--purple);
+        }
+
+        @media (max-width: 768px) {
+            .auth-page {
+                grid-template-columns: 1fr;
+            }
+
+            .auth-left {
+                display: none;
+            }
+
+            .auth-right {
+                padding: 40px 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-right {
+                padding: 32px 18px;
+            }
+
+            .auth-form-header h1 {
+                font-size: 1.7rem;
+            }
+
+            .social-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .auth-tabs {
+                flex-direction: column;
+            }
+
+            .auth-tab {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <div class="bg-orbs">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+        </div>
+
+        <div class="auth-page">
+            <!-- Left -->
+            <div class="auth-left">
+                <a href="index.html" class="auth-logo">
+                    <div class="auth-logo-icon">🎬</div>
+                    <span class="auth-logo-text">Clip Magic</span>
+                </a>
+
+                <div class="auth-pitch">
+                    <h2>Edit smarter.<br><span class="gradient-text">Create faster.</span></h2>
+                    <p>Join 50,000+ creators using AI to produce stunning videos in a fraction of the time.</p>
+
+                    <div class="auth-features">
+                        <div class="auth-feat">
+                            <div class="auth-feat-icon">⚡</div>
+                            <div class="auth-feat-text">
+                                <strong>10x Faster Editing</strong>
+                                AI handles the boring parts so you can focus on creativity.
+                            </div>
+                        </div>
+                        <div class="auth-feat">
+                            <div class="auth-feat-icon">🔒</div>
+                            <div class="auth-feat-text">
+                                <strong>Secure Cloud Storage</strong>
+                                Your footage is encrypted and backed up automatically.
+                            </div>
+                        </div>
+                        <div class="auth-feat">
+                            <div class="auth-feat-icon">📱</div>
+                            <div class="auth-feat-text">
+                                <strong>Any Device, Anywhere</strong>
+                                Edit from your laptop, tablet, or phone — seamlessly.
+                            </div>
+                        </div>
+                        <div class="auth-feat">
+                            <div class="auth-feat-icon">🎁</div>
+                            <div class="auth-feat-text">
+                                <strong>Free Plan Available</strong>
+                                Start for free. Upgrade only when you need more power.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="auth-users">
+                        <div class="auth-avatars">
+                            <div class="auth-avatar">😊</div>
+                            <div class="auth-avatar">🧑</div>
+                            <div class="auth-avatar">👩</div>
+                            <div class="auth-avatar">🧔</div>
+                            <div class="auth-avatar">👱</div>
+                        </div>
+                        <div class="auth-users-text">
+                            <strong>50,000+ creators</strong>
+                            already using Clip Magic
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right -->
+            <div class="auth-right">
+                <!-- Theme Toggle -->
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode"
+                    style="position:absolute; top:28px; right:28px;">
+                    <span class="icon-sun">☀️</span>
+                    <span class="icon-moon">🌙</span>
+                </button>
+
+                <div class="auth-form-header">
+                    <h1>Welcome <span class="gradient-text">back</span> 👋</h1>
+                    <p>Sign in to your account or create a new one.</p>
+                </div>
+
+                <!-- Tabs -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
+                    <button class="auth-tab" id="tabSignUp" onclick="switchTab('signup')">Create Account</button>
+                </div>
+
+                <!-- Social Auth -->
+                <div class="social-buttons">
+                    <button class="social-btn" onclick="showToast('Google auth coming soon!','🔵')">
+                        🌐 Google
+                    </button>
+                    <button class="social-btn" onclick="showToast('GitHub auth coming soon!','⚫')">
+                        🐙 GitHub
+                    </button>
+                </div>
+
+                <div class="divider">or continue with email</div>
+
+                <!-- Sign In Form -->
+                <form class="auth-form" id="signinForm" onsubmit="handleSignIn(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email address</label>
+                        <input type="email" class="form-input" id="signinEmail" placeholder="you@example.com"
+                            required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" class="form-input" id="signinPass" placeholder="Enter your password"
+                                required />
+                            <span class="input-eye" onclick="togglePassword('signinPass', this)">👁️</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked /> Remember me
+                        </label>
+                        <button type="button" class="link-btn"
+                            onclick="showToast('Reset link sent to your email!','📧')">Forgot password?</button>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg auth-submit"
+                        style="width:100%; justify-content:center;">
+                        Sign In →
+                    </button>
+                </form>
+
+                <!-- Sign Up Form -->
+                <form class="signup-form" id="signupForm" onsubmit="handleSignUp(event)">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-input" id="signupName" placeholder="Alex Rivera" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email address</label>
+                        <input type="email" class="form-input" id="signupEmail" placeholder="you@example.com"
+                            required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" class="form-input" id="signupPass" placeholder="8+ characters"
+                                required />
+                            <span class="input-eye" onclick="togglePassword('signupPass', this)">👁️</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:24px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" required /> I agree to the <a href="#"
+                                style="color:var(--purple-light)">Terms</a> and <a href="#"
+                                style="color:var(--purple-light)">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg auth-submit"
+                        style="width:100%; justify-content:center;">
+                        Create Account 🚀
+                    </button>
+                </form>
+
+                <div class="auth-switch" id="authSwitch">
+                    Don't have an account? <a onclick="switchTab('signup')">Sign up free →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        function switchTab(tab) {
+            const signin = document.getElementById('signinForm');
+            const signup = document.getElementById('signupForm');
+            const tabSI = document.getElementById('tabSignIn');
+            const tabSU = document.getElementById('tabSignUp');
+            const header = document.querySelector('.auth-form-header h1');
+            const switchEl = document.getElementById('authSwitch');
+
+            if (tab === 'signin') {
+                signin.style.display = 'flex';
+                signup.style.display = 'none';
+                tabSI.classList.add('active');
+                tabSU.classList.remove('active');
+                header.innerHTML = 'Welcome <span class="gradient-text">back</span> 👋';
+                switchEl.innerHTML = "Don't have an account? <a onclick=\"switchTab('signup')\">Sign up free →</a>";
+            } else {
+                signin.style.display = 'none';
+                signup.style.display = 'flex';
+                tabSI.classList.remove('active');
+                tabSU.classList.add('active');
+                header.innerHTML = 'Create your <span class="gradient-text">account</span> ✨';
+                switchEl.innerHTML = "Already have an account? <a onclick=\"switchTab('signin')\">Sign in →</a>";
+            }
+        }
+
+        function togglePassword(id, icon) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+
+        function handleSignIn(e) {
+            e.preventDefault();
+            showToast('Signing you in...', '🔐', 1500);
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1800);
+        }
+
+        function handleSignUp(e) {
+            e.preventDefault();
+            showToast('Account created! Welcome to Clip Magic!', '🎉', 2000);
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 2200);
+        }
+    </script>
+</body>
+
+</html>

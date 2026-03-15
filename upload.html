@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload — Clip Magic</title>
+    <meta name="description" content="Upload your video to Clip Magic and let AI handle the editing." />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        .upload-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 90px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .upload-header {
+            margin-bottom: 48px;
+            animation: fadeInUp 0.6s ease both;
+        }
+
+        .upload-header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .upload-header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 2px dashed rgba(139, 92, 246, 0.35);
+            border-radius: var(--radius-xl);
+            background: rgba(139, 92, 246, 0.04);
+            padding: 80px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            animation: fadeInUp 0.6s ease 0.1s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06) 0%, transparent 70%);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.08);
+        }
+
+        .drop-zone:hover::before,
+        .drop-zone.drag-over::before {
+            opacity: 1;
+        }
+
+        .drop-zone.drag-over {
+            transform: scale(1.01);
+            box-shadow: var(--glow-purple);
+        }
+
+        .drop-icon {
+            width: 96px;
+            height: 96px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            margin: 0 auto 24px;
+            transition: var(--transition);
+        }
+
+        .drop-zone:hover .drop-icon {
+            background: rgba(139, 92, 246, 0.18);
+            transform: scale(1.08);
+            box-shadow: var(--glow-purple);
+        }
+
+        .drop-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .drop-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            margin-bottom: 28px;
+        }
+
+        .drop-meta {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .drop-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* File Input */
+        #fileInput {
+            display: none;
+        }
+
+        /* Preview Section */
+        .preview-section {
+            margin-top: 32px;
+            display: none;
+            animation: fadeInUp 0.5s ease both;
+        }
+
+        .preview-section.visible {
+            display: block;
+        }
+
+        .preview-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+
+        .preview-video {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            background: #000;
+            display: block;
+        }
+
+        .preview-footer {
+            padding: 24px 28px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .preview-info {
+            flex: 1;
+        }
+
+        .preview-filename {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+
+        .preview-filesize {
+            color: var(--text-muted);
+            font-size: 0.83rem;
+        }
+
+        /* AI Options */
+        .ai-options {
+            margin-top: 32px;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .ai-options h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Editing Mode Selector */
+        .editing-mode-selector {
+            margin-top: 32px;
+            animation: fadeInUp 0.6s ease 0.15s both;
+        }
+
+        .editing-mode-selector h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mode-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .mode-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            position: relative;
+        }
+
+        .mode-card:hover {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .mode-card.selected {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.08);
+            box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3), var(--glow-purple);
+        }
+
+        .mode-card-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin: 0 auto 16px;
+            transition: var(--transition);
+        }
+
+        .mode-card.selected .mode-card-icon {
+            background: var(--gradient-main);
+        }
+
+        .mode-card-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .mode-card-desc {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .mode-card-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .mode-card.selected .mode-card-badge {
+            border-color: var(--purple);
+            background: var(--gradient-main);
+        }
+
+        .mode-card.selected .mode-card-badge::after {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            margin: 5px auto;
+        }
+
+        @media (max-width: 480px) {
+            .mode-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 14px;
+        }
+
+        .option-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: var(--transition);
+            user-select: none;
+        }
+
+        .option-toggle:hover,
+        .option-toggle.active {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.07);
+        }
+
+        .option-toggle.active {
+            box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3);
+        }
+
+        .option-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option-icon {
+            font-size: 1.3rem;
+        }
+
+        .option-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .option-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Toggle switch */
+        .toggle {
+            width: 40px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 11px;
+            position: relative;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: var(--transition);
+        }
+
+        .option-toggle.active .toggle {
+            background: var(--purple);
+        }
+
+        .option-toggle.active .toggle::after {
+            left: 21px;
+        }
+
+        /* Upload Button */
+        .upload-actions {
+            margin-top: 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        /* Progress */
+        .progress-section {
+            margin-top: 28px;
+            display: none;
+        }
+
+        .progress-section.visible {
+            display: block;
+        }
+
+        .progress-bar-wrap {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            height: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--gradient-main);
+            border-radius: 8px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        /* Sidebar Tips */
+        .upload-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 28px;
+            align-items: start;
+        }
+
+        .tips-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            position: sticky;
+            top: 110px;
+            animation: fadeInUp 0.6s ease 0.4s both;
+        }
+
+        .tips-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tip-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tip-item:last-child {
+            border-bottom: none;
+        }
+
+        .tip-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--purple);
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 7px;
+        }
+
+        .tip-text {
+            font-size: 0.83rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .upload-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .tips-card {
+                position: static;
+            }
+
+            .upload-container {
+                padding: 40px 24px;
+            }
+
+            .drop-zone {
+                padding: 56px 20px;
+            }
+
+            .drop-meta {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .preview-footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .upload-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .upload-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .upload-container {
+                padding: 32px 18px;
+            }
+
+            .drop-icon {
+                width: 72px;
+                height: 72px;
+                font-size: 2.2rem;
+            }
+
+            .drop-title {
+                font-size: 1.2rem;
+            }
+
+            .upload-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+
+        <div class="bg-orbs">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+        </div>
+
+        <nav class="navbar">
+            <a href="index.html" class="nav-logo">
+                <div class="nav-logo-icon">🎬</div>
+                <span class="nav-logo-text">Clip Magic</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="upload.html" class="active">Upload</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+            </ul>
+            <div class="nav-cta">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+                    <span class="icon-sun">☀️</span>
+                    <span class="icon-moon">🌙</span>
+                </button>
+                <a href="login.html" class="btn btn-ghost btn-sm">Sign In</a>
+                <a href="upload.html" class="btn btn-primary btn-sm">Start Free</a>
+            </div>
+        </nav>
+
+        <div class="upload-page">
+            <div class="upload-container">
+
+                <div class="upload-header">
+                    <div class="section-label">Upload</div>
+                    <h1>Upload Your <span class="gradient-text">Video</span></h1>
+                    <p>Drop your footage below, choose your editing style, and start creating.</p>
+                </div>
+
+                <div class="upload-layout">
+                    <div class="upload-main">
+                        <!-- Drop Zone -->
+                        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                            <div class="drop-icon">🎬</div>
+                            <div class="drop-title">Drop your video here</div>
+                            <div class="drop-subtitle">or click to browse files</div>
+                            <div class="drop-meta">
+                                <div class="drop-meta-item">📹 MP4, MOV, AVI, MKV</div>
+                                <div class="drop-meta-item">🎯 Up to 4K</div>
+                                <div class="drop-meta-item">💾 Max 5 GB</div>
+                            </div>
+                            <input type="file" id="fileInput" accept="video/*" onchange="handleFile(event)" />
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="preview-section" id="previewSection">
+                            <div class="preview-card">
+                                <video id="previewVideo" class="preview-video" controls></video>
+                                <div class="preview-footer">
+                                    <div class="preview-info">
+                                        <div class="preview-filename" id="previewFileName">—</div>
+                                        <div class="preview-filesize" id="previewFileSize">—</div>
+                                    </div>
+                                    <button class="btn btn-ghost btn-sm" onclick="clearPreview()">✕ Remove</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Editing Mode Selector -->
+                        <div class="editing-mode-selector" id="editingModeSelector">
+                            <h2>🎯 Choose Your Editing Style</h2>
+                            <div class="mode-cards">
+                                <div class="mode-card" id="modeCardManual" onclick="selectEditingMode('manual')">
+                                    <div class="mode-card-badge"></div>
+                                    <div class="mode-card-icon">🖊</div>
+                                    <div class="mode-card-title">Manual Editing</div>
+                                    <div class="mode-card-desc">Full control. Use the timeline, trim, split, filters,
+                                        and all editing tools manually.</div>
+                                </div>
+                                <div class="mode-card selected" id="modeCardAI" onclick="selectEditingMode('ai')">
+                                    <div class="mode-card-badge"></div>
+                                    <div class="mode-card-icon">🤖</div>
+                                    <div class="mode-card-title">AI Editing</div>
+                                    <div class="mode-card-desc">Let AI handle smart cuts, captions, color grading, and
+                                        music sync automatically.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Options (shown when AI mode selected) -->
+                        <div class="ai-options" id="aiOptionsSection">
+                            <h2>🤖 AI Processing Options</h2>
+                            <div class="options-grid">
+                                <div class="option-toggle active" onclick="this.classList.toggle('active')">
+                                    <div class="option-left">
+                                        <div class="option-icon">✂️</div>
+                                        <div>
+                                            <div class="option-name">Smart Cuts</div>
+                                            <div class="option-desc">Remove silences</div>
+                                        </div>
+                                    </div>
+                                    <div class="toggle"></div>
+                                </div>
+                                <div class="option-toggle active" onclick="this.classList.toggle('active')">
+                                    <div class="option-left">
+                                        <div class="option-icon">💬</div>
+                                        <div>
+                                            <div class="option-name">Auto Captions</div>
+                                            <div class="option-desc">30+ languages</div>
+                                        </div>
+                                    </div>
+                                    <div class="toggle"></div>
+                                </div>
+                                <div class="option-toggle" onclick="this.classList.toggle('active')">
+                                    <div class="option-left">
+                                        <div class="option-icon">🎨</div>
+                                        <div>
+                                            <div class="option-name">Color Grade</div>
+                                            <div class="option-desc">Cinematic look</div>
+                                        </div>
+                                    </div>
+                                    <div class="toggle"></div>
+                                </div>
+                                <div class="option-toggle" onclick="this.classList.toggle('active')">
+                                    <div class="option-left">
+                                        <div class="option-icon">🎵</div>
+                                        <div>
+                                            <div class="option-name">Music Sync</div>
+                                            <div class="option-desc">Beat-matched BGM</div>
+                                        </div>
+                                    </div>
+                                    <div class="toggle"></div>
+                                </div>
+                                <div class="option-toggle active" onclick="this.classList.toggle('active')">
+                                    <div class="option-left">
+                                        <div class="option-icon">📏</div>
+                                        <div>
+                                            <div class="option-name">Auto Reframe</div>
+                                            <div class="option-desc">All platforms</div>
+                                        </div>
+                                    </div>
+                                    <div class="toggle"></div>
+                                </div>
+                                <div class="option-toggle" onclick="this.classList.toggle('active')">
+                                    <div class="option-left">
+                                        <div class="option-icon">🔊</div>
+                                        <div>
+                                            <div class="option-name">Audio Enhance</div>
+                                            <div class="option-desc">Noise removal</div>
+                                        </div>
+                                    </div>
+                                    <div class="toggle"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="upload-actions">
+                            <button class="btn btn-primary btn-lg" onclick="startProcessing()" id="uploadBtn">
+                                🤖 Process with AI
+                            </button>
+                            <button class="btn btn-ghost btn-lg" onclick="clearPreview()">Cancel</button>
+                        </div>
+
+                        <!-- Progress -->
+                        <div class="progress-section" id="progressSection">
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar-fill" id="progressFill"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span id="progressLabel">Uploading...</span>
+                                <span id="progressPct">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Tips -->
+                    <div class="tips-card">
+                        <h3>💡 Tips for best results</h3>
+                        <div class="tip-item">
+                            <div class="tip-dot"></div>
+                            <div class="tip-text">Use well-lit footage for better AI color grading results.</div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-dot"></div>
+                            <div class="tip-text">Clear audio = more accurate auto-captions. Use a mic when possible.
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-dot"></div>
+                            <div class="tip-text">Shoot in landscape (16:9) for best multi-platform reframing.</div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-dot"></div>
+                            <div class="tip-text">MP4 / H.264 uploads process 2x faster than other formats.</div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-dot"></div>
+                            <div class="tip-text">Keep raw footage under 5 GB for fastest cloud uploads.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-left">
+                <span style="font-size:1.3rem">🎬</span>
+                <span class="footer-brand">Clip Magic</span>
+                <span class="footer-copy">© 2026 All rights reserved.</span>
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Help</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        let selectedEditingMode = 'ai';
+
+        function selectEditingMode(mode) {
+            selectedEditingMode = mode;
+            const manualCard = document.getElementById('modeCardManual');
+            const aiCard = document.getElementById('modeCardAI');
+            const aiOptions = document.getElementById('aiOptionsSection');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            if (mode === 'manual') {
+                manualCard.classList.add('selected');
+                aiCard.classList.remove('selected');
+                aiOptions.style.display = 'none';
+                uploadBtn.innerHTML = '🖊 Open Editor';
+            } else {
+                aiCard.classList.add('selected');
+                manualCard.classList.remove('selected');
+                aiOptions.style.display = 'block';
+                uploadBtn.innerHTML = '🤖 Process with AI';
+            }
+        }
+
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('video/')) {
+                processFile(file);
+            }
+        });
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (file) processFile(file);
+        }
+
+        let currentObjectUrl = null;
+
+        function processFile(file) {
+            // Validate file type
+            if (!file.type.startsWith('video/')) {
+                showToast('Please upload a video file.', '⚠️');
+                return;
+            }
+            // Validate file size (5 GB max)
+            if (file.size > 5 * 1024 * 1024 * 1024) {
+                showToast('File exceeds the 5 GB limit.', '⚠️');
+                return;
+            }
+
+            // Revoke previous object URL to prevent memory leak
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+            }
+
+            const video = document.getElementById('previewVideo');
+            currentObjectUrl = URL.createObjectURL(file);
+            video.src = currentObjectUrl;
+            document.getElementById('previewFileName').textContent = file.name;
+            document.getElementById('previewFileSize').textContent = formatBytes(file.size);
+            document.getElementById('previewSection').classList.add('visible');
+            showToast('Video loaded! Configure options below.', '🎬');
+        }
+
+        function clearPreview() {
+            const video = document.getElementById('previewVideo');
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+                currentObjectUrl = null;
+            }
+            video.src = '';
+            document.getElementById('previewSection').classList.remove('visible');
+            document.getElementById('progressSection').classList.remove('visible');
+            document.getElementById('fileInput').value = '';
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        async function startProcessing() {
+            const video = document.getElementById('previewVideo');
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!video.src || video.src === window.location.href || !file) {
+                showToast('Please upload a video first!', '⚠️');
+                return;
+            }
+
+            const fileName = document.getElementById('previewFileName').textContent;
+            const fileSize = document.getElementById('previewFileSize').textContent;
+
+            if (selectedEditingMode === 'manual') {
+                // Manual mode: save project and go straight to editor
+                showToast('Saving project...', '💾');
+
+                try {
+                    const newProj = await ProjectService.addProject({
+                        name: fileName,
+                        size: fileSize,
+                        status: 'draft',
+                        duration: formatTime(video.duration || 0),
+                        editMode: 'manual',
+                        thumbType: Math.floor(Math.random() * 5) + 1,
+                        thumbIcon: '🎬'
+                    }, file);
+
+                    showToast('Opening editor...', '🖊', 1500);
+                    setTimeout(() => { window.location.href = `editor.html?id=${newProj.id}&mode=manual`; }, 800);
+                } catch (err) {
+                    console.error(err);
+                    showToast('Failed to save project', '❌');
+                }
+                return;
+            }
+
+            // AI mode: run processing steps
+            const progressSection = document.getElementById('progressSection');
+            progressSection.classList.add('visible');
+            const fill = document.getElementById('progressFill');
+            const label = document.getElementById('progressLabel');
+            const pct = document.getElementById('progressPct');
+
+            const steps = [
+                { pct: 20, label: 'Uploading to local storage...' },
+                { pct: 40, label: 'Analyzing footage with AI...' },
+                { pct: 60, label: 'Applying smart cuts...' },
+                { pct: 80, label: 'Generating captions...' },
+                { pct: 95, label: 'Finalizing export...' },
+                { pct: 100, label: 'Done!' },
+            ];
+
+            let i = 0;
+            const run = async () => {
+                if (i < steps.length) {
+                    fill.style.width = steps[i].pct + '%';
+                    label.textContent = steps[i].label;
+                    pct.textContent = steps[i].pct + '%';
+                    i++;
+                    setTimeout(run, 900);
+                } else {
+                    try {
+                        const newProj = await ProjectService.addProject({
+                            name: fileName,
+                            size: fileSize,
+                            status: 'done',
+                            duration: formatTime(video.duration || 0),
+                            editMode: 'ai',
+                            thumbType: Math.floor(Math.random() * 5) + 1,
+                            thumbIcon: '🎬'
+                        }, file);
+
+                        showToast('Your video is ready! Redirecting...', '✅', 2000);
+                        setTimeout(() => { window.location.href = `editor.html?id=${newProj.id}&mode=ai`; }, 2000);
+                    } catch (err) {
+                        console.error(err);
+                        showToast('Failed to save project', '❌');
+                    }
+                }
+            };
+            run();
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+
+</html>

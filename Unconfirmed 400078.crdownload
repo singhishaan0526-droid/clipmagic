@@ -1,0 +1,170 @@
+// ============================================
+// CLIP MAGIC — Shared JavaScript utilities
+// ============================================
+
+// === Theme Toggle (runs immediately to avoid flash) ===
+(function () {
+  const saved = localStorage.getItem('cm-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+})();
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('cm-theme', next);
+}
+
+// === Navbar scroll effect ===
+window.addEventListener('scroll', () => {
+  const navbar = document.querySelector('.navbar');
+  if (navbar) {
+    navbar.classList.toggle('scrolled', window.scrollY > 20);
+  }
+});
+
+// === Active nav link ===
+document.addEventListener('DOMContentLoaded', () => {
+  const page = location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    const href = a.getAttribute('href');
+    if (href === page || (page === '' && href === 'index.html')) {
+      a.classList.add('active');
+    }
+  });
+});
+
+// === Sanitization helper ===
+function sanitizeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// === Toast notification ===
+function showToast(message, icon = '✨', duration = 3000) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  const iconSpan = document.createElement('span');
+  iconSpan.className = 'toast-icon';
+  iconSpan.textContent = icon;
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = message;
+  toast.appendChild(iconSpan);
+  toast.appendChild(msgSpan);
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('show'));
+  });
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// === Intersection Observer for scroll animations ===
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.scroll-reveal').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+});
+
+// === Counter animation ===
+function animateCounter(el, target, suffix = '') {
+  let current = 0;
+  const step = target / 60;
+  const update = () => {
+    current += step;
+    if (current >= target) {
+      el.textContent = target.toLocaleString() + suffix;
+      return;
+    }
+    el.textContent = Math.floor(current).toLocaleString() + suffix;
+    requestAnimationFrame(update);
+  };
+  update();
+}
+
+// === Project Service (Simple Persistent State) ===
+const ProjectService = {
+  getProjects() {
+    const data = localStorage.getItem('cm-projects');
+    return data ? JSON.parse(data) : this.getDefaultProjects();
+  },
+
+  saveProjects(projects) {
+    localStorage.setItem('cm-projects', JSON.stringify(projects));
+  },
+
+  addProject(project) {
+    const projects = this.getProjects();
+    const newProject = {
+      id: 'proj-' + Date.now(),
+      name: sanitizeHTML(project.name || 'Untitled Project'),
+      timestamp: new Date().toISOString(),
+      status: project.status || 'draft',
+      duration: project.duration || '0:00',
+      size: project.size || '0 MB',
+      thumbType: project.thumbType || Math.floor(Math.random() * 5) + 1,
+      videoUrl: project.videoUrl || '',
+      ...project,
+      name: sanitizeHTML(project.name || 'Untitled Project')
+    };
+    projects.unshift(newProject);
+    this.saveProjects(projects);
+    return newProject;
+  },
+
+  getProject(id) {
+    return this.getProjects().find(p => p.id === id);
+  },
+
+  updateProject(id, updates) {
+    const projects = this.getProjects();
+    const idx = projects.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      projects[idx] = { ...projects[idx], ...updates };
+      this.saveProjects(projects);
+    }
+  },
+
+  deleteProject(id) {
+    const projects = this.getProjects().filter(p => p.id !== id);
+    this.saveProjects(projects);
+  },
+
+  getDefaultProjects() {
+    return [
+      { id: 'proj-1', name: 'Product Launch Reel 2026', timestamp: '2026-02-26T18:00:00Z', status: 'done', duration: '2:34', size: '1.2 GB', thumbType: 1, videoUrl: '' },
+      { id: 'proj-2', name: 'TikTok Weekly Vlog #14', timestamp: '2026-02-24T10:00:00Z', status: 'done', duration: '0:58', size: '450 MB', thumbType: 2, videoUrl: '' },
+      { id: 'proj-3', name: 'Travel Montage — Japan 2026', timestamp: '2026-02-27T15:00:00Z', status: 'processing', duration: '4:12', size: '2.8 GB', thumbType: 3, videoUrl: '' }
+    ];
+  }
+};
+
+// === Smooth page transitions ===
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.style.opacity = '0';
+  setTimeout(() => {
+    document.body.style.transition = 'opacity 0.4s ease';
+    document.body.style.opacity = '1';
+  }, 50);
+});

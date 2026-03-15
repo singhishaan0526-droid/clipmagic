@@ -1,0 +1,14 @@
+{
+  "name": "clip-magic-site",
+  "version": "1.0.0",
+  "description": "Static site for Clip Magic editor",
+  "scripts": {
+    "start": "http-server -p 8000",
+    "serve": "live-server --port=8000 --open=editor.html",
+    "build": "echo 'Static site ready for deployment'"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  }
+}
