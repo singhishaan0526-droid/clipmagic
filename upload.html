@@ -890,7 +890,7 @@
                     setTimeout(() => { window.location.href = `editor.html?id=${newProj.id}&mode=manual`; }, 800);
                 } catch (err) {
                     console.error(err);
-                    showToast('Failed to save project', '❌');
+                    showToast(err.message || 'Failed to save project', '❌');
                 }
                 return;
             }
@@ -935,7 +935,7 @@
                         setTimeout(() => { window.location.href = `editor.html?id=${newProj.id}&mode=ai`; }, 2000);
                     } catch (err) {
                         console.error(err);
-                        showToast('Failed to save project', '❌');
+                        showToast(err.message || 'Failed to save project', '❌');
                     }
                 }
             };

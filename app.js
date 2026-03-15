@@ -136,7 +136,10 @@ const ProjectService = {
       const store = tx.objectStore('assets');
       const request = store.put(file, key);
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      request.onerror = () => {
+        console.error("IndexedDB Save Error:", request.error);
+        reject(new Error(`Save error: ${request.error.name}. your phone might be low on space.`));
+      };
     });
   },
 
@@ -153,7 +156,10 @@ const ProjectService = {
       const store = tx.objectStore('assets');
       const request = store.get(key);
       request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onerror = () => {
+        console.error("IndexedDB Get Error:", request.error);
+        reject(new Error(`Load error: ${request.error.name}`));
+      };
     });
   },
 
