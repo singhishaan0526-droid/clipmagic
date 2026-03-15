@@ -1,0 +1,8 @@
+node_modules/
+*.crdownload
+.DS_Store
+Thumbs.db
+dist/
+build/
+.next/
+.vercel/
