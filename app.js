@@ -171,7 +171,10 @@ const ProjectService = {
       const range = IDBKeyRange.bound(`${projectId}:`, `${projectId}:\uffff`);
       const request = store.delete(range);
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      request.onerror = () => {
+        console.error("IndexedDB Delete Error:", request.error);
+        reject(new Error(`Delete error: ${request.error.name}`));
+      };
     });
   },
 
