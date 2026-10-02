@@ -2,6 +2,7 @@
 'use strict';
 
 let ffmpeg = null;
+let ffmpegLoadPromise = null;
 
 // Icon identifiers mapped to safe inline SVG — never put user data inside these.
 const ICONS = {
@@ -12,60 +13,52 @@ const ICONS = {
 
 // M1 FIX: showToast calls now use the ICONS map instead of raw HTML with inner double-quotes.
 async function loadFFmpeg() {
-    if (ffmpeg) return;
+    if (ffmpeg) return ffmpeg;
+    if (ffmpegLoadPromise) return ffmpegLoadPromise;
 
-    if (typeof showToast === 'function') {
-        showToast('Booting processing engine...', ICONS.settings);
-    }
-
-    // Access UMD globals
-    const FFmpegLib = window.FFmpeg || window;
-    ffmpeg = new FFmpegLib.FFmpeg();
-
-    // Listen to progress and update any active progress bars
-    ffmpeg.on('progress', ({ progress }) => {
-        const pct = Math.round(progress * 100);
-        const pb = document.getElementById('aiProgress');
-        if (pb) pb.style.width = pct + '%';
-    });
-
-    // M6: pinned exact version — not @latest
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-
-    try {
-        await ffmpeg.load({
-            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+    ffmpegLoadPromise = (async () => {
+        if (typeof showToast === 'function') showToast('Booting processing engine...', ICONS.settings);
+        const FFmpegLib = window.FFmpeg || window;
+        if (!FFmpegLib.FFmpeg) throw new Error('FFmpeg library is unavailable');
+        const instance = new FFmpegLib.FFmpeg();
+        instance.on('progress', ({ progress }) => {
+            const pct = Math.round(progress * 100);
+            const pb = document.getElementById('aiProgress');
+            if (pb) pb.style.width = pct + '%';
         });
 
-        if (typeof showToast === 'function') {
-            showToast('Processing Engine Ready!', ICONS.rocket, 'success');
+        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+        let coreURL;
+        let wasmURL;
+        try {
+            [coreURL, wasmURL] = await Promise.all([
+                toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm')
+            ]);
+            await instance.load({ coreURL, wasmURL });
+            ffmpeg = instance;
+            if (typeof showToast === 'function') showToast('Processing Engine Ready!', ICONS.rocket, 'success');
+            return ffmpeg;
+        } finally {
+            if (coreURL) URL.revokeObjectURL(coreURL);
+            if (wasmURL) URL.revokeObjectURL(wasmURL);
         }
-    } catch (e) {
-        console.error('FFmpeg load failed: ', e);
-        if (typeof showToast === 'function') {
-            showToast('Engine failed to load. Check console.', ICONS.xcircle, 'error');
-        }
-    }
+    })().catch((error) => {
+        ffmpegLoadPromise = null;
+        console.error('FFmpeg load failed:', error);
+        if (typeof showToast === 'function') showToast('Engine failed to load. Check console.', ICONS.xcircle, 'error');
+        throw error;
+    });
+    return ffmpegLoadPromise;
 }
 
 // Convert unpkg remote urls to Blob URLs to satisfy CORS isolation policies safely
 async function toBlobURL(url, mimeType) {
-    const resp = await fetch(url);
-    const buf  = await resp.arrayBuffer();
-    const blob = new Blob([buf], { type: mimeType });
-    return URL.createObjectURL(blob);
+    const resp = await fetch(url, { cache: 'force-cache' });
+    if (!resp.ok) throw new Error(`Unable to download FFmpeg asset (${resp.status})`);
+    const blob = await resp.blob();
+    return URL.createObjectURL(new Blob([blob], { type: mimeType }));
 }
-
-// Auto-load FFmpeg when visiting the editor page
-document.addEventListener('DOMContentLoaded', () => {
-    // A small timeout ensures UI loads smoothly before heavy WASM loading begins
-    setTimeout(() => {
-        if (window.location.pathname.includes('editor')) {
-            loadFFmpeg();
-        }
-    }, 500);
-});
 
 // ─── EXPORT ──────────────────────────────────────────────────────────────────
 

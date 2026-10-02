@@ -447,6 +447,7 @@
             align-items: center;
             justify-content: center;
             transition: background 0.2s;
+            touch-action: none;
         }
         .trim-handle::before {
             content: '';
@@ -481,6 +482,7 @@
 
         .clip-trimming {
             border: 2px solid #fff !important;
+            cursor: ew-resize;
         }
 
         .clip-dragging {
@@ -1059,7 +1061,7 @@
             <div class="editor-center">
                 <div class="preview-area">
                     <div class="preview-screen" id="previewScreen">
-                        <video id="previewVideo" style="display:none; max-width:100%; max-height:100%;"></video>
+                        <video id="previewVideo" preload="metadata" style="display:none; max-width:100%; max-height:100%;"></video>
                         <div class="preview-idle" id="previewIdle">
                             <div style="font-size:3rem; opacity:0.2; margin-bottom:10px;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><polygon points="23 7 16 12 23 17 23 7"/></svg></div>
                             <p>No media loaded</p>
@@ -1133,12 +1135,33 @@
             ],
             bassGain: 0
         };
+        window.projectState = projectState;
+
+        const MAX_TIMELINE_SECONDS = 120;
+        const MIN_TRIM_SECONDS = 0.05;
+        let timelineRenderQueued = false;
+        function clamp(value, min, max) { return Math.min(Math.max(value, min), max); }
+        function getClipSourceDuration(clip) {
+            const declared = Number(clip.duration);
+            if (Number.isFinite(declared) && declared > 0) return declared;
+            const mediaDuration = document.getElementById('previewVideo')?.duration;
+            if (Number.isFinite(mediaDuration) && mediaDuration > 0) return mediaDuration;
+            return Math.max(Number(clip.trimEnd) || 0, 1);
+        }
+        function requestTimelineRender() {
+            if (timelineRenderQueued) return;
+            timelineRenderQueued = true;
+            requestAnimationFrame(() => {
+                timelineRenderQueued = false;
+                renderTimeline();
+            });
+        }
 
         function renderTimeline() {
             const container = document.getElementById('tracksContainer');
             if (!container) return;
-            container.innerHTML = '';
-            const maxDuration = 120;
+            const fragment = document.createDocumentFragment();
+            const maxDuration = MAX_TIMELINE_SECONDS;
             projectState.tracks.forEach(track => {
                 const trackEl = document.createElement('div');
                 trackEl.className = 'track';
@@ -1157,18 +1180,33 @@
                     clipEl.id = `clip-${c.id}`;
                     clipEl.draggable = true;
                     clipEl.ondragstart = (e) => handleDragStart(e, c, track.id);
-                    const duration = c.trimEnd - c.trimStart;
+                    const sourceDuration = getClipSourceDuration(c);
+                    const trimStart = clamp(Number(c.trimStart) || 0, 0, Math.max(0, sourceDuration - MIN_TRIM_SECONDS));
+                    const trimEnd = clamp(Number(c.trimEnd) || sourceDuration, trimStart + MIN_TRIM_SECONDS, sourceDuration);
+                    c.trimStart = trimStart;
+                    c.trimEnd = trimEnd;
+                    const duration = trimEnd - trimStart;
                     clipEl.style.left = (c.start / maxDuration * 100) + '%';
                     clipEl.style.width = (duration / maxDuration * 100) + '%';
                     clipEl.style.background = c.color;
                     clipEl.style.border = `1px solid ${c.borderColor}`;
                     clipEl.onclick = (e) => { e.stopPropagation(); selectClip(c); };
+                    const leftHandle = document.createElement('div');
+                    leftHandle.className = 'trim-handle trim-handle-left';
+                    leftHandle.title = 'Drag to trim start';
+                    leftHandle.onpointerdown = (e) => beginTrim(e, c, 'start', lane);
+                    const rightHandle = document.createElement('div');
+                    rightHandle.className = 'trim-handle trim-handle-right';
+                    rightHandle.title = 'Drag to trim end';
+                    rightHandle.onpointerdown = (e) => beginTrim(e, c, 'end', lane);
+                    clipEl.append(leftHandle, rightHandle);
                     lane.appendChild(clipEl);
                 });
                 trackEl.appendChild(label);
                 trackEl.appendChild(lane);
-                container.appendChild(trackEl);
+                fragment.appendChild(trackEl);
             });
+            container.replaceChildren(fragment);
         }
 
         const toolConfigs = {
@@ -1176,6 +1214,10 @@
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 4 7.07 17 2.51-7.39L21 11.07z"/></svg>',
                 title: 'Select Tool',
                 html: `<div class="prop-section"><div class="prop-section-title">Clip Info</div><div class="prop-row"><span class="prop-label">Name</span><input class="prop-input" value="Main Clip"/></div></div>`
+            },
+            trim: {
+                title: 'Trim Video',
+                html: `<div class="prop-section"><div class="prop-section-title">Trim</div><p style="color:var(--text-secondary);font-size:0.8rem;line-height:1.5;">Drag the white handles on a clip to set its start and end. Trimming is non-destructive.</p></div>`
             },
             text: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
@@ -1239,9 +1281,42 @@
             body.appendChild(section);
         }
 
+        function beginTrim(event, clip, edge, lane) {
+            event.preventDefault();
+            event.stopPropagation();
+            const laneRect = lane.getBoundingClientRect();
+            const sourceDuration = getClipSourceDuration(clip);
+            const initialStart = Number(clip.trimStart) || 0;
+            const initialEnd = Number(clip.trimEnd) || sourceDuration;
+            const clipEl = event.currentTarget.parentElement;
+            clipEl.classList.add('clip-trimming');
+            event.currentTarget.setPointerCapture?.(event.pointerId);
+
+            const onMove = (moveEvent) => {
+                const delta = ((moveEvent.clientX - event.clientX) / Math.max(laneRect.width, 1)) * MAX_TIMELINE_SECONDS;
+                if (edge === 'start') {
+                    clip.trimStart = clamp(initialStart + delta, 0, initialEnd - MIN_TRIM_SECONDS);
+                } else {
+                    clip.trimEnd = clamp(initialEnd + delta, initialStart + MIN_TRIM_SECONDS, sourceDuration);
+                }
+                selectedClip = clip;
+                clipEl.style.width = `${((clip.trimEnd - clip.trimStart) / MAX_TIMELINE_SECONDS) * 100}%`;
+            };
+
+            const onEnd = () => {
+                clipEl.classList.remove('clip-trimming');
+                window.removeEventListener('pointermove', onMove);
+                window.removeEventListener('pointerup', onEnd);
+                requestTimelineRender();
+            };
+
+            window.addEventListener('pointermove', onMove);
+            window.addEventListener('pointerup', onEnd, { once: true });
+        }
+
         function updateClipProps(id, prop, val) {
             projectState.tracks.forEach(t => t.clips.forEach(c => { if(c.id === id) c[prop] = parseFloat(val); }));
-            renderTimeline();
+            requestTimelineRender();
         }
 
         function setTool(name) {
@@ -1264,7 +1339,7 @@
             if(!bpm) return showToast('Analyze BPM first', '⚠️');
             const interval = 60/bpm;
             projectState.tracks.forEach(t => t.clips.forEach(c => { c.start = Math.round(c.start/interval)*interval; }));
-            renderTimeline();
+            requestTimelineRender();
             showToast('Synced!', '🎯');
         }
 
@@ -1279,7 +1354,7 @@
             newClip.start = selectedClip.start + (selectedClip.trimEnd - selectedClip.trimStart);
             selectedClip.trimEnd = splitPoint;
             projectState.tracks.forEach(t => { if(t.clips.includes(selectedClip)) t.clips.push(newClip); });
-            renderTimeline();
+            requestTimelineRender();
         }
 
         function scaleVideo(v) { document.getElementById('previewVideo').style.transform = `scale(${v/100})`; }
@@ -1293,7 +1368,7 @@
             const buffer = await MusicEngine.getCtx().decodeAudioData(await (await fetch(url)).arrayBuffer());
             let track = projectState.tracks.find(t => t.type === 'audio');
             track.clips.push({ id: 'm' + Date.now(), assetId, name: f.name, type: 'music', start: 0, duration: buffer.duration, trimStart: 0, trimEnd: buffer.duration, color: 'rgba(236,72,153,0.3)', borderColor: 'rgba(236,72,153,0.5)' });
-            renderTimeline();
+            requestTimelineRender();
         }
 
         function formatTime(s) { return Math.floor(s/60) + ':' + Math.floor(s%60).toString().padStart(2,'0'); }
@@ -1318,10 +1393,20 @@
                 if (currentProject.projectState && Array.isArray(currentProject.projectState.tracks)) {
                     projectState = currentProject.projectState;
                 }
+                window.currentProject = currentProject;
+                window.projectState = projectState;
                 const v = projectState.tracks.find(t=>t.type==='video')?.clips[0];
                 if(v) {
                     const vid = document.getElementById('previewVideo');
                     vid.src = await AssetManager.getUrl(id, v.assetId);
+                    vid.addEventListener('loadedmetadata', () => {
+                        const duration = vid.duration;
+                        if (Number.isFinite(duration) && duration > 0) {
+                            v.duration = duration;
+                            if (!Number.isFinite(v.trimEnd) || v.trimEnd <= 1) v.trimEnd = duration;
+                            requestTimelineRender();
+                        }
+                    }, { once: true });
                     vid.style.display = 'block';
                     document.getElementById('previewIdle').style.display = 'none';
                     document.getElementById('previewControls').style.display = 'flex';
@@ -1331,13 +1416,20 @@
             setTool('select');
         });
 
+        let timeUpdateQueued = false;
         document.getElementById('previewVideo').ontimeupdate = () => {
-            const vid = document.getElementById('previewVideo');
-            const progress = vid.currentTime / vid.duration;
-            document.getElementById('scrubber').value = progress * 100;
-            document.getElementById('timeDisplay').textContent = formatTime(vid.currentTime) + ' / ' + formatTime(vid.duration);
-            const playhead = document.getElementById('timelinePlayhead');
-            if(playhead) playhead.style.left = (72 + progress * (document.querySelector('.track-lane').offsetWidth - 72)) + 'px';
+            if (timeUpdateQueued) return;
+            timeUpdateQueued = true;
+            requestAnimationFrame(() => {
+                timeUpdateQueued = false;
+                const vid = document.getElementById('previewVideo');
+                const progress = vid.duration > 0 ? vid.currentTime / vid.duration : 0;
+                document.getElementById('scrubber').value = progress * 100;
+                document.getElementById('timeDisplay').textContent = formatTime(vid.currentTime) + ' / ' + formatTime(vid.duration);
+                const playhead = document.getElementById('timelinePlayhead');
+                const lane = document.querySelector('.track-lane');
+                if (playhead && lane) playhead.style.left = (72 + progress * (lane.clientWidth - 72)) + 'px';
+            });
         };
 </script>
 </body>

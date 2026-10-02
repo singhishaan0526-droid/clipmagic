@@ -313,6 +313,7 @@ const ProjectService = {
     const projects = this.getProjects().filter(p => p.id !== id);
     this.saveProjects(projects);
     await this.deleteProjectAssets(id);
+    AssetManager.revokeProject(id);
   },
 
   /**
@@ -359,6 +360,16 @@ const AssetManager = {
   clearCache() {
     this.urlCache.forEach(url => URL.revokeObjectURL(url));
     this.urlCache.clear();
+  },
+
+  revokeProject(projectId) {
+    const prefix = `${projectId}:`;
+    for (const [key, url] of this.urlCache) {
+      if (key.startsWith(prefix)) {
+        URL.revokeObjectURL(url);
+        this.urlCache.delete(key);
+      }
+    }
   }
 };
 
