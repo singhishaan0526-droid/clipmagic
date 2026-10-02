@@ -76,14 +76,22 @@ pub fn analyze_bpm(samples: &[f32], sample_rate: u32) -> f32 {
 /// - `bpm`: beats per minute (from analyze_bpm)
 #[wasm_bindgen]
 pub fn detect_beats(samples: &[f32], sample_rate: u32, bpm: f32) -> Vec<f32> {
-    if bpm <= 0.0 || sample_rate == 0 {
+    // M5 FIX: reject non-finite, zero, negative, or implausible BPM
+    // Previously only `bpm <= 0.0` was rejected; NaN/Infinity slipped through.
+    if !bpm.is_finite() || bpm <= 0.0 || bpm > 400.0 || sample_rate == 0 {
         return vec![];
     }
 
-    let duration    = samples.len() as f32 / sample_rate as f32;
+    let duration      = samples.len() as f32 / sample_rate as f32;
     let beat_interval = 60.0 / bpm;
-    let mut beats   = Vec::new();
-    let mut t       = 0.0f32;
+
+    // beat_interval is finite & > 0 here; this guard is a safety net
+    if !beat_interval.is_finite() || beat_interval <= 0.0 {
+        return vec![];
+    }
+
+    let mut beats = Vec::new();
+    let mut t     = 0.0f32;
 
     while t < duration {
         beats.push((t * 1000.0).round() / 1000.0); // round to ms
@@ -92,6 +100,7 @@ pub fn detect_beats(samples: &[f32], sample_rate: u32, bpm: f32) -> Vec<f32> {
 
     beats
 }
+
 
 // ── Waveform Generation ───────────────────────────────────────────────────────
 

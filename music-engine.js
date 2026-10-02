@@ -131,10 +131,17 @@ const MusicEngine = (() => {
      * Returns array of beat timestamps (seconds) based on BPM.
      */
     function detect_beats(audioBuffer, bpm) {
+        // M5 FIX: reject non-finite, zero, negative, or musically implausible BPM
+        if (!Number.isFinite(bpm) || bpm <= 0 || bpm > 400) {
+            return new Float64Array([]);
+        }
         const duration = audioBuffer.duration;
+        if (!Number.isFinite(duration) || duration <= 0) {
+            return new Float64Array([]);
+        }
         const beatInterval = 60 / bpm;
+        // beatInterval is always > 0 here because bpm is finite & positive
         const beats = [];
-
         for (let t = 0; t < duration; t += beatInterval) {
             beats.push(parseFloat(t.toFixed(3)));
         }
@@ -148,14 +155,26 @@ const MusicEngine = (() => {
      * Returns normalized amplitude values for waveform visualization.
      */
     function generate_waveform(audioBuffer, points = 200) {
+        // M5 FIX: clamp resolution; guard blockSize === 0 when points > data.length
+        const safePoints = (Number.isFinite(points) && points > 0)
+            ? Math.min(Math.floor(points), 4096)
+            : 200;
         const data = audioBuffer.getChannelData(0);
-        const blockSize = Math.floor(data.length / points);
-        const waveform = new Float32Array(points);
+        if (data.length === 0 || safePoints === 0) return new Float32Array(0);
 
-        for (let i = 0; i < points; i++) {
+        const blockSize = Math.floor(data.length / safePoints);
+        if (blockSize === 0) {
+            // More resolution points than samples — return one value per sample
+            const wf = new Float32Array(data.length);
+            for (let i = 0; i < data.length; i++) wf[i] = Math.abs(data[i]);
+            return wf;
+        }
+        const waveform = new Float32Array(safePoints);
+        for (let i = 0; i < safePoints; i++) {
             let max = 0;
-            for (let j = 0; j < blockSize; j++) {
-                const abs = Math.abs(data[i * blockSize + j]);
+            const end = Math.min(i * blockSize + blockSize, data.length);
+            for (let j = i * blockSize; j < end; j++) {
+                const abs = Math.abs(data[j]);
                 if (abs > max) max = abs;
             }
             waveform[i] = max;
@@ -170,13 +189,16 @@ const MusicEngine = (() => {
      * Snaps each cut point to the nearest beat.
      */
     function sync_cuts(beatTimes, cuts) {
+        // M5 FIX: return empty result when beatTimes is empty — avoids undefined.toFixed()
+        if (!beatTimes || beatTimes.length === 0) return new Float64Array(cuts.length).fill(0);
         return new Float64Array(cuts.map(cut => {
             let nearest = beatTimes[0], minDist = Infinity;
             for (const b of beatTimes) {
+                if (!Number.isFinite(b)) continue;
                 const d = Math.abs(b - cut);
                 if (d < minDist) { minDist = d; nearest = b; }
             }
-            return parseFloat(nearest.toFixed(3));
+            return Number.isFinite(nearest) ? parseFloat(nearest.toFixed(3)) : 0;
         }));
     }
 

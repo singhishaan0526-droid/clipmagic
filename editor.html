@@ -1198,7 +1198,45 @@
         function selectClip(clip) {
             selectedClip = clip;
             const body = document.getElementById('manualPropsBody');
-            body.innerHTML = `<div class="prop-section"><div class="prop-section-title">Clip: ${clip.name}</div><div class="prop-row"><span class="prop-label">Start</span><input type="number" class="prop-input" value="${clip.start.toFixed(2)}" onchange="updateClipProps('${clip.id}', 'start', this.value)"/></div><button class="music-btn" style="margin-top:10px" onclick="splitAtPlayhead()">✂ Split Clip</button></div>`;
+            // H2 FIX: build inspector panel with DOM APIs — clip.name/id via textContent
+            body.innerHTML = '';
+
+            const section = document.createElement('div');
+            section.className = 'prop-section';
+
+            const title = document.createElement('div');
+            title.className = 'prop-section-title';
+            title.textContent = 'Clip: ' + (clip.name || 'Unnamed'); // textContent = safe
+
+            const row = document.createElement('div');
+            row.className = 'prop-row';
+
+            const label = document.createElement('span');
+            label.className = 'prop-label';
+            label.textContent = 'Start';
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'prop-input';
+            input.value = Number.isFinite(clip.start) ? clip.start.toFixed(2) : '0';
+            // Use a validated safeId (only our own generated IDs: alphanumeric + dash)
+            const safeClipId = /^[a-zA-Z0-9_-]+$/.test(clip.id) ? clip.id : '';
+            input.addEventListener('change', function() {
+                if (safeClipId) updateClipProps(safeClipId, 'start', this.value);
+            });
+
+            const splitBtn = document.createElement('button');
+            splitBtn.className = 'music-btn';
+            splitBtn.style.marginTop = '10px';
+            splitBtn.textContent = '✂ Split Clip';
+            splitBtn.addEventListener('click', splitAtPlayhead);
+
+            row.appendChild(label);
+            row.appendChild(input);
+            section.appendChild(title);
+            section.appendChild(row);
+            section.appendChild(splitBtn);
+            body.appendChild(section);
         }
 
         function updateClipProps(id, prop, val) {
@@ -1270,9 +1308,16 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const id = new URLSearchParams(window.location.search).get('id');
-            if(id) {
+            if (id) {
+                // M3 FIX: guard against deleted/malformed project IDs
                 currentProject = ProjectService.getProject(id);
-                if(currentProject.projectState) projectState = currentProject.projectState;
+                if (!currentProject) {
+                    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#fff;background:#0a0a0f;flex-direction:column;gap:16px"><h2>Project not found</h2><p>This project may have been deleted or the link is invalid.</p><a href="dashboard.html" style="color:#8b5cf6">Back to Dashboard</a></div>';
+                    return;
+                }
+                if (currentProject.projectState && Array.isArray(currentProject.projectState.tracks)) {
+                    projectState = currentProject.projectState;
+                }
                 const v = projectState.tracks.find(t=>t.type==='video')?.clips[0];
                 if(v) {
                     const vid = document.getElementById('previewVideo');

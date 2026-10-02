@@ -50,9 +50,16 @@ function showToast(message, icon = '<i data-lucide="sparkles" style="width:18px;
 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
+  // H2 FIX: message via textContent, not innerHTML — blocks XSS
+  const iconSpan = document.createElement('span');
+  iconSpan.className = 'toast-icon';
+  iconSpan.innerHTML = icon; // safe: always our own SVG/emoji constant
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = String(message);
+  toast.appendChild(iconSpan);
+  toast.appendChild(msgSpan);
   document.body.appendChild(toast);
-  if(window.lucide) window.lucide.createIcons({root: toast});
+  if (window.lucide) window.lucide.createIcons({ root: toast });
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => toast.classList.add('show'));
@@ -181,7 +188,17 @@ const ProjectService = {
 
   getProjects() {
     const data = localStorage.getItem('cm-projects');
-    return data ? JSON.parse(data) : this.getDefaultProjects();
+    if (!data) return this.getDefaultProjects();
+    // M4 FIX: safe JSON parse — corrupted data resets instead of crashing every page
+    try {
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed)) throw new Error('expected array');
+      return parsed;
+    } catch (e) {
+      console.warn('[ProjectService] Corrupted cm-projects — resetting.', e);
+      localStorage.removeItem('cm-projects');
+      return this.getDefaultProjects();
+    }
   },
 
   saveProjects(projects) {
@@ -213,17 +230,19 @@ const ProjectService = {
       ]
     };
 
+    // M4 FIX: explicit field pick — no unsafe spread from untrusted project object
+    const ALLOWED_STATUSES = new Set(['draft', 'processing', 'done']);
     const newProject = {
       id: projectId,
-      name: project.name || 'Untitled Project',
+      name: typeof project.name === 'string' ? project.name.slice(0, 200) : 'Untitled Project',
       timestamp: new Date().toISOString(),
-      status: project.status || 'draft',
-      duration: project.duration || '0:00',
-      size: project.size || '0 MB',
-      thumbType: project.thumbType || Math.floor(Math.random() * 5) + 1,
+      status: ALLOWED_STATUSES.has(project.status) ? project.status : 'draft',
+      duration: typeof project.duration === 'string' ? project.duration.slice(0, 20) : '0:00',
+      size: typeof project.size === 'string' ? project.size.slice(0, 20) : '0 MB',
+      thumbType: Number.isInteger(project.thumbType) && project.thumbType >= 1 && project.thumbType <= 5
+        ? project.thumbType
+        : Math.floor(Math.random() * 5) + 1,
       projectState: project.projectState || defaultProjectState,
-      ...project,
-      id: projectId // ensure id is preserved
     };
 
     // Save video asset

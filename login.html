@@ -387,6 +387,7 @@
 </head>
 
 <body>
+<div style="background:#b45309;color:#fff;text-align:center;padding:10px 16px;font-size:0.85rem;font-family:sans-serif;z-index:9999;position:relative">⚠️ <strong>Local-only prototype</strong> — No real authentication. Your projects are stored only in this browser.</div>
     <div class="page-wrapper">
         
 
@@ -413,7 +414,7 @@
                         <div class="auth-feat">
                             <div class="auth-feat-icon">🔒</div>
                             <div class="auth-feat-text">
-                                <strong>Secure Cloud Storage</strong>
+                                <strong>local browser storage (demo only)</strong>
                                 Your footage is encrypted and backed up automatically.
                             </div>
                         </div>
@@ -593,20 +594,26 @@
             }
         }
 
+        // H1 NOTE: This is a local-only prototype. No credentials are sent to a server,
+        // no password is validated, and no session is created. All projects are stored
+        // in the browser's localStorage / IndexedDB on this device only.
+        // DO NOT use this as a real authentication system.
         function handleSignIn(e) {
             e.preventDefault();
-            showToast('Signing you in...', '🔐', 1500);
+            // Local-demo: skip auth — go straight to dashboard
+            showToast('Opening your local workspace…', '🗂️');
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
-            }, 1800);
+            }, 1000);
         }
 
         function handleSignUp(e) {
             e.preventDefault();
-            showToast('Account created! Welcome to Clip Magic!', '🎉', 2000);
+            // Local-demo: skip auth — go straight to dashboard
+            showToast('Local workspace ready!', '🎉');
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
-            }, 2200);
+            }, 1200);
         }
     </script>
 </body>

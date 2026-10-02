@@ -784,31 +784,115 @@
                 return;
             }
 
-            list.innerHTML = projects.map(p => `
-                <div class="project-card" onclick="window.location.href='editor.html?id=${p.id}'">
-                    <div class="project-thumb thumb-${p.thumbType || 1}">
-                        ${p.thumbIcon || '<i data-lucide="film" style="width:18px; height:18px;"></i>'}
-                        <div class="project-thumb-play"><i data-lucide="play" style="width:18px; height:18px; fill:currentColor;"></i></div>
-                    </div>
-                    <div class="project-info">
-                        <div class="project-name">${p.name}</div>
-                        <div class="project-meta">
-                            <span class="project-meta-item">
-                                <span class="status-dot status-${p.status}"></span>
-                                ${p.status.charAt(0).toUpperCase() + p.status.slice(1)}
-                            </span>
-                            <span class="project-meta-item"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> ${p.duration}</span>
-                            <span class="project-meta-item"><i data-lucide="calendar" style="width:14px; height:14px; margin-right:4px;"></i> ${new Date(p.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                            ${p.status === 'done' ? '<span class="badge badge-purple" style="font-size:0.68rem; padding:3px 8px;">HD</span>' : ''}
-                        </div>
-                    </div>
-                    <div class="project-actions" onclick="event.stopPropagation()">
-                        <button class="btn btn-secondary btn-sm" onclick="window.location.href='editor.html?id=${p.id}'">Edit</button>
-                        <button class="btn btn-primary btn-sm" onclick="exportProjectVideo('${p.id}')">Export</button>
-                        <button class="btn btn-ghost btn-sm" onclick="deleteProj('${p.id}')">Delete</button>
-                    </div>
-                </div>
-            `).join('');
+            // H2 FIX: Build cards with DOM APIs. User data goes into textContent
+            // or validated/whitelisted attributes only — never innerHTML.
+            list.innerHTML = '';
+            const ALLOWED_STATUSES = new Set(['draft', 'processing', 'done']);
+            const ALLOWED_THUMB_TYPES = new Set([1,2,3,4,5]);
+            projects.forEach(p => {
+                // Validate / sanitise stored values before use
+                const safeId     = /^proj-[0-9]+$/.test(p.id) ? p.id : '';
+                const safeName   = typeof p.name === 'string' ? p.name : 'Untitled Project';
+                const safeStatus = ALLOWED_STATUSES.has(p.status) ? p.status : 'draft';
+                const safeThumb  = ALLOWED_THUMB_TYPES.has(p.thumbType) ? p.thumbType : 1;
+                const safeDur    = typeof p.duration === 'string' ? p.duration.slice(0, 20) : '0:00';
+                const safeDate   = (() => { try { return new Date(p.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); } catch(_){ return ''; } })();
+
+                if (!safeId) return; // skip malformed records
+
+                // Card wrapper
+                const card = document.createElement('div');
+                card.className = 'project-card';
+                card.addEventListener('click', () => { window.location.href = 'editor.html?id=' + encodeURIComponent(safeId); });
+
+                // Thumb
+                const thumb = document.createElement('div');
+                thumb.className = `project-thumb thumb-${safeThumb}`;
+                // Default film icon — static markup, not user data
+                thumb.innerHTML = '<i data-lucide="film" style="width:18px;height:18px;"></i>';
+                const playDiv = document.createElement('div');
+                playDiv.className = 'project-thumb-play';
+                playDiv.innerHTML = '<i data-lucide="play" style="width:18px;height:18px;fill:currentColor;"></i>';
+                thumb.appendChild(playDiv);
+
+                // Info
+                const info = document.createElement('div');
+                info.className = 'project-info';
+
+                const nameEl = document.createElement('div');
+                nameEl.className = 'project-name';
+                nameEl.textContent = safeName; // textContent — XSS safe
+
+                const meta = document.createElement('div');
+                meta.className = 'project-meta';
+
+                // Status
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'project-meta-item';
+                const dot = document.createElement('span');
+                dot.className = `status-dot status-${safeStatus}`;
+                const statusLabel = document.createElement('span');
+                statusLabel.textContent = safeStatus.charAt(0).toUpperCase() + safeStatus.slice(1);
+                statusSpan.appendChild(dot);
+                statusSpan.appendChild(statusLabel);
+
+                // Duration
+                const durSpan = document.createElement('span');
+                durSpan.className = 'project-meta-item';
+                durSpan.innerHTML = '<i data-lucide="clock" style="width:14px;height:14px;margin-right:4px;"></i>';
+                durSpan.appendChild(document.createTextNode(' ' + safeDur));
+
+                // Date
+                const dateSpan = document.createElement('span');
+                dateSpan.className = 'project-meta-item';
+                dateSpan.innerHTML = '<i data-lucide="calendar" style="width:14px;height:14px;margin-right:4px;"></i>';
+                dateSpan.appendChild(document.createTextNode(' ' + safeDate));
+
+                meta.appendChild(statusSpan);
+                meta.appendChild(durSpan);
+                meta.appendChild(dateSpan);
+
+                if (safeStatus === 'done') {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-purple';
+                    badge.style.cssText = 'font-size:0.68rem;padding:3px 8px;';
+                    badge.textContent = 'HD';
+                    meta.appendChild(badge);
+                }
+
+                info.appendChild(nameEl);
+                info.appendChild(meta);
+
+                // Actions — listeners attached via addEventListener, no inline onclick with id
+                const actions = document.createElement('div');
+                actions.className = 'project-actions';
+                actions.addEventListener('click', e => e.stopPropagation());
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-secondary btn-sm';
+                editBtn.textContent = 'Edit';
+                editBtn.addEventListener('click', () => { window.location.href = 'editor.html?id=' + encodeURIComponent(safeId); });
+
+                const exportBtn = document.createElement('button');
+                exportBtn.className = 'btn btn-primary btn-sm';
+                exportBtn.textContent = 'Export';
+                exportBtn.addEventListener('click', () => exportProjectVideo(safeId));
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-ghost btn-sm';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.addEventListener('click', () => deleteProj(safeId));
+
+                actions.appendChild(editBtn);
+                actions.appendChild(exportBtn);
+                actions.appendChild(deleteBtn);
+
+                card.appendChild(thumb);
+                card.appendChild(info);
+                card.appendChild(actions);
+                list.appendChild(card);
+            });
+            if (window.lucide) window.lucide.createIcons({ root: list });
         }
 
         function deleteProj(id) {
