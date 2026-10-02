@@ -2,68 +2,98 @@
    CLIP MAGIC — Global Design System
    ======================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 /* === CSS Variables — Dark Mode (default) === */
 :root {
-  --bg-primary: #060614;
-  --bg-secondary: #0d0d24;
-  --bg-card: #11112a;
-  --bg-card-hover: #161638;
-  --bg-nav: rgba(6, 6, 20, 0.7);
-  --bg-nav-scrolled: rgba(6, 6, 20, 0.95);
-  --bg-footer: rgba(6, 6, 20, 0.8);
-  --border: rgba(139, 92, 246, 0.18);
-  --border-hover: rgba(139, 92, 246, 0.5);
-  --purple: #8b5cf6;
-  --purple-light: #a78bfa;
-  --purple-dark: #6d28d9;
-  --cyan: #06b6d4;
-  --cyan-light: #22d3ee;
-  --pink: #ec4899;
-  --green: #10b981;
-  --text-primary: #f1f0ff;
-  --text-secondary: #a09dc0;
-  --text-muted: #5c5a80;
-  --gradient-main: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
-  --gradient-hero: linear-gradient(135deg, #4f46e5 0%, #7c3aed 40%, #0891b2 100%);
-  --glow-purple: 0 0 40px rgba(139, 92, 246, 0.4);
-  --glow-cyan: 0 0 40px rgba(6, 182, 212, 0.4);
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --orb-opacity: 0.15;
+  --bg-primary: hsl(220, 15%, 8%);
+  --bg-secondary: hsl(220, 15%, 10%);
+  --bg-card: hsl(220, 15%, 12%);
+  --bg-card-hover: hsl(220, 15%, 15%);
+  --bg-nav: hsla(220, 15%, 8%, 0.85);
+  --bg-nav-scrolled: hsla(220, 15%, 8%, 0.98);
+  --bg-footer: hsla(220, 15%, 10%, 0.9);
+  --border: hsl(220, 10%, 20%);
+  --border-hover: hsl(220, 10%, 30%);
+  --purple: hsl(210, 80%, 55%);
+  --purple-light: hsl(210, 80%, 65%);
+  --purple-dark: hsl(210, 80%, 45%);
+  --cyan: hsl(35, 90%, 55%);
+  --cyan-light: hsl(35, 90%, 65%);
+  --pink: hsl(340, 70%, 55%);
+  --green: hsl(150, 70%, 45%);
+  --text-primary: hsl(220, 10%, 95%);
+  --text-secondary: hsl(220, 10%, 70%);
+  --text-muted: hsl(220, 10%, 50%);
+  --gradient-main: linear-gradient(135deg, hsl(210, 80%, 55%) 0%, hsl(210, 80%, 45%) 100%);
+  --gradient-hero: linear-gradient(135deg, hsl(210, 80%, 55%) 0%, hsl(210, 80%, 40%) 100%);
+  --glow-purple: 0 0 20px hsla(210, 80%, 55%, 0.2);
+  --glow-cyan: 0 0 20px hsla(35, 90%, 55%, 0.2);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  --orb-opacity: 0.05;
   --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
 /* === CSS Variables — Light Mode === */
 [data-theme="light"] {
-  --bg-primary: #f4f3ff;
-  --bg-secondary: #eae8ff;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f0eeff;
-  --bg-nav: rgba(244, 243, 255, 0.75);
-  --bg-nav-scrolled: rgba(244, 243, 255, 0.97);
-  --bg-footer: rgba(234, 232, 255, 0.9);
-  --border: rgba(139, 92, 246, 0.2);
-  --border-hover: rgba(139, 92, 246, 0.55);
-  --purple: #7c3aed;
-  --purple-light: #6d28d9;
-  --purple-dark: #5b21b6;
-  --cyan: #0891b2;
-  --cyan-light: #06b6d4;
-  --pink: #db2777;
-  --green: #059669;
-  --text-primary: #1e1040;
-  --text-secondary: #4c3d7a;
-  --text-muted: #8b7eb8;
-  --gradient-main: linear-gradient(135deg, #7c3aed 0%, #0891b2 100%);
-  --glow-purple: 0 0 30px rgba(124, 58, 237, 0.25);
-  --glow-cyan: 0 0 30px rgba(8, 145, 178, 0.25);
-  --orb-opacity: 0.08;
-  --shadow-card: 0 8px 30px rgba(124, 58, 237, 0.1);
+  --bg-primary: #FAFAFA;
+  --bg-secondary: #F3F4F6;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F9FAFB;
+  --bg-nav: rgba(255, 255, 255, 0.85);
+  --bg-nav-scrolled: rgba(255, 255, 255, 0.98);
+  --bg-footer: rgba(243, 244, 246, 0.9);
+  --border: #E5E7EB;
+  --border-hover: #D1D5DB;
+  --purple: hsl(210, 80%, 50%);
+  --purple-light: hsl(210, 80%, 60%);
+  --purple-dark: hsl(210, 80%, 40%);
+  --cyan: hsl(35, 90%, 50%);
+  --cyan-light: hsl(35, 90%, 60%);
+  --pink: hsl(340, 70%, 50%);
+  --green: hsl(150, 70%, 40%);
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --gradient-main: linear-gradient(135deg, hsl(210, 80%, 50%) 0%, hsl(210, 80%, 40%) 100%);
+  --glow-purple: 0 0 30px hsla(210, 80%, 50%, 0.15);
+  --glow-cyan: 0 0 30px hsla(35, 90%, 50%, 0.15);
+  --orb-opacity: 0.03;
+  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+
+/* === CSS Variables — Vaporwave Mode === */
+[data-theme="vaporwave"] {
+  --bg-primary: #1a0b2e;
+  --bg-secondary: #2d1b4e;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-hover: rgba(255, 255, 255, 0.1);
+  --bg-nav: rgba(26, 11, 46, 0.85);
+  --bg-nav-scrolled: rgba(26, 11, 46, 0.98);
+  --bg-footer: rgba(45, 27, 78, 0.9);
+  --border: #ff2a6d;
+  --border-hover: #05d9e8;
+  --purple: #ff2a6d;
+  --purple-light: #ff6599;
+  --purple-dark: #cc1a50;
+  --cyan: #05d9e8;
+  --cyan-light: #4ee6f0;
+  --pink: #d1f7ff;
+  --green: #01ffc3;
+  --text-primary: #d1f7ff;
+  --text-secondary: #05d9e8;
+  --text-muted: #ff6599;
+  --gradient-main: linear-gradient(135deg, #ff2a6d 0%, #05d9e8 100%);
+  --gradient-hero: linear-gradient(135deg, #ff2a6d 0%, #ff6599 40%, #05d9e8 100%);
+  --glow-purple: 0 0 20px rgba(255, 42, 109, 0.4);
+  --glow-cyan: 0 0 20px rgba(5, 217, 232, 0.4);
+  --orb-opacity: 0.15;
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* === Theme Toggle Button === */
@@ -71,7 +101,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
   background: rgba(139, 92, 246, 0.08);
   color: var(--text-secondary);
   font-size: 1.1rem;
@@ -132,7 +162,7 @@
 
 html {
   scroll-behavior: smooth;
-  overflow-x: hidden;
+  overflow-x: hidden; font-size: 16px; line-height: 1.6;
 }
 
 body {
@@ -261,7 +291,7 @@ body {
 }
 
 .nav-logo-text {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   background: var(--gradient-main);
@@ -330,7 +360,7 @@ body {
 .btn-secondary {
   background: rgba(139, 92, 246, 0.1);
   color: var(--purple-light);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
 }
 
 .btn-secondary:hover {
@@ -342,7 +372,7 @@ body {
 .btn-ghost {
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
 }
 
 .btn-ghost:hover {
@@ -366,7 +396,7 @@ body {
 /* === Cards === */
 .card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
   border-radius: var(--radius-lg);
   transition: var(--transition);
   overflow: hidden;
@@ -437,7 +467,7 @@ body {
 }
 
 .section-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: clamp(2rem, 4vw, 2.8rem);
   font-weight: 700;
   line-height: 1.2;
@@ -458,7 +488,7 @@ body {
 
 .about-card {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
   border-radius: var(--radius-lg);
   padding: 40px;
   box-shadow: var(--shadow-card);
@@ -505,7 +535,7 @@ body {
 
 .form-input {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
   border-radius: var(--radius-md);
   padding: 13px 18px;
   color: var(--text-primary);
@@ -546,7 +576,7 @@ body {
 
 /* === Stat Number === */
 .stat-value {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 2.4rem;
   font-weight: 700;
   background: var(--gradient-main);
@@ -569,7 +599,7 @@ body {
   right: 32px;
   z-index: 999;
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
   border-radius: var(--radius-md);
   padding: 14px 20px;
   display: flex;
@@ -688,7 +718,7 @@ footer .footer-left {
 }
 
 footer .footer-brand {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-weight: 700;
   font-size: 1rem;
   background: var(--gradient-main);
@@ -783,4 +813,150 @@ footer .footer-links a:hover {
     flex-wrap: wrap;
     gap: 16px;
   }
+}
+
+/* === Global Premium Utilities === */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-clip: padding-box;
+}
+.toast.success { border-left: 4px solid var(--green); }
+.toast.info { border-left: 4px solid var(--cyan); }
+
+/* === Responsive Utility Enhancements === */
+
+/* Icon alignment */
+.lucide, i[data-lucide] {
+  vertical-align: middle;
+  display: inline-block;
+}
+.tool-btn i[data-lucide] {
+  margin-bottom: 2px;
+}
+.track-lane:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* === Editor Premium Polish === */
+
+/* Fix button text wrapping in props panel */
+.music-btn {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Better SVG icon alignment in buttons */
+.music-btn svg,
+.ai-run-btn svg,
+.btn svg {
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* Tool buttons � cleaner active state with accent left border */
+.tool-btn.active {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: var(--purple) !important;
+  border-left: 2px solid var(--purple);
+}
+
+/* Props panel input focus ring using new palette */
+.prop-input:focus,
+.prop-select:focus {
+  border-color: var(--purple) !important;
+  box-shadow: 0 0 0 2px hsla(210, 80%, 55%, 0.15) !important;
+}
+
+/* Timeline header styling */
+.timeline-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+}
+
+/* Track clip text - prevent long names from overflowing */
+.track-clip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Clip selection highlight - use accent color */
+.track-clip:focus {
+  outline: 2px solid var(--purple);
+}
+
+/* Light mode editor improvements */
+[data-theme="light"] .editor-center {
+  background: #F3F4F6;
+}
+
+[data-theme="light"] .editor-tools {
+  border-right: 1px solid #E5E7EB;
+}
+
+[data-theme="light"] .timeline-area {
+  background: #FFFFFF;
+  border-top: 1px solid #E5E7EB;
+}
+
+[data-theme="light"] .track-lane {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: #E5E7EB;
+}
+
+[data-theme="light"] .prop-input,
+[data-theme="light"] .prop-select {
+  background: #F9FAFB;
+  border-color: #E5E7EB;
+  color: #111827;
+}
+
+[data-theme="light"] .chip-option {
+  border-color: #E5E7EB;
+  color: #4B5563;
+}
+
+[data-theme="light"] .chip-option:hover,
+[data-theme="light"] .chip-option.active {
+  border-color: var(--purple);
+  background: hsla(210, 80%, 50%, 0.08);
+  color: var(--purple-dark);
+}
+
+[data-theme="light"] .tool-btn:hover,
+[data-theme="light"] .tool-btn.active {
+  background: hsla(210, 80%, 50%, 0.1) !important;
+  color: var(--purple) !important;
+}
+
+[data-theme="light"] .icon-btn:hover {
+  background: hsla(210, 80%, 50%, 0.1);
+  color: var(--purple);
+}
+
+[data-theme="light"] .scrubber {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .ai-tool-card {
+  background: rgba(0,0,0,0.02);
+  border-color: #E5E7EB;
+}
+
+[data-theme="light"] .ai-tool-card:hover {
+  background: hsla(210, 80%, 50%, 0.05);
+  border-color: var(--purple);
 }

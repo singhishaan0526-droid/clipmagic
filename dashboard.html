@@ -54,7 +54,7 @@
 
         .stat-card {
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
             border-radius: var(--radius-lg);
             padding: 24px 28px;
             transition: var(--transition);
@@ -144,7 +144,7 @@
 
         .project-card {
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
             border-radius: var(--radius-lg);
             padding: 20px 24px;
             display: flex;
@@ -157,7 +157,7 @@
         .project-card:hover {
             border-color: var(--border-hover);
             background: var(--bg-card-hover);
-            transform: translateX(4px);
+            transform: translateY(-6px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.2);
         }
 
         .project-thumb {
@@ -274,7 +274,7 @@
 
         .sidebar-card {
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
             border-radius: var(--radius-lg);
             padding: 22px;
             animation: fadeInUp 0.6s ease 0.2s both;
@@ -384,7 +384,7 @@
 
         .tool-btn {
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
             border-radius: var(--radius-md);
             padding: 14px 12px;
             text-align: center;
@@ -455,18 +455,19 @@
             }
         }
     </style>
+    <!-- FFmpeg WASM -->
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+    <script src="ffmpeg-engine.js"></script>
 </head>
 
 <body>
     <div class="page-wrapper">
-        <div class="bg-orbs">
-            <div class="orb orb-1"></div>
-            <div class="orb orb-2"></div>
-        </div>
+        
 
         <nav class="navbar">
             <a href="index.html" class="nav-logo">
-                <div class="nav-logo-icon">🎬</div>
+                <div class="nav-logo-icon"><i data-lucide="video" style="width:20px; height:20px;"></i></div>
                 <span class="nav-logo-text">Clip Magic</span>
             </a>
             <ul class="nav-links">
@@ -476,8 +477,8 @@
             </ul>
             <div class="nav-cta">
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
-                    <span class="icon-sun">☀️</span>
-                    <span class="icon-moon">🌙</span>
+                    <span class="icon-sun"><i data-lucide="sun" style="width:18px; height:18px;"></i></span>
+                    <span class="icon-moon"><i data-lucide="moon" style="width:18px; height:18px;"></i></span>
                 </button>
                 <span style="font-size:0.83rem; color: var(--text-muted);">👤 Alex Rivera</span>
                 <a href="login.html" class="btn btn-ghost btn-sm">Sign Out</a>
@@ -490,7 +491,7 @@
                 <!-- Header -->
                 <div class="dash-header">
                     <div>
-                        <div class="dash-greeting">Good evening 🌙</div>
+                        <div class="dash-greeting">Good evening <i data-lucide="moon" style="width:18px; height:18px;"></i></div>
                         <h1 class="dash-title">Welcome back, <span class="gradient-text">Alex</span></h1>
                     </div>
                     <a href="upload.html" class="btn btn-primary">
@@ -501,13 +502,13 @@
                 <!-- Stats -->
                 <div class="stats-row">
                     <div class="stat-card">
-                        <div class="stat-card-icon">🎬</div>
+                        <div class="stat-card-icon"><i data-lucide="video" style="width:20px; height:20px;"></i></div>
                         <div class="stat-card-value">12</div>
                         <div class="stat-card-label">Total Projects</div>
                         <div class="stat-card-change">↑ 3 this month</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-card-icon">⚡</div>
+                        <div class="stat-card-icon"><i data-lucide="split-square-vertical" style="width:20px; height:20px;"></i></div>
                         <div class="stat-card-value">47</div>
                         <div class="stat-card-label">Videos Exported</div>
                         <div class="stat-card-change">↑ 12 this week</div>
@@ -532,28 +533,29 @@
                     <div>
                         <!-- Projects -->
                         <div class="dash-section-header">
-                            <div class="dash-section-title">📁 Your Projects</div>
+                            <div class="dash-section-title"><i data-lucide="folder-open" style="width:20px; height:20px;"></i> Your Projects</div>
                             <div class="nav-cta">
+                                <input type="text" id="projSearch" placeholder="Search projects..." 
+                                    style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 12px; color: white; font-size: 0.8rem; outline: none; width: 180px;"
+                                    oninput="renderProjects(this.value)">
                                 <button class="btn btn-ghost btn-sm"
-                                    onclick="showToast('Filter coming soon!','🔍')">Filter</button>
-                                <button class="btn btn-ghost btn-sm"
-                                    onclick="showToast('Sort coming soon!','↕️')">Sort</button>
+                                    onclick="showToast('Filtering is now active!','🔍')">Filter</button>
                             </div>
                         </div>
 
                         <div class="projects-list">
                             <div class="project-card">
                                 <div class="project-thumb thumb-1">
-                                    🎥
-                                    <div class="project-thumb-play">▶</div>
+                                    <i data-lucide="film" style="width:18px; height:18px;"></i>
+                                    <div class="project-thumb-play"><i data-lucide="play" style="width:18px; height:18px; fill:currentColor;"></i></div>
                                 </div>
                                 <div class="project-info">
                                     <div class="project-name">Product Launch Reel 2026</div>
                                     <div class="project-meta">
                                         <span class="project-meta-item"><span class="status-dot status-done"></span>
                                             Done</span>
-                                        <span class="project-meta-item">🕒 2:34</span>
-                                        <span class="project-meta-item">📅 Feb 26</span>
+                                        <span class="project-meta-item"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> 2:34</span>
+                                        <span class="project-meta-item"><i data-lucide="calendar" style="width:14px; height:14px; margin-right:4px;"></i> Feb 26</span>
                                         <span class="badge badge-purple"
                                             style="font-size:0.68rem; padding:3px 8px;">4K</span>
                                     </div>
@@ -562,22 +564,22 @@
                                     <button class="btn btn-secondary btn-sm"
                                         onclick="window.location.href='editor.html'">Edit</button>
                                     <button class="btn btn-primary btn-sm"
-                                        onclick="showToast('Downloading…','⬇️')">Export</button>
+                                        onclick="showToast('Downloading…','<i data-lucide="download" style="width:16px; height:16px; margin-right:4px;"></i>️')">Export</button>
                                 </div>
                             </div>
 
                             <div class="project-card">
                                 <div class="project-thumb thumb-2">
                                     📱
-                                    <div class="project-thumb-play">▶</div>
+                                    <div class="project-thumb-play"><i data-lucide="play" style="width:18px; height:18px; fill:currentColor;"></i></div>
                                 </div>
                                 <div class="project-info">
                                     <div class="project-name">TikTok Weekly Vlog #14</div>
                                     <div class="project-meta">
                                         <span class="project-meta-item"><span class="status-dot status-done"></span>
                                             Done</span>
-                                        <span class="project-meta-item">🕒 0:58</span>
-                                        <span class="project-meta-item">📅 Feb 24</span>
+                                        <span class="project-meta-item"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> 0:58</span>
+                                        <span class="project-meta-item"><i data-lucide="calendar" style="width:14px; height:14px; margin-right:4px;"></i> Feb 24</span>
                                         <span class="badge badge-cyan"
                                             style="font-size:0.68rem; padding:3px 8px;">9:16</span>
                                     </div>
@@ -586,22 +588,22 @@
                                     <button class="btn btn-secondary btn-sm"
                                         onclick="window.location.href='editor.html'">Edit</button>
                                     <button class="btn btn-primary btn-sm"
-                                        onclick="showToast('Downloading…','⬇️')">Export</button>
+                                        onclick="showToast('Downloading…','<i data-lucide="download" style="width:16px; height:16px; margin-right:4px;"></i>️')">Export</button>
                                 </div>
                             </div>
 
                             <div class="project-card">
                                 <div class="project-thumb thumb-3">
                                     🎞️
-                                    <div class="project-thumb-play">▶</div>
+                                    <div class="project-thumb-play"><i data-lucide="play" style="width:18px; height:18px; fill:currentColor;"></i></div>
                                 </div>
                                 <div class="project-info">
                                     <div class="project-name">Travel Montage — Japan 2026</div>
                                     <div class="project-meta">
                                         <span class="project-meta-item"><span
                                                 class="status-dot status-processing"></span> Processing</span>
-                                        <span class="project-meta-item">🕒 4:12</span>
-                                        <span class="project-meta-item">📅 Feb 27</span>
+                                        <span class="project-meta-item"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> 4:12</span>
+                                        <span class="project-meta-item"><i data-lucide="calendar" style="width:14px; height:14px; margin-right:4px;"></i> Feb 27</span>
                                         <span class="badge badge-green" style="font-size:0.68rem; padding:3px 8px;">AI
                                             Active</span>
                                     </div>
@@ -615,15 +617,15 @@
                             <div class="project-card">
                                 <div class="project-thumb thumb-4">
                                     🏠
-                                    <div class="project-thumb-play">▶</div>
+                                    <div class="project-thumb-play"><i data-lucide="play" style="width:18px; height:18px; fill:currentColor;"></i></div>
                                 </div>
                                 <div class="project-info">
                                     <div class="project-name">Real Estate Tour — Apt 4B</div>
                                     <div class="project-meta">
                                         <span class="project-meta-item"><span class="status-dot status-done"></span>
                                             Done</span>
-                                        <span class="project-meta-item">🕒 3:20</span>
-                                        <span class="project-meta-item">📅 Feb 20</span>
+                                        <span class="project-meta-item"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> 3:20</span>
+                                        <span class="project-meta-item"><i data-lucide="calendar" style="width:14px; height:14px; margin-right:4px;"></i> Feb 20</span>
                                         <span class="badge badge-purple"
                                             style="font-size:0.68rem; padding:3px 8px;">4K</span>
                                     </div>
@@ -632,29 +634,29 @@
                                     <button class="btn btn-secondary btn-sm"
                                         onclick="window.location.href='editor.html'">Edit</button>
                                     <button class="btn btn-primary btn-sm"
-                                        onclick="showToast('Downloading…','⬇️')">Export</button>
+                                        onclick="showToast('Downloading…','<i data-lucide="download" style="width:16px; height:16px; margin-right:4px;"></i>️')">Export</button>
                                 </div>
                             </div>
 
                             <div class="project-card">
                                 <div class="project-thumb thumb-5">
                                     🎤
-                                    <div class="project-thumb-play">▶</div>
+                                    <div class="project-thumb-play"><i data-lucide="play" style="width:18px; height:18px; fill:currentColor;"></i></div>
                                 </div>
                                 <div class="project-info">
                                     <div class="project-name">Podcast Clip — Episode 32</div>
                                     <div class="project-meta">
                                         <span class="project-meta-item"><span class="status-dot status-draft"></span>
                                             Draft</span>
-                                        <span class="project-meta-item">🕒 1:45</span>
-                                        <span class="project-meta-item">📅 Feb 18</span>
+                                        <span class="project-meta-item"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> 1:45</span>
+                                        <span class="project-meta-item"><i data-lucide="calendar" style="width:14px; height:14px; margin-right:4px;"></i> Feb 18</span>
                                     </div>
                                 </div>
                                 <div class="project-actions">
                                     <button class="btn btn-secondary btn-sm"
                                         onclick="window.location.href='editor.html'">Edit</button>
                                     <button class="btn btn-ghost btn-sm"
-                                        onclick="showToast('Deleted!','🗑️')">Delete</button>
+                                        onclick="showToast('Deleted!','<i data-lucide="trash-2" style="width:16px; height:16px;"></i>')">Delete</button>
                                 </div>
                             </div>
                         </div>
@@ -684,22 +686,22 @@
 
                         <!-- AI Quick Tools -->
                         <div class="sidebar-card">
-                            <div class="sidebar-card-title">🤖 Quick AI Tools</div>
+                            <div class="sidebar-card-title"><i data-lucide="cpu" style="width:18px; height:18px;"></i> Quick AI Tools</div>
                             <div class="tools-grid">
-                                <div class="tool-btn" onclick="showToast('AI Cut launched!','✂️')">
-                                    <div class="tool-btn-icon">✂️</div>
+                                <div class="tool-btn" onclick="showToast('AI Cut launched!','<i data-lucide="scissors" style="width:20px; height:20px;"></i>')">
+                                    <div class="tool-btn-icon"><i data-lucide="scissors" style="width:20px; height:20px;"></i></div>
                                     <div class="tool-btn-label">Smart Cut</div>
                                 </div>
-                                <div class="tool-btn" onclick="showToast('Captions tool launched!','💬')">
-                                    <div class="tool-btn-icon">💬</div>
+                                <div class="tool-btn" onclick="showToast('Captions tool launched!','<i data-lucide="message-square" style="width:20px; height:20px;"></i>')">
+                                    <div class="tool-btn-icon"><i data-lucide="message-square" style="width:20px; height:20px;"></i></div>
                                     <div class="tool-btn-label">Captions</div>
                                 </div>
-                                <div class="tool-btn" onclick="showToast('Color grade launched!','🎨')">
-                                    <div class="tool-btn-icon">🎨</div>
+                                <div class="tool-btn" onclick="showToast('Color grade launched!','<i data-lucide="palette" style="width:20px; height:20px;"></i>')">
+                                    <div class="tool-btn-icon"><i data-lucide="palette" style="width:20px; height:20px;"></i></div>
                                     <div class="tool-btn-label">Color Grade</div>
                                 </div>
-                                <div class="tool-btn" onclick="showToast('Music sync launched!','🎵')">
-                                    <div class="tool-btn-icon">🎵</div>
+                                <div class="tool-btn" onclick="showToast('Music sync launched!','<i data-lucide="music" style="width:20px; height:20px;"></i>')">
+                                    <div class="tool-btn-icon"><i data-lucide="music" style="width:20px; height:20px;"></i></div>
                                     <div class="tool-btn-label">Music Sync</div>
                                 </div>
                             </div>
@@ -707,10 +709,10 @@
 
                         <!-- Activity Feed -->
                         <div class="sidebar-card">
-                            <div class="sidebar-card-title">🕒 Recent Activity</div>
+                            <div class="sidebar-card-title"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> Recent Activity</div>
                             <div class="activity-list">
                                 <div class="activity-item">
-                                    <div class="activity-icon a-export">⬇️</div>
+                                    <div class="activity-icon a-export"><i data-lucide="download" style="width:16px; height:16px; margin-right:4px;"></i>️</div>
                                     <div class="activity-text">
                                         <strong>Exported "Product Launch Reel"</strong>
                                         <div class="activity-time">Today, 6:12 PM</div>
@@ -747,7 +749,7 @@
 
         <footer>
             <div class="footer-left">
-                <span style="font-size:1.3rem">🎬</span>
+                <span style="font-size:1.3rem"><i data-lucide="video" style="width:20px; height:20px;"></i></span>
                 <span class="footer-brand">Clip Magic</span>
                 <span class="footer-copy">© 2026 All rights reserved.</span>
             </div>
@@ -765,16 +767,17 @@
             renderProjects();
         });
 
-        function renderProjects() {
+        function renderProjects(query = "") {
             const list = document.querySelector('.projects-list');
-            const projects = ProjectService.getProjects();
+            let projects = ProjectService.getProjects();
+            if (query) projects = projects.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
 
             if (projects.length === 0) {
                 list.innerHTML = `
                     <div style="text-align:center; padding: 60px 20px; border: 2px dashed var(--border); border-radius: var(--radius-xl); background: rgba(255,255,255,0.02);">
-                        <div style="font-size: 3rem; margin-bottom: 20px;">🎬</div>
+                        <div style="font-size: 3rem; margin-bottom: 20px;"><i data-lucide="video" style="width:20px; height:20px;"></i></div>
                         <h3 style="margin-bottom: 10px;">No projects yet</h3>
-                        <p style="color: var(--text-secondary); margin-bottom: 24px;">Start your first AI-edited video in seconds.</p>
+                        <p style="color: var(--text-secondary); margin-bottom: 24px;">Start your first project in seconds.</p>
                         <a href="upload.html" class="btn btn-primary">Create New Project</a>
                     </div>
                 `;
@@ -784,8 +787,8 @@
             list.innerHTML = projects.map(p => `
                 <div class="project-card" onclick="window.location.href='editor.html?id=${p.id}'">
                     <div class="project-thumb thumb-${p.thumbType || 1}">
-                        ${p.thumbIcon || '🎥'}
-                        <div class="project-thumb-play">▶</div>
+                        ${p.thumbIcon || '<i data-lucide="film" style="width:18px; height:18px;"></i>'}
+                        <div class="project-thumb-play"><i data-lucide="play" style="width:18px; height:18px; fill:currentColor;"></i></div>
                     </div>
                     <div class="project-info">
                         <div class="project-name">${p.name}</div>
@@ -794,13 +797,14 @@
                                 <span class="status-dot status-${p.status}"></span>
                                 ${p.status.charAt(0).toUpperCase() + p.status.slice(1)}
                             </span>
-                            <span class="project-meta-item">🕒 ${p.duration}</span>
-                            <span class="project-meta-item">📅 ${new Date(p.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            <span class="project-meta-item"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> ${p.duration}</span>
+                            <span class="project-meta-item"><i data-lucide="calendar" style="width:14px; height:14px; margin-right:4px;"></i> ${new Date(p.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                             ${p.status === 'done' ? '<span class="badge badge-purple" style="font-size:0.68rem; padding:3px 8px;">HD</span>' : ''}
                         </div>
                     </div>
                     <div class="project-actions" onclick="event.stopPropagation()">
                         <button class="btn btn-secondary btn-sm" onclick="window.location.href='editor.html?id=${p.id}'">Edit</button>
+                        <button class="btn btn-primary btn-sm" onclick="exportProjectVideo('${p.id}')">Export</button>
                         <button class="btn btn-ghost btn-sm" onclick="deleteProj('${p.id}')">Delete</button>
                     </div>
                 </div>
@@ -811,9 +815,17 @@
             if (confirm('Are you sure you want to delete this project?')) {
                 ProjectService.deleteProject(id);
                 renderProjects();
-                showToast('Project deleted', '🗑️');
+                showToast('Project deleted', '<i data-lucide="trash-2" style="width:16px; height:16px;"></i>');
             }
         }
+    </script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+          if(window.lucide) window.lucide.createIcons();
+      });
     </script>
 </body>
 

@@ -19,8 +19,8 @@ function toggleTheme() {
   localStorage.setItem('cm-theme', next);
 
   if (typeof showToast === 'function') {
-    const icons = { dark: '🌙', light: '☀️', vaporwave: '🌅' };
-    showToast(`Theme: ${next.charAt(0).toUpperCase() + next.slice(1)}`, icons[next] || '✨');
+    const icons = { dark: '<i data-lucide="moon" style="width:18px; height:18px;"></i>', light: '<i data-lucide="sun" style="width:18px; height:18px;"></i>', vaporwave: '🌅' };
+    showToast(`Theme: ${next.charAt(0).toUpperCase() + next.slice(1)}`, icons[next] || '<i data-lucide="sparkles" style="width:18px; height:18px;"></i>');
   }
 }
 
@@ -44,14 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // === Toast notification ===
-function showToast(message, icon = '✨', duration = 3000) {
+function showToast(message, icon = '<i data-lucide="sparkles" style="width:18px; height:18px;"></i>', type = 'info', duration = 3000) {
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
 
   const toast = document.createElement('div');
-  toast.className = 'toast';
+  toast.className = `toast ${type}`;
   toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
   document.body.appendChild(toast);
+  if(window.lucide) window.lucide.createIcons({root: toast});
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => toast.classList.add('show'));
@@ -188,11 +189,21 @@ const ProjectService = {
   },
 
   /**
-   * Adds a new project and optionally saves the first asset
+   * Adds a new project and optionally saves assets
+   * @param {Object} project 
+   * @param {Object|File} assets - Can be a File (legacy) or an object { video: File, music: File }
    */
-  async addProject(project, firstAssetFile = null) {
+  async addProject(project, assets = null) {
     const projects = this.getProjects();
     const projectId = 'proj-' + Date.now();
+
+    // Normalize assets
+    let assetFiles = {};
+    if (assets instanceof File) {
+      assetFiles.video = assets;
+    } else if (assets && typeof assets === 'object') {
+      assetFiles = assets;
+    }
 
     // Default dynamic track structure
     const defaultProjectState = {
@@ -215,24 +226,48 @@ const ProjectService = {
       id: projectId // ensure id is preserved
     };
 
-    if (firstAssetFile) {
-      const assetId = 'asset-1'; // First asset
-      await this.saveAsset(projectId, assetId, firstAssetFile);
+    // Save video asset
+    if (assetFiles.video) {
+      const assetId = 'asset-video';
+      await this.saveAsset(projectId, assetId, assetFiles.video);
 
-      // Add the first clip to the first video track if it's a new project
-      if (newProject.projectState.tracks[0]) {
-        const isVideo = firstAssetFile.type.startsWith('video/');
-        newProject.projectState.tracks[0].clips.push({
-          id: 'clip-1',
+      // Add to first video track
+      const videoTrack = newProject.projectState.tracks.find(t => t.type === 'video');
+      if (videoTrack) {
+        videoTrack.clips.push({
+          id: 'clip-v1',
           assetId: assetId,
-          name: firstAssetFile.name,
-          type: isVideo ? 'video' : 'image',
+          name: assetFiles.video.name,
+          type: 'video',
           start: 0,
-          duration: isVideo ? 0 : 5, // Duration 0 for video means "not yet loaded meta", 5 for image
+          duration: 0,
           trimStart: 0,
-          trimEnd: isVideo ? 0 : 5,
-          color: isVideo ? 'rgba(139, 92, 246, 0.35)' : 'rgba(251, 191, 36, 0.35)',
-          borderColor: isVideo ? 'rgba(139, 92, 246, 0.6)' : 'rgba(251, 191, 36, 0.6)'
+          trimEnd: 0,
+          color: 'rgba(139, 92, 246, 0.35)',
+          borderColor: 'rgba(139, 92, 246, 0.6)'
+        });
+      }
+    }
+
+    // Save music asset
+    if (assetFiles.music) {
+      const assetId = 'asset-music';
+      await this.saveAsset(projectId, assetId, assetFiles.music);
+
+      // Add to first audio track
+      const audioTrack = newProject.projectState.tracks.find(t => t.type === 'audio');
+      if (audioTrack) {
+        audioTrack.clips.push({
+          id: 'clip-a1',
+          assetId: assetId,
+          name: assetFiles.music.name,
+          type: 'music',
+          start: 0,
+          duration: 0,
+          trimStart: 0,
+          trimEnd: 0,
+          color: 'rgba(236, 72, 153, 0.35)',
+          borderColor: 'rgba(236, 72, 153, 0.6)'
         });
       }
     }
@@ -261,6 +296,14 @@ const ProjectService = {
     await this.deleteProjectAssets(id);
   },
 
+  /**
+   * Specifically for adding an asset to an existing project
+   */
+  async addProjectAsset(projectId, assetId, file) {
+    await this.saveAsset(projectId, assetId, file);
+    return assetId;
+  },
+
   getDefaultProjects() {
     return [
       { id: 'proj-1', name: 'Product Launch Reel 2026', timestamp: '2026-02-26T18:00:00Z', status: 'done', duration: '2:34', size: '1.2 GB', thumbType: 1 },
@@ -269,6 +312,37 @@ const ProjectService = {
     ];
   }
 };
+
+// === Asset Manager (Blob URL Cache) ===
+const AssetManager = {
+  urlCache: new Map(),
+
+  async getUrl(projectId, assetId) {
+    const key = `${projectId}:${assetId}`;
+    if (this.urlCache.has(key)) return this.urlCache.get(key);
+
+    const file = await ProjectService.getAsset(projectId, assetId);
+    if (!file) return null;
+
+    const url = URL.createObjectURL(file);
+    this.urlCache.set(key, url);
+    return url;
+  },
+
+  revokeUrl(projectId, assetId) {
+    const key = `${projectId}:${assetId}`;
+    if (this.urlCache.has(key)) {
+      URL.revokeObjectURL(this.urlCache.get(key));
+      this.urlCache.delete(key);
+    }
+  },
+
+  clearCache() {
+    this.urlCache.forEach(url => URL.revokeObjectURL(url));
+    this.urlCache.clear();
+  }
+};
+
 
 // === Smooth page transitions ===
 document.addEventListener('DOMContentLoaded', () => {

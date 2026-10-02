@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clip Magic — AI Video Editing Platform</title>
+  <title>Clip Magic — Professional Video Editing Platform</title>
   <meta name="description"
     content="Clip Magic uses AI to transform your raw footage into cinematic masterpieces. Auto-captions, smart cuts, filters, and more." />
   <link rel="stylesheet" href="style.css" />
@@ -81,14 +81,16 @@
       position: relative;
     }
 
-    .video-card {
+    .video-card { perspective: 1000px; transition: var(--transition);
       background: var(--bg-card);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
       border-radius: var(--radius-xl);
       overflow: hidden;
       box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), var(--glow-purple);
       animation: fadeInUp 0.8s ease 0.3s both;
     }
+
+    .video-card:hover { transform: translateY(-10px) rotateX(2deg) rotateY(-2deg); border-color: rgba(255, 255, 255, 0.2); box-shadow: 0 40px 80px rgba(0,0,0,0.6), var(--glow-purple); }
 
     .video-card-header {
       padding: 14px 18px;
@@ -253,7 +255,7 @@
       padding: 10px 16px;
       background: rgba(13, 13, 36, 0.85);
       backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
       border-radius: var(--radius-md);
       font-size: 0.82rem;
       font-weight: 600;
@@ -380,7 +382,7 @@
       width: 72px;
       height: 72px;
       background: var(--bg-card);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -400,7 +402,7 @@
     .step-number-wrap {
       width: 72px;
       height: 72px;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -650,20 +652,17 @@
   <div class="page-wrapper">
 
     <!-- Background Orbs -->
-    <div class="bg-orbs">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="orb orb-3"></div>
-    </div>
+    
 
     <!-- Navbar -->
     <nav class="navbar">
       <a href="index.html" class="nav-logo">
-        <div class="nav-logo-icon">🎬</div>
+        <div class="nav-logo-icon"><i data-lucide="video" style="width:20px; height:20px;"></i></div>
         <span class="nav-logo-text">Clip Magic</span>
       </a>
       <ul class="nav-links">
         <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="about.html">About</a></li>
         <li><a href="upload.html">Upload</a></li>
         <li><a href="dashboard.html">Dashboard</a></li>
         <li><a href="#features">Features</a></li>
@@ -671,8 +670,8 @@
       </ul>
       <div class="nav-cta">
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" id="themeToggle">
-          <span class="icon-sun">☀️</span>
-          <span class="icon-moon">🌙</span>
+          <span class="icon-sun"><i data-lucide="sun" style="width:18px; height:18px;"></i></span>
+          <span class="icon-moon"><i data-lucide="moon" style="width:18px; height:18px;"></i></span>
         </button>
         <a href="login.html" class="btn btn-ghost btn-sm">Sign In</a>
         <a href="upload.html" class="btn btn-primary btn-sm">Start Free</a>
@@ -683,7 +682,7 @@
     <div class="hero">
       <div class="hero-content animate-up">
         <div class="hero-eyebrow">
-          <span class="badge badge-purple">✨ AI-Powered</span>
+          <span class="badge badge-purple"><i data-lucide="sparkles" style="width:18px; height:18px;"></i> AI-Powered</span>
           <span class="badge badge-cyan">New: Auto Smart Cuts</span>
         </div>
         <h1 class="hero-title">
@@ -697,10 +696,10 @@
         </p>
         <div class="hero-actions">
           <a href="upload.html" class="btn btn-primary btn-lg">
-            🚀 Start Editing Free
+            <i data-lucide="rocket" style="width:18px; height:18px;"></i> Start Editing Free
           </a>
           <a href="#features" class="btn btn-ghost btn-lg">
-            ▶ See How It Works
+            <i data-lucide="play" style="width:18px; height:18px; fill:currentColor;"></i> See How It Works
           </a>
         </div>
         <div class="hero-stats">
@@ -731,23 +730,23 @@
           </div>
           <div class="video-screen">
             <div class="video-screen-overlay"></div>
-            <div class="play-btn">▶</div>
+            <div class="play-btn"><i data-lucide="play" style="width:18px; height:18px; fill:currentColor;"></i></div>
           </div>
           <div class="timeline">
             <div class="timeline-bar">
               <div class="timeline-progress"></div>
             </div>
             <div class="timeline-tools">
-              <span class="timeline-chip chip-ai">🤖 AI Cut</span>
-              <span class="timeline-chip chip-cap">💬 Captions</span>
-              <span class="timeline-chip chip-flt">🎨 Filter</span>
-              <span class="timeline-chip chip-cut">✂️ Trim</span>
+              <span class="timeline-chip chip-ai"><i data-lucide="cpu" style="width:18px; height:18px;"></i> AI Cut</span>
+              <span class="timeline-chip chip-cap"><i data-lucide="message-square" style="width:20px; height:20px;"></i> Captions</span>
+              <span class="timeline-chip chip-flt"><i data-lucide="palette" style="width:20px; height:20px;"></i> Filter</span>
+              <span class="timeline-chip chip-cut"><i data-lucide="scissors" style="width:20px; height:20px;"></i> Trim</span>
             </div>
           </div>
         </div>
 
         <div class="float-badge float-badge-1">
-          <span>⚡</span> Processing 2x faster
+          <span><i data-lucide="split-square-vertical" style="width:20px; height:20px;"></i></span> Processing 2x faster
         </div>
         <div class="float-badge float-badge-2">
           <span>🎯</span> 98% caption accuracy
@@ -777,7 +776,7 @@
           My goal is to continuously improve Clip Magic by adding smarter features, improving performance, and creating
           a seamless experience for every creator.
         </p>
-        <div class="about-signature">Thank you for being part of this journey 🚀</div>
+        <div class="about-signature">Thank you for being part of this journey <i data-lucide="rocket" style="width:18px; height:18px;"></i></div>
       </div>
     </div>
 
@@ -789,25 +788,25 @@
 
       <div class="features-grid">
         <div class="card feature-card scroll-reveal">
-          <div class="feature-icon feature-icon-purple">🤖</div>
+          <div class="feature-icon feature-icon-purple"><i data-lucide="cpu" style="width:18px; height:18px;"></i></div>
           <h3>AI Smart Cuts</h3>
           <p>Our AI analyzes your footage and automatically removes silences, awkward pauses, and filler words to create
             a polished edit.</p>
         </div>
         <div class="card feature-card scroll-reveal">
-          <div class="feature-icon feature-icon-cyan">💬</div>
+          <div class="feature-icon feature-icon-cyan"><i data-lucide="message-square" style="width:20px; height:20px;"></i></div>
           <h3>Auto Captions</h3>
           <p>Generate accurate captions in 30+ languages instantly. Customize fonts, colors, and animations to match
             your brand.</p>
         </div>
         <div class="card feature-card scroll-reveal">
-          <div class="feature-icon feature-icon-pink">🎨</div>
+          <div class="feature-icon feature-icon-pink"><i data-lucide="palette" style="width:20px; height:20px;"></i></div>
           <h3>Cinematic Filters</h3>
           <p>50+ professional color presets and LUTs that transform your raw footage into a cinematic experience with
             one click.</p>
         </div>
         <div class="card feature-card scroll-reveal">
-          <div class="feature-icon feature-icon-green">🎵</div>
+          <div class="feature-icon feature-icon-green"><i data-lucide="music" style="width:20px; height:20px;"></i></div>
           <h3>AI Music Sync</h3>
           <p>Automatically sync your edits to music beats. Choose from our library of 10,000+ royalty-free tracks.</p>
         </div>
@@ -922,7 +921,7 @@
       <h2>Ready to create something <span class="gradient-text">magical?</span></h2>
       <p>Join 50,000+ creators who use Clip Magic to produce stunning videos.</p>
       <div class="cta-actions">
-        <a href="upload.html" class="btn btn-primary btn-lg">🚀 Start Editing — It's Free</a>
+        <a href="upload.html" class="btn btn-primary btn-lg"><i data-lucide="rocket" style="width:18px; height:18px;"></i> Start Editing — It's Free</a>
         <a href="dashboard.html" class="btn btn-ghost btn-lg">View Dashboard</a>
       </div>
     </div>
@@ -930,7 +929,7 @@
     <!-- Footer -->
     <footer>
       <div class="footer-left">
-        <span style="font-size:1.3rem">🎬</span>
+        <span style="font-size:1.3rem"><i data-lucide="video" style="width:20px; height:20px;"></i></span>
         <span class="footer-brand">Clip Magic</span>
         <span class="footer-copy">© 2026 All rights reserved.</span>
       </div>
@@ -945,6 +944,14 @@
   </div>
 
   <script src="app.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+          if(window.lucide) window.lucide.createIcons();
+      });
+    </script>
 </body>
 
 </html>
