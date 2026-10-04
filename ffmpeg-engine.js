@@ -139,6 +139,10 @@ async function exportProjectVideo(projectId, opts = {}) {
         }
 
         const clips = videoTrack.clips;
+        const pipClips = state.tracks
+            .filter(track => track.type === 'video' && track !== videoTrack)
+            .flatMap(track => Array.isArray(track.clips) ? track.clips : [])
+            .filter(clip => clip.assetId);
 
         // 3. Build validated input arguments for video clips
         const inputArgs = [];
@@ -154,6 +158,16 @@ async function exportProjectVideo(projectId, opts = {}) {
             if (duration !== null) inputArgs.push('-t', duration.toString());
             inputArgs.push('-i', clip.assetId);
             inputCount++;
+        }
+
+        const pipInputIndexes = [];
+        for (const clip of pipClips) {
+            const trimStart = Number.isFinite(clip.trimStart) ? Math.max(0, clip.trimStart) : 0;
+            const trimEnd = Number.isFinite(clip.trimEnd) && clip.trimEnd > trimStart ? clip.trimEnd : null;
+            inputArgs.push('-ss', trimStart.toString());
+            if (trimEnd !== null) inputArgs.push('-t', (trimEnd - trimStart).toString());
+            inputArgs.push('-i', clip.assetId);
+            pipInputIndexes.push(inputCount++);
         }
 
         // 4. Optionally add music input
@@ -185,10 +199,21 @@ async function exportProjectVideo(projectId, opts = {}) {
                 cool: 'colorbalance=rs=-.04:gs=.02:bs=.08',
                 bw: 'hue=s=0,eq=contrast=1.12'
             };
+            const gradeMap = {
+                'teal-orange': 'colorbalance=rs=.08:gs=.02:bs=-.06,eq=saturation=1.28:contrast=1.12',
+                film: 'colorbalance=rs=.05:gs=.01:bs=-.03,eq=saturation=.9:contrast=1.08',
+                bleach: 'hue=s=.45,eq=contrast=1.35',
+                noir: 'hue=s=0,eq=contrast=1.3',
+                sunset: 'colorbalance=rs=.12:gs=.02:bs=-.08,eq=saturation=1.4'
+            };
             const videoLabel = `[video${idx}]`;
             const videoFilters = ['setpts=PTS-STARTPTS'];
             if (targetHeight) videoFilters.push(`scale=-2:${targetHeight}:flags=lanczos`);
             if (filterMap[clip.filter]) videoFilters.push(filterMap[clip.filter]);
+            if (gradeMap[clip.colorGrade?.preset]) videoFilters.push(gradeMap[clip.colorGrade.preset]);
+            if (Number(clip.colorGrade?.exposure)) videoFilters.push(`eq=brightness=${Math.max(-1, Math.min(1, Number(clip.colorGrade.exposure)))}`);
+            if (Number(clip.colorGrade?.contrast) && Number(clip.colorGrade.contrast) !== 1) videoFilters.push(`eq=contrast=${Math.max(.5, Math.min(1.8, Number(clip.colorGrade.contrast)))}`);
+            if (Number(clip.colorGrade?.saturation) && Number(clip.colorGrade.saturation) !== 1) videoFilters.push(`eq=saturation=${Math.max(0, Math.min(2, Number(clip.colorGrade.saturation)))}`);
             const incomingTransition = clip.transition?.type;
             const transitionDuration = Math.min(2, Math.max(0.1, Number(clip.transition?.duration) || 0.5));
             if (incomingTransition === 'fade' || incomingTransition === 'dissolve') {
@@ -197,8 +222,13 @@ async function exportProjectVideo(projectId, opts = {}) {
             filterParts.push(`[${idx}:v]${videoFilters.join(',')}${videoLabel}`);
             vStreams.push(videoLabel);
             if (clip.hasAudio !== false) {
-                // assume audio track present (default)
-                aStreams.push(`[${idx}:a]`);
+                const audioLabel = `[audio${idx}]`;
+                const audioFilters = [`volume=${Math.max(0, Math.min(2, Number(clip.volume) || 1))}`];
+                const clipDuration = Math.max(0.1, (Number(clip.trimEnd) || 30) - (Number(clip.trimStart) || 0));
+                if (Number(clip.fadeIn) > 0) audioFilters.push(`afade=t=in:st=0:d=${Math.min(Number(clip.fadeIn), clipDuration)}`);
+                if (Number(clip.fadeOut) > 0) audioFilters.push(`afade=t=out:st=${Math.max(0, clipDuration - Number(clip.fadeOut))}:d=${Math.min(Number(clip.fadeOut), clipDuration)}`);
+                filterParts.push(`[${idx}:a]${audioFilters.join(',')}${audioLabel}`);
+                aStreams.push(audioLabel);
             } else {
                 // inject silence matching the trimmed duration
                 const trimStart = Number.isFinite(clip.trimStart) ? Math.max(0, clip.trimStart) : 0;
@@ -212,10 +242,32 @@ async function exportProjectVideo(projectId, opts = {}) {
         const concatIn = vStreams.join('') + aStreams.join('');
         filterParts.push(`${concatIn}concat=n=${clips.length}:v=1:a=1[outv][outa_vid]`);
 
+        let finalVideoMap = '[outv]';
+        pipClips.forEach((clip, index) => {
+            const inputIndex = pipInputIndexes[index];
+            const pipLabel = `[pip${index}]`;
+            const overlayLabel = `[videoWithPip${index}]`;
+            const size = Math.max(15, Math.min(60, Number(clip.pip?.size) || 32)) / 100;
+            const position = clip.pip?.position || 'bottom-right';
+            const x = position.endsWith('left') ? '0' : `main_w-overlay_w`;
+            const y = position.startsWith('top') ? '0' : `main_h-overlay_h`;
+            const start = Math.max(0, Number(clip.start) || 0);
+            const duration = Math.max(0.1, (Number(clip.trimEnd) || Number(clip.duration) || 1) - (Number(clip.trimStart) || 0));
+            const end = start + duration;
+            const opacity = Math.max(.2, Math.min(1, (Number(clip.pip?.opacity) || 100) / 100));
+            filterParts.push(`[${inputIndex}:v]setpts=PTS-STARTPTS,scale=trunc(iw*${size}/2)*2:-2,format=rgba,colorchannelmixer=aa=${opacity}${pipLabel}`);
+            filterParts.push(`${finalVideoMap}${pipLabel}overlay=x=${x}:y=${y}:eof_action=pass:enable='between(t,${start},${end})'${overlayLabel}`);
+            finalVideoMap = overlayLabel;
+        });
+
         // Mix music track if present
         let finalAudioMap;
         if (musicInputIdx >= 0) {
-            filterParts.push(`[outa_vid][${musicInputIdx}:a]amix=inputs=2:duration=first[outa]`);
+            const musicClip = musicTrack.clips[0];
+            const musicVolume = Math.max(0, Math.min(2, Number(musicClip.volume) || 1));
+            const musicLabel = '[musicMix]';
+            filterParts.push(`[${musicInputIdx}:a]volume=${musicVolume}${musicLabel}`);
+            filterParts.push(`[outa_vid]${musicLabel}amix=inputs=2:duration=first[outa]`);
             finalAudioMap = '[outa]';
         } else {
             finalAudioMap = '[outa_vid]';
@@ -226,7 +278,7 @@ async function exportProjectVideo(projectId, opts = {}) {
         const finalArgs = [
             ...inputArgs,
             '-filter_complex', filterComplex,
-            '-map', '[outv]',
+            '-map', finalVideoMap,
             '-map', finalAudioMap,
             '-c:v', 'libx264',
             '-preset', selectedQuality.preset,

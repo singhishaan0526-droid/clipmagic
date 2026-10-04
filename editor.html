@@ -211,6 +211,9 @@
         .text-overlay { position:absolute; transform:translate(-50%,-50%); max-width:80%; color:#fff; text-align:center; font-weight:700; text-shadow:0 2px 5px #000; white-space:pre-wrap; }
         .caption-overlay { bottom:8%; left:50%; top:auto; transform:translateX(-50%); background:rgba(0,0,0,.55); padding:6px 10px; border-radius:6px; font-size:1rem; }
         .transition-badge { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:9; padding:1px 4px; border-radius:3px; background:rgba(8,8,20,.8); color:#ddd6fe; font-size:9px; pointer-events:none; }
+        .timeline-waveform { position:absolute; inset:3px 4px; width:calc(100% - 8px); height:calc(100% - 6px); opacity:.9; pointer-events:none; }
+        .pip-video { position:absolute; z-index:3; object-fit:cover; border:1px solid rgba(255,255,255,.7); box-shadow:0 4px 20px rgba(0,0,0,.45); pointer-events:none; }
+        .grade-vignette::after { content:''; position:absolute; inset:0; pointer-events:none; z-index:2; background:radial-gradient(ellipse, transparent 55%, rgba(0,0,0,.35)); }
 
         /* ── Sunset Vaporwave Special Effects ── */
         [data-theme="vaporwave"] .editor-center {
@@ -1099,6 +1102,12 @@
                 <button class="tool-btn" id="tool-speed" onclick="setTool('speed')">
                     <span style="font-size:1.1rem">⏩</span><span class="tool-label">Speed</span>
                 </button>
+                <button class="tool-btn" id="tool-pip" onclick="setTool('pip')">
+                    <span style="font-size:1.1rem">▣</span><span class="tool-label">PiP</span>
+                </button>
+                <button class="tool-btn" id="tool-grade" onclick="setTool('grade')">
+                    <span style="font-size:1.1rem">◐</span><span class="tool-label">Grade</span>
+                </button>
             </div>
 
             <!-- CENTER WORKSPACE -->
@@ -1301,6 +1310,14 @@
                         badge.textContent = c.transition.type;
                         clipEl.appendChild(badge);
                     }
+                    if (track.type === 'audio' || c.type === 'music' || c.type === 'audio') {
+                        const waveform = document.createElement('canvas');
+                        waveform.className = 'timeline-waveform';
+                        waveform.setAttribute('aria-label', 'Audio waveform');
+                        clipEl.appendChild(waveform);
+                        drawTimelineWaveform(c, waveform);
+                        clipEl.title = `Audio • ${Math.round((Number(c.volume) || 1) * 100)}% volume`;
+                    }
                     const leftHandle = document.createElement('div');
                     leftHandle.className = 'trim-handle trim-handle-left';
                     leftHandle.title = 'Drag to trim start';
@@ -1317,6 +1334,35 @@
                 fragment.appendChild(trackEl);
             });
             container.replaceChildren(fragment);
+        }
+
+        async function drawTimelineWaveform(clip, canvas) {
+            const draw = (values) => {
+                const width = Math.max(20, canvas.clientWidth || 240);
+                const height = Math.max(20, canvas.clientHeight || 44);
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = 'rgba(236,72,153,.85)';
+                const step = Math.max(1, Math.floor(values.length / width));
+                for (let x = 0; x < width; x++) {
+                    const amp = Math.min(1, Math.abs(values[Math.min(values.length - 1, x * step)] || 0));
+                    const bar = Math.max(1, amp * (height - 4) * (Number(clip.volume) || 1));
+                    ctx.fillRect(x, (height - bar) / 2, 1, bar);
+                }
+            };
+            requestAnimationFrame(async () => {
+                try {
+                    const projectId = window.currentProject?.id;
+                    if (!projectId || !clip.assetId || !window.AssetManager || !window.MusicEngine) return draw(new Float32Array(1));
+                    const url = await AssetManager.getUrl(projectId, clip.assetId);
+                    const buffer = await MusicEngine.decode_audio(url);
+                    draw(MusicEngine.generate_waveform(buffer, Math.max(20, canvas.clientWidth || 240)));
+                } catch (_) {
+                    draw(new Float32Array(1));
+                }
+            });
         }
 
         const toolConfigs = {
@@ -1353,6 +1399,14 @@
             speed: {
                 title: 'Speed Ramping',
                 html: `<div class="prop-section"><div class="prop-section-title">Add Speed Point</div><p style="color:var(--text-secondary);font-size:.78rem">Add speed points at the playhead. Use 0.25× for slow motion or 4× for a quick ramp.</p><label class="prop-label">Speed</label><input class="prop-input" id="speedValue" type="number" min="0.1" max="8" step="0.05" value="1"/><button class="music-btn" onclick="addSpeedPoint()">⏩ Add Speed Point</button></div>`
+            },
+            pip: {
+                title: 'Picture in Picture',
+                html: `<div class="prop-section"><div class="prop-section-title">PiP Overlay</div><p style="color:var(--text-secondary);font-size:.78rem">Move a video clip to a second video track, then set its overlay position and size.</p><button class="music-btn" onclick="moveSelectedToPipTrack()">▣ Move Selected Clip to PiP Track</button><label class="prop-label">Position</label><select class="prop-input" id="pipPosition" onchange="applyPipSettings()"><option value="top-right">Top right</option><option value="top-left">Top left</option><option value="bottom-right" selected>Bottom right</option><option value="bottom-left">Bottom left</option></select><label class="prop-label">Size</label><input class="prop-input" id="pipSize" type="range" min="15" max="60" value="32" oninput="applyPipSettings()"/><label class="prop-label">Opacity</label><input class="prop-input" id="pipOpacity" type="range" min="20" max="100" value="100" oninput="applyPipSettings()"/></div>`
+            },
+            grade: {
+                title: 'Color Grading',
+                html: `<div class="prop-section"><div class="prop-section-title">Professional Grade</div><select class="prop-input" id="gradePreset" onchange="applyColorGrade()"><option value="none">Original</option><option value="teal-orange">Teal & Orange</option><option value="film">Film Print</option><option value="bleach">Bleach Bypass</option><option value="noir">Noir</option><option value="sunset">Sunset</option></select><label class="prop-label">Exposure</label><input class="prop-input" id="gradeExposure" type="range" min="-1" max="1" step=".05" value="0" oninput="applyColorGrade()"/><label class="prop-label">Contrast</label><input class="prop-input" id="gradeContrast" type="range" min=".5" max="1.8" step=".05" value="1" oninput="applyColorGrade()"/><label class="prop-label">Saturation</label><input class="prop-input" id="gradeSaturation" type="range" min="0" max="2" step=".05" value="1" oninput="applyColorGrade()"/></div>`
             },
             caption: {
                 title: 'Auto Captions',
@@ -1434,6 +1488,28 @@
                 else delete clip.sourceFps;
             });
             fpsRow.append(fpsLabel, fpsSelect);
+
+            const clipTrack = projectState.tracks.find(track => track.clips?.includes(clip));
+            if (clipTrack?.type === 'audio' || clip.type === 'audio' || clip.type === 'music') {
+                const audioSection = document.createElement('div');
+                audioSection.className = 'prop-section';
+                audioSection.style.marginTop = '12px';
+                audioSection.innerHTML = '<div class="prop-section-title">Audio Mix</div><label class="prop-label">Volume <span id="clipVolumeValue"></span></label><input class="prop-input" id="clipVolume" type="range" min="0" max="200" value="100"/><label class="prop-label">Fade in (seconds)</label><input class="prop-input" id="clipFadeIn" type="number" min="0" max="10" step=".1" value="0"/><label class="prop-label">Fade out (seconds)</label><input class="prop-input" id="clipFadeOut" type="number" min="0" max="10" step=".1" value="0"/>';
+                const volume = audioSection.querySelector('#clipVolume');
+                const volumeValue = audioSection.querySelector('#clipVolumeValue');
+                volume.value = Math.round((Number(clip.volume) || 1) * 100);
+                volumeValue.textContent = `${volume.value}%`;
+                volume.addEventListener('input', () => {
+                    clip.volume = clamp(Number(volume.value) / 100, 0, 2);
+                    volumeValue.textContent = `${volume.value}%`;
+                    requestTimelineRender();
+                });
+                audioSection.querySelector('#clipFadeIn').value = Number(clip.fadeIn) || 0;
+                audioSection.querySelector('#clipFadeOut').value = Number(clip.fadeOut) || 0;
+                audioSection.querySelector('#clipFadeIn').addEventListener('change', e => { recordEdit(); clip.fadeIn = clamp(Number(e.target.value) || 0, 0, 10); });
+                audioSection.querySelector('#clipFadeOut').addEventListener('change', e => { recordEdit(); clip.fadeOut = clamp(Number(e.target.value) || 0, 0, 10); });
+                section.appendChild(audioSection);
+            }
 
             row.appendChild(label);
             row.appendChild(input);
@@ -1584,6 +1660,19 @@
                 document.getElementById('transitionSelect').value = selectedClip.transition?.type || 'none';
                 document.getElementById('transitionDuration').value = selectedClip.transition?.duration || 0.5;
             }
+            if (name === 'grade' && selectedClip) {
+                const grade = selectedClip.colorGrade || {};
+                document.getElementById('gradePreset').value = grade.preset || 'none';
+                document.getElementById('gradeExposure').value = grade.exposure ?? 0;
+                document.getElementById('gradeContrast').value = grade.contrast ?? 1;
+                document.getElementById('gradeSaturation').value = grade.saturation ?? 1;
+            }
+            if (name === 'pip' && selectedClip) {
+                const pip = selectedClip.pip || {};
+                document.getElementById('pipPosition').value = pip.position || 'bottom-right';
+                document.getElementById('pipSize').value = pip.size || 32;
+                document.getElementById('pipOpacity').value = pip.opacity || 100;
+            }
         }
 
         function applyClipFilter(value) {
@@ -1679,8 +1768,108 @@
                 video.style.transform = `scale(${props.scale / 100}) rotate(${props.rotation}deg)`;
                 video.style.opacity = String(props.opacity / 100);
                 video.playbackRate = speedAtTime(selectedClip, time);
+                video.style.filter = `${getBasePreviewFilter(selectedClip.filter)} ${getGradePreviewFilter(selectedClip.colorGrade)}`.trim();
             }
+            renderPipOverlays();
             renderTextOverlays();
+        }
+
+        function getBasePreviewFilter(filter) {
+            return ({ vivid: 'saturate(1.35) contrast(1.08)', cinematic: 'contrast(1.15) saturate(.82) sepia(.08)', bw: 'grayscale(1) contrast(1.12)', warm: 'saturate(1.2) sepia(.22)', cool: 'saturate(.92) hue-rotate(12deg) brightness(1.04)' })[filter] || '';
+        }
+
+        function getGradePreviewFilter(grade = {}) {
+            const preset = grade.preset || 'none';
+            const presets = {
+                'teal-orange': 'contrast(1.12) saturate(1.28) sepia(.08) hue-rotate(-8deg)',
+                film: 'contrast(1.08) saturate(.9) sepia(.16)',
+                bleach: 'contrast(1.35) saturate(.45)',
+                noir: 'grayscale(1) contrast(1.3)',
+                sunset: 'saturate(1.4) sepia(.28) hue-rotate(-12deg)'
+            };
+            const exposure = Math.pow(2, Number(grade.exposure) || 0);
+            const contrast = Number(grade.contrast) || 1;
+            const saturation = Number(grade.saturation) || 1;
+            return `${presets[preset] || ''} brightness(${exposure}) contrast(${contrast}) saturate(${saturation})`.trim();
+        }
+
+        function applyColorGrade() {
+            if (!selectedClip) return showToast('Select a clip first.', '⚠️');
+            recordEdit();
+            selectedClip.colorGrade = {
+                preset: document.getElementById('gradePreset')?.value || 'none',
+                exposure: Number(document.getElementById('gradeExposure')?.value) || 0,
+                contrast: Number(document.getElementById('gradeContrast')?.value) || 1,
+                saturation: Number(document.getElementById('gradeSaturation')?.value) || 1
+            };
+            updatePreviewVisuals();
+        }
+
+        function applyPipSettings() {
+            if (!selectedClip) return showToast('Select a video clip first.', '⚠️');
+            recordEdit();
+            selectedClip.pip ||= {};
+            selectedClip.pip.position = document.getElementById('pipPosition')?.value || 'bottom-right';
+            selectedClip.pip.size = clamp(Number(document.getElementById('pipSize')?.value) || 32, 15, 60);
+            selectedClip.pip.opacity = clamp(Number(document.getElementById('pipOpacity')?.value) || 100, 20, 100);
+            renderPipOverlays();
+        }
+
+        function moveSelectedToPipTrack() {
+            if (!selectedClip || selectedClip.type !== 'video') return showToast('Select a video clip first.', '⚠️');
+            const sourceTrack = projectState.tracks.find(track => track.clips?.includes(selectedClip));
+            if (!sourceTrack) return;
+            let pipTrack = projectState.tracks.find(track => track.type === 'video' && track !== sourceTrack);
+            if (!pipTrack) {
+                pipTrack = { id: `track-video-${Date.now()}`, type: 'video', name: 'Video Overlay', clips: [] };
+                projectState.tracks.push(pipTrack);
+            }
+            recordEdit();
+            sourceTrack.clips = sourceTrack.clips.filter(clip => clip !== selectedClip);
+            selectedClip.pip ||= { position: 'bottom-right', size: 32, opacity: 100 };
+            pipTrack.clips.push(selectedClip);
+            requestTimelineRender();
+            renderPipOverlays();
+            showToast('Clip moved to PiP overlay track.', '▣', 'success');
+        }
+
+        const pipVideoCache = new Map();
+        async function renderPipOverlays() {
+            const screen = document.getElementById('previewScreen');
+            const mainVideo = document.getElementById('previewVideo');
+            if (!screen || !mainVideo) return;
+            const now = mainVideo.currentTime || 0;
+            const activeIds = new Set();
+            for (const track of projectState.tracks.filter(item => item.type === 'video').slice(1)) {
+                for (const clip of track.clips || []) {
+                    const duration = Math.max(0.01, (Number(clip.trimEnd) || Number(clip.duration) || 1) - (Number(clip.trimStart) || 0));
+                    if (now < (Number(clip.start) || 0) || now > (Number(clip.start) || 0) + duration) continue;
+                    activeIds.add(clip.id);
+                    let pip = pipVideoCache.get(clip.id);
+                    if (!pip) {
+                        if (!window.currentProject?.id || !clip.assetId) continue;
+                        pip = document.createElement('video');
+                        pip.className = 'pip-video';
+                        pip.muted = true;
+                        pip.playsInline = true;
+                        pip.src = await AssetManager.getUrl(window.currentProject?.id, clip.assetId);
+                        screen.appendChild(pip);
+                        pipVideoCache.set(clip.id, pip);
+                    }
+                    const settings = clip.pip || { position: 'bottom-right', size: 32, opacity: 100 };
+                    const margin = 3;
+                    pip.style.width = `${settings.size}%`;
+                    pip.style.height = `${settings.size * .5625}%`;
+                    pip.style.opacity = `${settings.opacity / 100}`;
+                    pip.style.top = settings.position.startsWith('top') ? `${margin}%` : 'auto';
+                    pip.style.bottom = settings.position.startsWith('bottom') ? `${margin}%` : 'auto';
+                    pip.style.left = settings.position.endsWith('left') ? `${margin}%` : 'auto';
+                    pip.style.right = settings.position.endsWith('right') ? `${margin}%` : 'auto';
+                    pip.currentTime = (Number(clip.trimStart) || 0) + now - (Number(clip.start) || 0);
+                    if (!mainVideo.paused) pip.play().catch(() => {});
+                }
+            }
+            for (const [id, pip] of pipVideoCache) if (!activeIds.has(id)) pip.style.display = 'none'; else pip.style.display = 'block';
         }
 
         function renderTextOverlays() {
@@ -1778,7 +1967,7 @@
             const url = await AssetManager.getUrl(currentProject.id, assetId);
             const buffer = await MusicEngine.getCtx().decodeAudioData(await (await fetch(url)).arrayBuffer());
             let track = projectState.tracks.find(t => t.type === 'audio');
-            track.clips.push({ id: 'm' + Date.now(), assetId, name: f.name, type: 'music', start: 0, duration: buffer.duration, trimStart: 0, trimEnd: buffer.duration, color: 'rgba(236,72,153,0.3)', borderColor: 'rgba(236,72,153,0.5)' });
+            track.clips.push({ id: 'm' + Date.now(), assetId, name: f.name, type: 'music', start: 0, duration: buffer.duration, trimStart: 0, trimEnd: buffer.duration, volume: 1, fadeIn: 0, fadeOut: 0, color: 'rgba(236,72,153,0.3)', borderColor: 'rgba(236,72,153,0.5)' });
             requestTimelineRender();
         }
 
