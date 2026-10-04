@@ -1394,7 +1394,7 @@
             },
             keyframe: {
                 title: 'Keyframe Animation',
-                html: `<div class="prop-section"><div class="prop-section-title">Add Keyframe</div><p style="color:var(--text-secondary);font-size:.78rem">Move the playhead, set values, then add a keyframe. Values interpolate between keyframes.</p><label class="prop-label">Scale</label><input class="prop-input" id="keyframeScale" type="number" min="10" max="300" value="100"/><label class="prop-label">Rotation</label><input class="prop-input" id="keyframeRotation" type="number" min="-360" max="360" value="0"/><label class="prop-label">Opacity</label><input class="prop-input" id="keyframeOpacity" type="number" min="0" max="100" value="100"/><button class="music-btn" onclick="addKeyframe()">◆ Add Keyframe</button></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Add Keyframe</div><p style="color:var(--text-secondary);font-size:.78rem">Move the playhead, set values, then add a keyframe. Values interpolate between keyframes.</p><label class="prop-label">Position X (%)</label><input class="prop-input" id="keyframeX" type="number" min="-100" max="100" value="0"/><label class="prop-label">Position Y (%)</label><input class="prop-input" id="keyframeY" type="number" min="-100" max="100" value="0"/><label class="prop-label">Scale</label><input class="prop-input" id="keyframeScale" type="number" min="10" max="300" value="100"/><label class="prop-label">Rotation</label><input class="prop-input" id="keyframeRotation" type="number" min="-360" max="360" value="0"/><label class="prop-label">Opacity</label><input class="prop-input" id="keyframeOpacity" type="number" min="0" max="100" value="100"/><button class="music-btn" onclick="addKeyframe()">◆ Add Keyframe</button></div>`
             },
             speed: {
                 title: 'Speed Ramping',
@@ -1709,6 +1709,8 @@
             selectedClip.keyframes = selectedClip.keyframes.filter(item => Math.abs(item.time - time) > 0.01);
             selectedClip.keyframes.push({
                 time,
+                x: clamp(Number(document.getElementById('keyframeX')?.value) || 0, -100, 100),
+                y: clamp(Number(document.getElementById('keyframeY')?.value) || 0, -100, 100),
                 scale: clamp(Number(document.getElementById('keyframeScale')?.value) || 100, 10, 300),
                 rotation: clamp(Number(document.getElementById('keyframeRotation')?.value) || 0, -360, 360),
                 opacity: clamp(Number(document.getElementById('keyframeOpacity')?.value) || 100, 0, 100)
@@ -1733,14 +1735,15 @@
 
         function interpolateKeyframes(clip, time) {
             const frames = (clip.keyframes || []).slice().sort((a, b) => a.time - b.time);
-            if (!frames.length) return { scale: 100, rotation: 0, opacity: 100 };
-            if (time <= frames[0].time) return frames[0];
-            if (time >= frames[frames.length - 1].time) return frames[frames.length - 1];
-            const nextIndex = frames.findIndex(frame => frame.time >= time);
-            const a = frames[nextIndex - 1];
-            const b = frames[nextIndex];
+            const normalized = frames.map(frame => ({ x: 0, y: 0, scale: 100, rotation: 0, opacity: 100, ...frame }));
+            if (!normalized.length) return { x: 0, y: 0, scale: 100, rotation: 0, opacity: 100 };
+            if (time <= normalized[0].time) return normalized[0];
+            if (time >= normalized[normalized.length - 1].time) return normalized[normalized.length - 1];
+            const nextIndex = normalized.findIndex(frame => frame.time >= time);
+            const a = normalized[nextIndex - 1];
+            const b = normalized[nextIndex];
             const ratio = (time - a.time) / Math.max(b.time - a.time, 0.001);
-            return ['scale', 'rotation', 'opacity'].reduce((result, key) => {
+            return ['x', 'y', 'scale', 'rotation', 'opacity'].reduce((result, key) => {
                 result[key] = a[key] + (b[key] - a[key]) * ratio;
                 return result;
             }, {});
@@ -1765,7 +1768,7 @@
             if (video && selectedClip) {
                 const time = currentClipTime();
                 const props = interpolateKeyframes(selectedClip, time);
-                video.style.transform = `scale(${props.scale / 100}) rotate(${props.rotation}deg)`;
+                video.style.transform = `translate(${props.x}%, ${props.y}%) scale(${props.scale / 100}) rotate(${props.rotation}deg)`;
                 video.style.opacity = String(props.opacity / 100);
                 video.playbackRate = speedAtTime(selectedClip, time);
                 video.style.filter = `${getBasePreviewFilter(selectedClip.filter)} ${getGradePreviewFilter(selectedClip.colorGrade)}`.trim();
