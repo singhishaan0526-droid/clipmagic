@@ -170,18 +170,17 @@ async function exportProjectVideo(projectId, opts = {}) {
             pipInputIndexes.push(inputCount++);
         }
 
-        // 4. Optionally add music input
-        let musicInputIdx = -1;
-        if (musicTrack && Array.isArray(musicTrack.clips) && musicTrack.clips.length > 0) {
-            const mc = musicTrack.clips[0];
-            if (mc.assetId) {
+        // 4. Optionally add all custom audio inputs
+        const musicInputs = [];
+        if (musicTrack && Array.isArray(musicTrack.clips)) {
+            for (const mc of musicTrack.clips) {
+                if (!mc.assetId) continue;
                 const mStart = Number.isFinite(mc.trimStart) ? Math.max(0, mc.trimStart) : 0;
                 const mEnd   = Number.isFinite(mc.trimEnd) && mc.trimEnd > mStart ? mc.trimEnd : null;
                 inputArgs.push('-ss', mStart.toString());
                 if (mEnd !== null) inputArgs.push('-t', (mEnd - mStart).toString());
                 inputArgs.push('-i', mc.assetId);
-                musicInputIdx = inputCount;
-                inputCount++;
+                musicInputs.push({ clip: mc, index: inputCount++ });
             }
         }
 
@@ -214,6 +213,10 @@ async function exportProjectVideo(projectId, opts = {}) {
             if (Number(clip.colorGrade?.exposure)) videoFilters.push(`eq=brightness=${Math.max(-1, Math.min(1, Number(clip.colorGrade.exposure)))}`);
             if (Number(clip.colorGrade?.contrast) && Number(clip.colorGrade.contrast) !== 1) videoFilters.push(`eq=contrast=${Math.max(.5, Math.min(1.8, Number(clip.colorGrade.contrast)))}`);
             if (Number(clip.colorGrade?.saturation) && Number(clip.colorGrade.saturation) !== 1) videoFilters.push(`eq=saturation=${Math.max(0, Math.min(2, Number(clip.colorGrade.saturation)))}`);
+            const vfxLevel = Math.max(0, Math.min(100, Number(clip.vfx?.intensity) || 0));
+            if (clip.vfx?.preset === 'glitch' && vfxLevel > 0) videoFilters.push(`noise=alls=${Math.round(vfxLevel * .45)}:allf=t+u`);
+            if (clip.vfx?.preset === 'blur' && vfxLevel > 0) videoFilters.push(`boxblur=${Math.max(1, Math.round(vfxLevel / 12))}:1`);
+            if (clip.vfx?.preset === 'shake' && vfxLevel > 0) videoFilters.push(`rotate=${(vfxLevel / 1000).toFixed(4)}:fillcolor=black@0`);
             const incomingTransition = clip.transition?.type;
             const transitionDuration = Math.min(2, Math.max(0.1, Number(clip.transition?.duration) || 0.5));
             if (incomingTransition === 'fade' || incomingTransition === 'dissolve') {
@@ -262,12 +265,20 @@ async function exportProjectVideo(projectId, opts = {}) {
 
         // Mix music track if present
         let finalAudioMap;
-        if (musicInputIdx >= 0) {
-            const musicClip = musicTrack.clips[0];
-            const musicVolume = Math.max(0, Math.min(2, Number(musicClip.volume) || 1));
-            const musicLabel = '[musicMix]';
-            filterParts.push(`[${musicInputIdx}:a]volume=${musicVolume}${musicLabel}`);
-            filterParts.push(`[outa_vid]${musicLabel}amix=inputs=2:duration=first[outa]`);
+        if (musicInputs.length) {
+            const musicLabels = musicInputs.map(({ clip, index }, musicIndex) => {
+                const label = `[music${musicIndex}]`;
+                const volume = Math.max(0, Math.min(2, Number(clip.volume) || 1));
+                const duration = Math.max(.1, (Number(clip.trimEnd) || 30) - (Number(clip.trimStart) || 0));
+                const filters = [`volume=${volume}`];
+                if (Number(clip.fadeIn) > 0) filters.push(`afade=t=in:st=0:d=${Math.min(Number(clip.fadeIn), duration)}`);
+                if (Number(clip.fadeOut) > 0) filters.push(`afade=t=out:st=${Math.max(0, duration - Number(clip.fadeOut))}:d=${Math.min(Number(clip.fadeOut), duration)}`);
+                const delay = Math.max(0, Math.round((Number(clip.start) || 0) * 1000));
+                if (delay) filters.push(`adelay=${delay}|${delay}`);
+                filterParts.push(`[${index}:a]${filters.join(',')}${label}`);
+                return label;
+            });
+            filterParts.push(`[outa_vid]${musicLabels.join('')}amix=inputs=${musicLabels.length + 1}:duration=first[outa]`);
             finalAudioMap = '[outa]';
         } else {
             finalAudioMap = '[outa_vid]';
