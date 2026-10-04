@@ -18,7 +18,8 @@ async function loadFFmpeg() {
 
     ffmpegLoadPromise = (async () => {
         if (typeof showToast === 'function') showToast('Booting processing engine...', ICONS.settings);
-        const FFmpegLib = window.FFmpeg || window;
+        // The UMD bundle exports FFmpegWASM in browsers; older builds used FFmpeg.
+        const FFmpegLib = window.FFmpegWASM || window.FFmpeg || window;
         if (!FFmpegLib.FFmpeg) throw new Error('FFmpeg library is unavailable');
         const instance = new FFmpegLib.FFmpeg();
         instance.on('progress', ({ progress }) => {
