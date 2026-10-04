@@ -86,7 +86,7 @@ async function exportProjectVideo(projectId, opts = {}) {
     const resolutionMap = { '1080': 1080, '720': 720, '480': 480 };
     const targetHeight = resolutionMap[String(opts.resolution)] || null;
     const audioBitrate = ['128k', '192k', '256k'].includes(opts.audioBitrate) ? opts.audioBitrate : '192k';
-    const fps = [24, 30, 60].includes(Number(opts.fps)) ? Number(opts.fps) : 30;
+    const fps = [24, 30, 60].includes(Number(opts.fps)) ? Number(opts.fps) : null;
     if (opts.format && opts.format !== 'mp4') throw new Error('Only MP4 export is currently supported.');
 
     if (!ffmpeg) {
@@ -231,7 +231,7 @@ async function exportProjectVideo(projectId, opts = {}) {
             '-c:v', 'libx264',
             '-preset', selectedQuality.preset,
             '-crf', selectedQuality.crf,
-            '-r', String(fps),
+            ...(fps ? ['-r', String(fps)] : []),
             '-pix_fmt', 'yuv420p',
             '-c:a', 'aac',
             '-b:a', audioBitrate,

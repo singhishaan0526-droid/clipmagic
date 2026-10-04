@@ -1021,7 +1021,7 @@
                 <label class="prop-label">Resolution<select class="prop-input" id="exportResolution"><option value="source">Source resolution</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option></select></label>
                 <label class="prop-label">Quality<select class="prop-input" id="exportQuality"><option value="fast">Fast render</option><option value="balanced" selected>Balanced</option><option value="quality">Higher quality</option></select></label>
                 <label class="prop-label">Audio bitrate<select class="prop-input" id="exportAudioBitrate"><option value="128k">128 kbps</option><option value="192k" selected>192 kbps</option><option value="256k">256 kbps</option></select></label>
-                <label class="prop-label">Frame rate<select class="prop-input" id="exportFps"><option value="24">24 FPS</option><option value="30" selected>30 FPS</option><option value="60">60 FPS</option></select></label>
+                <label class="prop-label">Frame rate<select class="prop-input" id="exportFps"><option value="source" selected>Source FPS (preserve 60 FPS)</option><option value="24">24 FPS</option><option value="30">30 FPS</option><option value="60">60 FPS</option></select></label>
                 <div class="prop-label">Format <strong style="color:var(--text-primary)">MP4 (H.264 + AAC)</strong></div>
             </div>
             <div class="export-progress-circle">
@@ -1413,12 +1413,35 @@
             deleteBtn.textContent = 'Delete Clip';
             deleteBtn.addEventListener('click', deleteSelectedClip);
 
+            const fpsRow = document.createElement('div');
+            fpsRow.className = 'prop-row';
+            fpsRow.style.marginTop = '10px';
+            const fpsLabel = document.createElement('span');
+            fpsLabel.className = 'prop-label';
+            fpsLabel.textContent = 'Source FPS';
+            const fpsSelect = document.createElement('select');
+            fpsSelect.className = 'prop-input';
+            [['', 'Auto / preserve'], ['24', '24 FPS'], ['30', '30 FPS'], ['60', '60 FPS'], ['120', '120 FPS']].forEach(([value, text]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                option.selected = String(clip.sourceFps || '') === value;
+                fpsSelect.appendChild(option);
+            });
+            fpsSelect.addEventListener('change', () => {
+                recordEdit();
+                if (fpsSelect.value) clip.sourceFps = Number(fpsSelect.value);
+                else delete clip.sourceFps;
+            });
+            fpsRow.append(fpsLabel, fpsSelect);
+
             row.appendChild(label);
             row.appendChild(input);
             section.appendChild(title);
             section.appendChild(row);
             section.appendChild(splitBtn);
             section.appendChild(deleteBtn);
+            section.appendChild(fpsRow);
             body.appendChild(section);
         }
 
