@@ -166,7 +166,23 @@ async function exportProjectVideo(projectId, opts = {}) {
         const aStreams    = [];
 
         clips.forEach((clip, idx) => {
-            vStreams.push(`[${idx}:v]`);
+            const filterMap = {
+                vivid: 'eq=saturation=1.35:contrast=1.08',
+                cinematic: 'eq=saturation=0.82:contrast=1.15',
+                warm: 'colorbalance=rs=.08:gs=.02:bs=-.04',
+                cool: 'colorbalance=rs=-.04:gs=.02:bs=.08',
+                bw: 'hue=s=0,eq=contrast=1.12'
+            };
+            const videoLabel = `[video${idx}]`;
+            const videoFilters = ['setpts=PTS-STARTPTS'];
+            if (filterMap[clip.filter]) videoFilters.push(filterMap[clip.filter]);
+            const incomingTransition = clip.transition?.type;
+            const transitionDuration = Math.min(2, Math.max(0.1, Number(clip.transition?.duration) || 0.5));
+            if (incomingTransition === 'fade' || incomingTransition === 'dissolve') {
+                videoFilters.push(`fade=t=in:st=0:d=${transitionDuration}`);
+            }
+            filterParts.push(`[${idx}:v]${videoFilters.join(',')}${videoLabel}`);
+            vStreams.push(videoLabel);
             if (clip.hasAudio !== false) {
                 // assume audio track present (default)
                 aStreams.push(`[${idx}:a]`);

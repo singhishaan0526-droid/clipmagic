@@ -28,6 +28,9 @@ app.use((req, res, next) => {
     next();
 });
 
+// Gemini requests stay server-side; GEMINI_API_KEY is read only from the environment.
+app.post('/api/gemini', require('./api/gemini'));
+
 // ── Static files ──────────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, '.'), {
     // Prevent directory listing

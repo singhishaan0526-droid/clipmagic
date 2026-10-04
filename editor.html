@@ -202,6 +202,16 @@
             border-radius: 4px;
         }
 
+        .preview-screen.filter-vivid video { filter: saturate(1.35) contrast(1.08); }
+        .preview-screen.filter-cinematic video { filter: contrast(1.15) saturate(0.82) sepia(0.08); }
+        .preview-screen.filter-bw video { filter: grayscale(1) contrast(1.12); }
+        .preview-screen.filter-warm video { filter: saturate(1.2) sepia(0.22) hue-rotate(-8deg); }
+        .preview-screen.filter-cool video { filter: saturate(0.92) hue-rotate(12deg) brightness(1.04); }
+        .text-overlay-layer { position:absolute; inset:0; pointer-events:none; z-index:4; }
+        .text-overlay { position:absolute; transform:translate(-50%,-50%); max-width:80%; color:#fff; text-align:center; font-weight:700; text-shadow:0 2px 5px #000; white-space:pre-wrap; }
+        .caption-overlay { bottom:8%; left:50%; top:auto; transform:translateX(-50%); background:rgba(0,0,0,.55); padding:6px 10px; border-radius:6px; font-size:1rem; }
+        .transition-badge { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:9; padding:1px 4px; border-radius:3px; background:rgba(8,8,20,.8); color:#ddd6fe; font-size:9px; pointer-events:none; }
+
         /* ── Sunset Vaporwave Special Effects ── */
         [data-theme="vaporwave"] .editor-center {
             background: linear-gradient(to bottom, #1a0633 0%, #2d0b5a 50%, #4b0d6b 100%) !important;
@@ -1063,6 +1073,15 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
                     <span class="tool-label">Text</span>
                 </button>
+                <button class="tool-btn" id="tool-filter" onclick="setTool('filter')">
+                    <span style="font-size:1.1rem">🎨</span><span class="tool-label">Filter</span>
+                </button>
+                <button class="tool-btn" id="tool-caption" onclick="setTool('caption')">
+                    <span style="font-size:1.1rem">💬</span><span class="tool-label">Captions</span>
+                </button>
+                <button class="tool-btn" id="tool-transition" onclick="setTool('transition')">
+                    <span style="font-size:1.1rem">✨</span><span class="tool-label">Transition</span>
+                </button>
             </div>
 
             <!-- CENTER WORKSPACE -->
@@ -1070,6 +1089,7 @@
                 <div class="preview-area">
                     <div class="preview-screen" id="previewScreen">
                         <video id="previewVideo" preload="metadata" style="display:none; max-width:100%; max-height:100%;"></video>
+                        <div id="textOverlayLayer" class="text-overlay-layer"></div>
                         <div class="preview-idle" id="previewIdle">
                             <div style="font-size:3rem; opacity:0.2; margin-bottom:10px;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><polygon points="23 7 16 12 23 17 23 7"/></svg></div>
                             <p>No media loaded</p>
@@ -1148,6 +1168,7 @@
                 { id: 'track-v1', type: 'video', name: 'Video 1', clips: [] },
                 { id: 'track-a1', type: 'audio', name: 'Audio 1', clips: [] }
             ],
+            textOverlays: [],
             bassGain: 0
         };
         window.projectState = projectState;
@@ -1257,6 +1278,12 @@
                     clipEl.style.background = c.color;
                     clipEl.style.border = `1px solid ${c.borderColor}`;
                     clipEl.onclick = (e) => { e.stopPropagation(); selectClip(c); };
+                    if (c.transition && c.transition.type !== 'none') {
+                        const badge = document.createElement('span');
+                        badge.className = 'transition-badge';
+                        badge.textContent = c.transition.type;
+                        clipEl.appendChild(badge);
+                    }
                     const leftHandle = document.createElement('div');
                     leftHandle.className = 'trim-handle trim-handle-left';
                     leftHandle.title = 'Drag to trim start';
@@ -1292,7 +1319,19 @@
             text: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
                 title: 'Text & Captions',
-                html: `<div class="prop-section"><div class="prop-section-title">Add Caption</div><div class="prop-row"><span class="prop-label">Text</span><input class="prop-input" id="capText" value="Hello!" /></div><button class="music-btn" onclick="addCaption()">＋ Add Caption</button></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Text Overlay</div><div class="prop-row"><span class="prop-label">Text</span><input class="prop-input" id="overlayText" value="Your text" /></div><button class="music-btn" onclick="addTextOverlay()">＋ Add Text Overlay</button></div>`
+            },
+            filter: {
+                title: 'Filters',
+                html: `<div class="prop-section"><div class="prop-section-title">Clip Filter</div><select class="prop-input" id="filterSelect" onchange="applyClipFilter(this.value)"><option value="none">Original</option><option value="vivid">Vivid</option><option value="cinematic">Cinematic</option><option value="warm">Warm</option><option value="cool">Cool</option><option value="bw">Black & White</option></select><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Select a clip first. The filter is non-destructive.</p></div>`
+            },
+            transition: {
+                title: 'Transitions',
+                html: `<div class="prop-section"><div class="prop-section-title">Between Clips</div><select class="prop-input" id="transitionSelect" onchange="applyTransition(this.value)"><option value="none">None</option><option value="fade">Fade</option><option value="dissolve">Dissolve</option><option value="wipe">Wipe</option><option value="slide">Slide</option></select><label class="prop-label" style="display:block;margin-top:10px">Duration</label><input class="prop-input" id="transitionDuration" type="number" min="0.1" max="2" step="0.1" value="0.5" onchange="applyTransitionDuration(this.value)"/><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Select the following clip to apply its incoming transition.</p></div>`
+            },
+            caption: {
+                title: 'Auto Captions',
+                html: `<div class="prop-section"><div class="prop-section-title">Generate Subtitles</div><textarea class="prop-input" id="captionTranscript" rows="5" placeholder="Paste a transcript here, or describe the spoken audio..."></textarea><button class="music-btn" onclick="generateSubtitles()">✨ Generate with Gemini</button><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Gemini is called through a server-side Vercel function. Your API key is never sent to the browser.</p></div>`
             },
             music: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
@@ -1308,6 +1347,7 @@
 
         function selectClip(clip) {
             selectedClip = clip;
+            updatePreviewVisuals();
             const body = document.getElementById('manualPropsBody');
             // H2 FIX: build inspector panel with DOM APIs — clip.name/id via textContent
             body.innerHTML = '';
@@ -1490,6 +1530,90 @@
             const cfg = toolConfigs[name] || toolConfigs.select;
             document.getElementById('propsTitle').textContent = cfg.title;
             document.getElementById('manualPropsBody').innerHTML = cfg.html;
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.toggle('active', btn.id === `tool-${name}`));
+            if (name === 'filter' && selectedClip) document.getElementById('filterSelect').value = selectedClip.filter || 'none';
+            if (name === 'transition' && selectedClip) {
+                document.getElementById('transitionSelect').value = selectedClip.transition?.type || 'none';
+                document.getElementById('transitionDuration').value = selectedClip.transition?.duration || 0.5;
+            }
+        }
+
+        function applyClipFilter(value) {
+            if (!selectedClip) return showToast('Select a clip first.', '⚠️');
+            recordEdit();
+            selectedClip.filter = value === 'none' ? null : value;
+            updatePreviewVisuals();
+            requestTimelineRender();
+        }
+
+        function applyTransition(value) {
+            if (!selectedClip) return showToast('Select the clip receiving the transition.', '⚠️');
+            recordEdit();
+            selectedClip.transition = value === 'none' ? null : { type: value, duration: Number(document.getElementById('transitionDuration')?.value) || 0.5 };
+            requestTimelineRender();
+        }
+
+        function applyTransitionDuration(value) {
+            if (!selectedClip?.transition) return;
+            recordEdit();
+            selectedClip.transition.duration = clamp(Number(value) || 0.5, 0.1, 2);
+        }
+
+        function updatePreviewVisuals() {
+            const screen = document.getElementById('previewScreen');
+            if (!screen) return;
+            screen.className = screen.className.replace(/\bfilter-\S+/g, '').trim();
+            if (selectedClip?.filter) screen.classList.add(`filter-${selectedClip.filter}`);
+            renderTextOverlays();
+        }
+
+        function renderTextOverlays() {
+            const layer = document.getElementById('textOverlayLayer');
+            if (!layer) return;
+            layer.replaceChildren();
+            const now = document.getElementById('previewVideo')?.currentTime || 0;
+            (projectState.textOverlays || []).filter(item => now >= item.start && now <= item.end).forEach(item => {
+                const el = document.createElement('div');
+                el.className = item.kind === 'caption' ? 'text-overlay caption-overlay' : 'text-overlay';
+                el.textContent = item.text;
+                el.style.left = `${item.x ?? 50}%`;
+                el.style.top = item.kind === 'caption' ? '' : `${item.y ?? 50}%`;
+                el.style.fontSize = `${item.size || 28}px`;
+                el.style.color = item.color || '#fff';
+                layer.appendChild(el);
+            });
+        }
+
+        function addTextOverlay() {
+            const text = document.getElementById('overlayText')?.value.trim();
+            if (!text) return showToast('Enter text for the overlay.', '⚠️');
+            recordEdit();
+            projectState.textOverlays ||= [];
+            const start = document.getElementById('previewVideo')?.currentTime || 0;
+            projectState.textOverlays.push({ id: `text-${Date.now()}`, kind: 'text', text, start, end: start + 3, x: 50, y: 50, size: 28, color: '#fff' });
+            renderTextOverlays();
+            showToast('Text overlay added.', '✅');
+        }
+
+        async function generateSubtitles() {
+            const transcript = document.getElementById('captionTranscript')?.value.trim();
+            if (!transcript) return showToast('Paste a transcript first.', '⚠️');
+            const button = document.querySelector('#manualPropsBody button');
+            if (button) { button.disabled = true; button.textContent = 'Generating…'; }
+            try {
+                const response = await fetch('/api/gemini', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'subtitles', transcript }) });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Gemini request failed');
+                recordEdit();
+                projectState.textOverlays ||= [];
+                projectState.textOverlays.push(...data.subtitles.map(item => ({ ...item, id: `caption-${Date.now()}-${item.start}`, kind: 'caption', x: 50, size: 22, color: '#fff' })));
+                renderTextOverlays();
+                showToast(`${data.subtitles.length} subtitle segments added.`, '✅', 'success');
+            } catch (error) {
+                showToast(error.message, '❌', 'error');
+            } finally {
+                if (button) { button.disabled = false; button.textContent = '✨ Generate with Gemini'; }
+            }
         }
 
         async function analyzeAudio() {
@@ -1564,6 +1688,7 @@
                 if (currentProject.projectState && Array.isArray(currentProject.projectState.tracks)) {
                     projectState = currentProject.projectState;
                 }
+                projectState.textOverlays ||= [];
                 window.currentProject = currentProject;
                 window.projectState = projectState;
                 const v = projectState.tracks.find(t=>t.type==='video')?.clips[0];
@@ -1602,6 +1727,7 @@
                 const playhead = document.getElementById('timelinePlayhead');
                 const lane = document.querySelector('.track-lane');
                 if (playhead && lane) playhead.style.left = (72 + progress * (lane.clientWidth - 72)) + 'px';
+                renderTextOverlays();
             });
         };
 </script>
