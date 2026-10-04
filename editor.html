@@ -1021,6 +1021,7 @@
                 <label class="prop-label">Resolution<select class="prop-input" id="exportResolution"><option value="source">Source resolution</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option></select></label>
                 <label class="prop-label">Quality<select class="prop-input" id="exportQuality"><option value="fast">Fast render</option><option value="balanced" selected>Balanced</option><option value="quality">Higher quality</option></select></label>
                 <label class="prop-label">Audio bitrate<select class="prop-input" id="exportAudioBitrate"><option value="128k">128 kbps</option><option value="192k" selected>192 kbps</option><option value="256k">256 kbps</option></select></label>
+                <label class="prop-label">Frame rate<select class="prop-input" id="exportFps"><option value="24">24 FPS</option><option value="30" selected>30 FPS</option><option value="60">60 FPS</option></select></label>
                 <div class="prop-label">Format <strong style="color:var(--text-primary)">MP4 (H.264 + AAC)</strong></div>
             </div>
             <div class="export-progress-circle">
@@ -1784,7 +1785,8 @@
                 format: 'mp4',
                 resolution: document.getElementById('exportResolution').value,
                 quality: document.getElementById('exportQuality').value,
-                audioBitrate: document.getElementById('exportAudioBitrate').value
+                audioBitrate: document.getElementById('exportAudioBitrate').value,
+                fps: document.getElementById('exportFps').value
             });
             document.getElementById('exportStatus').textContent = 'Render complete.';
         }
