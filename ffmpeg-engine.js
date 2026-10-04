@@ -27,7 +27,9 @@ async function loadFFmpeg() {
             if (pb) pb.style.width = pct + '%';
         });
 
-        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+        // The single-threaded FFmpeg API is more stable in browser memory-constrained
+        // environments than spawning additional WASM workers. Keep the core pinned.
+        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd';
         let coreURL;
         let wasmURL;
         try {
@@ -77,6 +79,7 @@ async function toBlobURL(url, mimeType) {
  *  - output Blob URL is revoked 5 s after download starts
  */
 async function exportProjectVideo(projectId, opts = {}) {
+    const MAX_INPUT_BYTES = 512 * 1024 * 1024;
     const qualityMap = {
         fast: { preset: 'ultrafast', crf: '28' },
         balanced: { preset: 'veryfast', crf: '23' },
@@ -118,9 +121,14 @@ async function exportProjectVideo(projectId, opts = {}) {
             }
         });
 
+        let totalInputBytes = 0;
         for (const assetId of uniqueAssetIds) {
             const file = await ProjectService.getAsset(projectId, assetId);
             if (file) {
+                totalInputBytes += file.size || 0;
+                if (totalInputBytes > MAX_INPUT_BYTES) {
+                    throw new Error('Selected media exceeds the browser-safe 512 MB export limit. Trim or export in smaller parts.');
+                }
                 const buffer = new Uint8Array(await file.arrayBuffer());
                 await ffmpeg.writeFile(assetId, buffer);
                 writtenFiles.push(assetId);
@@ -292,6 +300,10 @@ async function exportProjectVideo(projectId, opts = {}) {
             '-map', finalVideoMap,
             '-map', finalAudioMap,
             '-c:v', 'libx264',
+            // Keep peak WASM memory bounded; this is intentionally conservative for 1080p60.
+            '-threads', '1',
+            '-filter_threads', '1',
+            '-filter_complex_threads', '1',
             '-preset', selectedQuality.preset,
             '-crf', selectedQuality.crf,
             ...(fps ? ['-r', String(fps)] : []),
@@ -310,6 +322,10 @@ async function exportProjectVideo(projectId, opts = {}) {
         const data = await ffmpeg.readFile('output.mp4');
         const blob = new Blob([data.buffer], { type: 'video/mp4' });
         outputUrl  = URL.createObjectURL(blob);
+        // The Blob owns the output bytes now; release the WASM-side copy immediately.
+        try { await ffmpeg.deleteFile('output.mp4'); } catch (_) { /* cleanup also runs in finally */ }
+        const outputIndex = writtenFiles.indexOf('output.mp4');
+        if (outputIndex >= 0) writtenFiles.splice(outputIndex, 1);
 
         if (aiOverlay) aiOverlay.classList.remove('active');
         showToast('Render Complete!', '✅', 'success');
