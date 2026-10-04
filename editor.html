@@ -1007,6 +1007,9 @@
             }
         }
     </style>
+    <script src="app.js"></script>
+    <script src="music-engine.js"></script>
+    <script src="ffmpeg-engine.js"></script>
 </head>
 <body>
     <!-- Export Modal -->
@@ -1081,6 +1084,12 @@
                 </button>
                 <button class="tool-btn" id="tool-transition" onclick="setTool('transition')">
                     <span style="font-size:1.1rem">✨</span><span class="tool-label">Transition</span>
+                </button>
+                <button class="tool-btn" id="tool-keyframe" onclick="setTool('keyframe')">
+                    <span style="font-size:1.1rem">◆</span><span class="tool-label">Keyframe</span>
+                </button>
+                <button class="tool-btn" id="tool-speed" onclick="setTool('speed')">
+                    <span style="font-size:1.1rem">⏩</span><span class="tool-label">Speed</span>
                 </button>
             </div>
 
@@ -1329,6 +1338,14 @@
                 title: 'Transitions',
                 html: `<div class="prop-section"><div class="prop-section-title">Between Clips</div><select class="prop-input" id="transitionSelect" onchange="applyTransition(this.value)"><option value="none">None</option><option value="fade">Fade</option><option value="dissolve">Dissolve</option><option value="wipe">Wipe</option><option value="slide">Slide</option></select><label class="prop-label" style="display:block;margin-top:10px">Duration</label><input class="prop-input" id="transitionDuration" type="number" min="0.1" max="2" step="0.1" value="0.5" onchange="applyTransitionDuration(this.value)"/><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Select the following clip to apply its incoming transition.</p></div>`
             },
+            keyframe: {
+                title: 'Keyframe Animation',
+                html: `<div class="prop-section"><div class="prop-section-title">Add Keyframe</div><p style="color:var(--text-secondary);font-size:.78rem">Move the playhead, set values, then add a keyframe. Values interpolate between keyframes.</p><label class="prop-label">Scale</label><input class="prop-input" id="keyframeScale" type="number" min="10" max="300" value="100"/><label class="prop-label">Rotation</label><input class="prop-input" id="keyframeRotation" type="number" min="-360" max="360" value="0"/><label class="prop-label">Opacity</label><input class="prop-input" id="keyframeOpacity" type="number" min="0" max="100" value="100"/><button class="music-btn" onclick="addKeyframe()">◆ Add Keyframe</button></div>`
+            },
+            speed: {
+                title: 'Speed Ramping',
+                html: `<div class="prop-section"><div class="prop-section-title">Add Speed Point</div><p style="color:var(--text-secondary);font-size:.78rem">Add speed points at the playhead. Use 0.25× for slow motion or 4× for a quick ramp.</p><label class="prop-label">Speed</label><input class="prop-input" id="speedValue" type="number" min="0.1" max="8" step="0.05" value="1"/><button class="music-btn" onclick="addSpeedPoint()">⏩ Add Speed Point</button></div>`
+            },
             caption: {
                 title: 'Auto Captions',
                 html: `<div class="prop-section"><div class="prop-section-title">Generate Subtitles</div><textarea class="prop-input" id="captionTranscript" rows="5" placeholder="Paste a transcript here, or describe the spoken audio..."></textarea><button class="music-btn" onclick="generateSubtitles()">✨ Generate with Gemini</button><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Gemini is called through a server-side Vercel function. Your API key is never sent to the browser.</p></div>`
@@ -1559,11 +1576,79 @@
             selectedClip.transition.duration = clamp(Number(value) || 0.5, 0.1, 2);
         }
 
+        function currentClipTime(clip = selectedClip) {
+            const video = document.getElementById('previewVideo');
+            return clip ? clamp((video?.currentTime || 0) - (Number(clip.start) || 0) + (Number(clip.trimStart) || 0), Number(clip.trimStart) || 0, Number(clip.trimEnd) || 0) : 0;
+        }
+
+        function addKeyframe() {
+            if (!selectedClip) return showToast('Select a clip first.', '⚠️');
+            recordEdit();
+            selectedClip.keyframes ||= [];
+            const time = currentClipTime();
+            selectedClip.keyframes = selectedClip.keyframes.filter(item => Math.abs(item.time - time) > 0.01);
+            selectedClip.keyframes.push({
+                time,
+                scale: clamp(Number(document.getElementById('keyframeScale')?.value) || 100, 10, 300),
+                rotation: clamp(Number(document.getElementById('keyframeRotation')?.value) || 0, -360, 360),
+                opacity: clamp(Number(document.getElementById('keyframeOpacity')?.value) || 100, 0, 100)
+            });
+            selectedClip.keyframes.sort((a, b) => a.time - b.time);
+            updatePreviewVisuals();
+            showToast('Keyframe added.', '◆', 'success');
+        }
+
+        function addSpeedPoint() {
+            if (!selectedClip) return showToast('Select a clip first.', '⚠️');
+            recordEdit();
+            selectedClip.speedSegments ||= [];
+            const time = currentClipTime();
+            const speed = clamp(Number(document.getElementById('speedValue')?.value) || 1, 0.1, 8);
+            selectedClip.speedSegments = selectedClip.speedSegments.filter(item => Math.abs(item.time - time) > 0.01);
+            selectedClip.speedSegments.push({ time, speed });
+            selectedClip.speedSegments.sort((a, b) => a.time - b.time);
+            updatePreviewVisuals();
+            showToast(`${speed}× speed point added.`, '⏩', 'success');
+        }
+
+        function interpolateKeyframes(clip, time) {
+            const frames = (clip.keyframes || []).slice().sort((a, b) => a.time - b.time);
+            if (!frames.length) return { scale: 100, rotation: 0, opacity: 100 };
+            if (time <= frames[0].time) return frames[0];
+            if (time >= frames[frames.length - 1].time) return frames[frames.length - 1];
+            const nextIndex = frames.findIndex(frame => frame.time >= time);
+            const a = frames[nextIndex - 1];
+            const b = frames[nextIndex];
+            const ratio = (time - a.time) / Math.max(b.time - a.time, 0.001);
+            return ['scale', 'rotation', 'opacity'].reduce((result, key) => {
+                result[key] = a[key] + (b[key] - a[key]) * ratio;
+                return result;
+            }, {});
+        }
+
+        function speedAtTime(clip, time) {
+            const points = (clip.speedSegments || []).filter(item => Number.isFinite(item.time)).sort((a, b) => a.time - b.time);
+            let speed = 1;
+            for (const point of points) {
+                if (point.time > time) break;
+                speed = clamp(Number(point.speed) || 1, 0.1, 8);
+            }
+            return speed;
+        }
+
         function updatePreviewVisuals() {
             const screen = document.getElementById('previewScreen');
+            const video = document.getElementById('previewVideo');
             if (!screen) return;
             screen.className = screen.className.replace(/\bfilter-\S+/g, '').trim();
             if (selectedClip?.filter) screen.classList.add(`filter-${selectedClip.filter}`);
+            if (video && selectedClip) {
+                const time = currentClipTime();
+                const props = interpolateKeyframes(selectedClip, time);
+                video.style.transform = `scale(${props.scale / 100}) rotate(${props.rotation}deg)`;
+                video.style.opacity = String(props.opacity / 100);
+                video.playbackRate = speedAtTime(selectedClip, time);
+            }
             renderTextOverlays();
         }
 
@@ -1727,6 +1812,7 @@
                 const playhead = document.getElementById('timelinePlayhead');
                 const lane = document.querySelector('.track-lane');
                 if (playhead && lane) playhead.style.left = (72 + progress * (lane.clientWidth - 72)) + 'px';
+                updatePreviewVisuals();
                 renderTextOverlays();
             });
         };
