@@ -77,6 +77,17 @@ async function toBlobURL(url, mimeType) {
  *  - output Blob URL is revoked 5 s after download starts
  */
 async function exportProjectVideo(projectId, opts = {}) {
+    const qualityMap = {
+        fast: { preset: 'ultrafast', crf: '28' },
+        balanced: { preset: 'veryfast', crf: '23' },
+        quality: { preset: 'medium', crf: '18' }
+    };
+    const selectedQuality = qualityMap[opts.quality] || qualityMap.balanced;
+    const resolutionMap = { '1080': 1080, '720': 720, '480': 480 };
+    const targetHeight = resolutionMap[String(opts.resolution)] || null;
+    const audioBitrate = ['128k', '192k', '256k'].includes(opts.audioBitrate) ? opts.audioBitrate : '192k';
+    if (opts.format && opts.format !== 'mp4') throw new Error('Only MP4 export is currently supported.');
+
     if (!ffmpeg) {
         showToast('Starting FFmpeg engine just-in-time...', '⚙️');
         await loadFFmpeg();
@@ -175,6 +186,7 @@ async function exportProjectVideo(projectId, opts = {}) {
             };
             const videoLabel = `[video${idx}]`;
             const videoFilters = ['setpts=PTS-STARTPTS'];
+            if (targetHeight) videoFilters.push(`scale=-2:${targetHeight}:flags=lanczos`);
             if (filterMap[clip.filter]) videoFilters.push(filterMap[clip.filter]);
             const incomingTransition = clip.transition?.type;
             const transitionDuration = Math.min(2, Math.max(0.1, Number(clip.transition?.duration) || 0.5));
@@ -216,8 +228,12 @@ async function exportProjectVideo(projectId, opts = {}) {
             '-map', '[outv]',
             '-map', finalAudioMap,
             '-c:v', 'libx264',
-            '-preset', 'ultrafast',
+            '-preset', selectedQuality.preset,
+            '-crf', selectedQuality.crf,
+            '-pix_fmt', 'yuv420p',
             '-c:a', 'aac',
+            '-b:a', audioBitrate,
+            '-movflags', '+faststart',
             'output.mp4'
         ];
 
@@ -259,11 +275,11 @@ async function exportProjectVideo(projectId, opts = {}) {
 
 // ─── EDITOR UI INTEGRATION ───────────────────────────────────────────────────
 
-window.handleEditorExport = async function () {
+window.handleEditorExport = async function (opts = {}) {
     const projId = window.currentProject ? window.currentProject.id : null;
     if (!projId) {
         showToast('No active project to export.', '⚠️', 'error');
         return;
     }
-    await exportProjectVideo(projId);
+    await exportProjectVideo(projId, opts);
 };

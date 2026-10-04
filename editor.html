@@ -1015,8 +1015,14 @@
     <!-- Export Modal -->
     <div class="modal-overlay" id="exportModal">
         <div class="export-modal">
-            <h2 style="font-family:'Outfit'; margin-bottom:12px;">Exporting Project</h2>
-            <p style="color:var(--text-secondary); margin-bottom:32px; font-size:0.9rem;" id="exportStatus">Preparing assets...</p>
+            <h2 style="font-family:'Outfit'; margin-bottom:12px;">Export MP4</h2>
+            <p style="color:var(--text-secondary); margin-bottom:18px; font-size:0.9rem;" id="exportStatus">Choose settings, then render directly in your browser with FFmpeg.wasm.</p>
+            <div id="exportOptions" style="display:grid;gap:10px;text-align:left;margin-bottom:18px;">
+                <label class="prop-label">Resolution<select class="prop-input" id="exportResolution"><option value="source">Source resolution</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option></select></label>
+                <label class="prop-label">Quality<select class="prop-input" id="exportQuality"><option value="fast">Fast render</option><option value="balanced" selected>Balanced</option><option value="quality">Higher quality</option></select></label>
+                <label class="prop-label">Audio bitrate<select class="prop-input" id="exportAudioBitrate"><option value="128k">128 kbps</option><option value="192k" selected>192 kbps</option><option value="256k">256 kbps</option></select></label>
+                <div class="prop-label">Format <strong style="color:var(--text-primary)">MP4 (H.264 + AAC)</strong></div>
+            </div>
             <div class="export-progress-circle">
                 <svg width="120" height="120">
                     <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
@@ -1024,6 +1030,7 @@
                 </svg>
                 <div class="export-pct" id="exportPct">0%</div>
             </div>
+            <button class="btn btn-primary" onclick="startExportWithOptions()" id="startExportBtn" style="width:100%;justify-content:center;">Render MP4 in Browser</button>
             <button class="btn btn-ghost" onclick="cancelExport()" id="cancelExportBtn">Cancel Export</button>
             <button class="btn btn-primary" id="downloadBtn" style="display:none; width:100%; justify-content:center;">Download Video</button>
         </div>
@@ -1755,10 +1762,31 @@
         function togglePlay() { const vid = document.getElementById('previewVideo'); if(vid.paused) vid.play(); else vid.pause(); }
         function saveProject() { ProjectService.updateProject(currentProject.id, { projectState }); showToast('Saved!', '✅'); }
         
-        async function exportProject() {
+        function exportProject() {
             document.getElementById('exportModal').classList.add('active');
-            await window.handleEditorExport();
-            document.getElementById('exportStatus').textContent = 'Done!';
+            document.getElementById('exportOptions').style.display = 'grid';
+            document.getElementById('startExportBtn').style.display = 'flex';
+            document.getElementById('cancelExportBtn').textContent = 'Close';
+            document.getElementById('exportStatus').textContent = 'Choose settings, then render directly in your browser with FFmpeg.wasm.';
+        }
+
+        function cancelExport() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        async function startExportWithOptions() {
+            const startButton = document.getElementById('startExportBtn');
+            if (startButton) startButton.style.display = 'none';
+            document.getElementById('exportOptions').style.display = 'none';
+            document.getElementById('cancelExportBtn').textContent = 'Cancel Export';
+            document.getElementById('exportStatus').textContent = 'Preparing assets...';
+            await window.handleEditorExport({
+                format: 'mp4',
+                resolution: document.getElementById('exportResolution').value,
+                quality: document.getElementById('exportQuality').value,
+                audioBitrate: document.getElementById('exportAudioBitrate').value
+            });
+            document.getElementById('exportStatus').textContent = 'Render complete.';
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
