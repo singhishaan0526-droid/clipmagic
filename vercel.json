@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "credentialless"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/editor", "destination": "/editor.html" },
+    { "source": "/upload", "destination": "/upload.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/login", "destination": "/login.html" }
+  ]
+}

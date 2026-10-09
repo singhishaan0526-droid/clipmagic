@@ -4,8 +4,7 @@
   "description": "Static site for Clip Magic editor",
   "scripts": {
     "start": "node server.js",
-    "serve": "node server.js",
-    "build": "echo 'Static site ready for deployment'"
+    "serve": "node server.js"
   },
   "devDependencies": {
     "http-server": "^14.1.1",
