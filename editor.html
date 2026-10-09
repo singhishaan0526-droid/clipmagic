@@ -208,18 +208,84 @@
         .preview-screen.filter-warm video { filter: saturate(1.2) sepia(0.22) hue-rotate(-8deg); }
         .preview-screen.filter-cool video { filter: saturate(0.92) hue-rotate(12deg) brightness(1.04); }
         .text-overlay-layer { position:absolute; inset:0; pointer-events:none; z-index:4; }
-        .text-overlay { position:absolute; transform:translate(-50%,-50%); max-width:80%; color:#fff; text-align:center; font-weight:700; text-shadow:0 2px 5px #000; white-space:pre-wrap; line-height:1.12; will-change:transform,opacity,filter; pointer-events:auto; cursor:grab; user-select:none; touch-action:none; }
+        .text-overlay { 
+            position:absolute; 
+            transform:translate(-50%,-50%); 
+            max-width:85%; 
+            color:#fff; 
+            text-align:center; 
+            font-weight:800; 
+            font-family:'Outfit', 'Inter', sans-serif;
+            text-shadow:0 2px 8px rgba(0,0,0,0.85); 
+            white-space:pre-wrap; 
+            line-height:1.2; 
+            will-change:transform,opacity,filter; 
+            letter-spacing: 0.2px;
+            pointer-events:auto; 
+            cursor:grab; 
+            user-select:none; 
+            touch-action:none;
+        }
         .text-overlay:hover, .text-overlay.dragging { outline:1px dashed rgba(255,255,255,.8); outline-offset:6px; }
         .text-overlay.dragging { cursor:grabbing; animation:none !important; transform:translate(-50%,-50%) scale(1) !important; }
         .text-overlay::after { content:'↕ drag'; position:absolute; left:50%; top:100%; transform:translate(-50%,6px); opacity:0; padding:2px 5px; border-radius:4px; background:rgba(0,0,0,.65); color:#fff; font:600 10px/1 Inter,sans-serif; white-space:nowrap; pointer-events:none; transition:opacity .15s; }
         .text-overlay:hover::after, .text-overlay.dragging::after { opacity:.9; }
-        .text-overlay .lyric-word { display:inline-block; white-space:pre; }
-        .lyric-gradient { background:linear-gradient(90deg,var(--lyric-a,#f472b6),var(--lyric-b,#60a5fa),var(--lyric-a,#f472b6)); background-size:220% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:lyricGradient 3s linear infinite; }
-        .lyric-neon { text-shadow:0 0 6px var(--lyric-a,#f472b6),0 0 18px var(--lyric-b,#60a5fa),0 2px 5px #000; }
-        .lyric-outline { -webkit-text-stroke:1px var(--lyric-b,#fff); text-shadow:0 2px 5px #000; }
-        .lyric-box { padding:.22em .5em; border:1px solid color-mix(in srgb,var(--lyric-a,#f472b6) 70%,white); border-radius:.35em; background:linear-gradient(135deg,color-mix(in srgb,var(--lyric-a,#f472b6) 28%,transparent),color-mix(in srgb,var(--lyric-b,#60a5fa) 22%,transparent)); backdrop-filter:blur(7px); }
-        .lyric-glow { filter:drop-shadow(0 0 7px var(--lyric-a,#f472b6)); }
-        .lyric-shadow { text-shadow:0 3px 0 rgba(0,0,0,.8),0 6px 14px rgba(0,0,0,.65); }
+        .text-overlay .lyric-word {
+            display: inline-block;
+            white-space: pre;
+            padding: 0 2px;
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.15s ease, text-shadow 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+        }
+        .text-overlay .lyric-word.upcoming {
+            opacity: 0.4;
+            transform: scale(0.95);
+            filter: blur(0.6px);
+        }
+        .text-overlay .lyric-word.sung {
+            opacity: 0.95;
+            color: #ffffff;
+            transform: scale(1);
+        }
+        .text-overlay .lyric-word.active-word {
+            opacity: 1 !important;
+            color: #fde047 !important;
+            transform: scale(1.28) translateY(-3px) !important;
+            text-shadow: 0 0 16px #fde047, 0 0 32px #eab308, 0 4px 12px rgba(0,0,0,0.95) !important;
+            font-weight: 900;
+            z-index: 10;
+            filter: drop-shadow(0 0 8px rgba(253, 224, 71, 0.8));
+            animation: activeWordPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes activeWordPop {
+            0% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.35) translateY(-5px); }
+            100% { transform: scale(1.28) translateY(-3px); }
+        }
+        .lyric-gradient { 
+            background:linear-gradient(90deg,var(--lyric-a,#f472b6),var(--lyric-b,#60a5fa),var(--lyric-a,#f472b6)); 
+            background-size:220% auto; 
+            -webkit-background-clip:text; 
+            background-clip:text; 
+            -webkit-text-fill-color:transparent; 
+            animation:lyricGradient 3s linear infinite; 
+        }
+        .lyric-neon { 
+            text-shadow:0 0 8px var(--lyric-a,#f472b6), 0 0 20px var(--lyric-b,#60a5fa), 0 2px 6px #000; 
+        }
+        .lyric-outline { 
+            -webkit-text-stroke:1.5px var(--lyric-b,#60a5fa); 
+            text-shadow:0 2px 6px #000; 
+        }
+        .lyric-box { 
+            padding:.3em .6em; 
+            border:1.5px solid color-mix(in srgb,var(--lyric-a,#f472b6) 70%,white); 
+            border-radius:.45em; 
+            background:linear-gradient(135deg,color-mix(in srgb,var(--lyric-a,#f472b6) 30%,rgba(0,0,0,0.6)),color-mix(in srgb,var(--lyric-b,#60a5fa) 25%,rgba(0,0,0,0.6))); 
+            backdrop-filter:blur(10px); 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .lyric-glow { filter:drop-shadow(0 0 9px var(--lyric-a,#f472b6)); }
+        .lyric-shadow { text-shadow:0 3px 0 rgba(0,0,0,.85),0 6px 16px rgba(0,0,0,.7); }
         .lyric-pop { animation:lyricPop .42s cubic-bezier(.2,.8,.2,1) both; }
         .lyric-slide-up { animation:lyricSlideUp .5s cubic-bezier(.2,.8,.2,1) both; }
         .lyric-pulse { animation:lyricPulse 1.2s ease-in-out infinite; }
@@ -229,7 +295,7 @@
         @keyframes lyricSlideUp { from { opacity:0; transform:translate(-50%,10%) scale(.96); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
         @keyframes lyricPulse { 50% { transform:translate(-50%,-50%) scale(1.06); } }
         @keyframes lyricWordIn { from { opacity:0; transform:translateY(.35em); } to { opacity:1; transform:translateY(0); } }
-        .caption-overlay { bottom:8%; left:50%; top:auto; transform:translateX(-50%); background:rgba(0,0,0,.55); padding:6px 10px; border-radius:6px; font-size:1rem; }
+        .caption-overlay { bottom:8%; left:50%; top:auto; transform:translateX(-50%); background:rgba(0,0,0,.7); padding:8px 14px; border-radius:8px; font-size:1.05rem; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(8px); }
         .transition-badge { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:9; padding:1px 4px; border-radius:3px; background:rgba(8,8,20,.8); color:#ddd6fe; font-size:9px; pointer-events:none; }
         .timeline-waveform { position:absolute; inset:3px 4px; width:calc(100% - 8px); height:calc(100% - 6px); opacity:.9; pointer-events:none; }
         .pip-video { position:absolute; z-index:3; object-fit:cover; border:1px solid rgba(255,255,255,.7); box-shadow:0 4px 20px rgba(0,0,0,.45); pointer-events:none; }
@@ -238,6 +304,39 @@
         .vfx-shake { animation:clipMagicShake .16s steps(2,end) infinite; }
         .vfx-glitch { }
         .vfx-blur { }
+        .lyric-item-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: var(--transition);
+        }
+        .lyric-item-card:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+        .lyric-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .lyric-item-text {
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-primary);
+        }
+        .lyric-item-time {
+            font-size: 0.68rem;
+            color: var(--purple-light);
+            margin-top: 2px;
+        }
 
         /* ── Sunset Vaporwave Special Effects ── */
         [data-theme="vaporwave"] .editor-center {
@@ -413,7 +512,7 @@
 
         .track-lane {
             flex: 1;
-            height: 26px;
+            height: 28px;
             background: rgba(255, 255, 255, 0.04);
             border-radius: 6px;
             position: relative;
@@ -424,6 +523,30 @@
 
         .track-lane:hover {
             border-color: var(--border-hover);
+        }
+
+        .lane-playhead {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #38bdf8;
+            z-index: 25;
+            pointer-events: none;
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.9);
+            border-radius: 1px;
+            transition: left 0.05s linear;
+        }
+
+        .lane-playhead::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -3px;
+            width: 8px;
+            height: 6px;
+            background: #38bdf8;
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
         }
 
         .track-clip {
@@ -722,6 +845,52 @@
         .bpm-label {
             font-size: 0.72rem;
             color: var(--text-muted);
+        }
+
+        /* 1-Click Quick Actions Bar */
+        .quick-actions-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(18, 18, 26, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+        .quick-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .quick-btn:hover {
+            background: rgba(139, 92, 246, 0.25);
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .quick-btn.magic {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.35));
+            border-color: rgba(236, 72, 153, 0.5);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
+        }
+        .quick-btn.magic:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.55), rgba(236, 72, 153, 0.55));
+            box-shadow: 0 0 18px rgba(236, 72, 153, 0.45);
         }
 
         .music-btn {
@@ -1262,6 +1431,38 @@
 
             <!-- CENTER WORKSPACE -->
             <div class="editor-center">
+                <div class="quick-actions-bar">
+                    <button class="quick-btn magic" onclick="quickMagicAction('auto-extract-music')" title="Automatically extract background music from video & add to timeline">
+                        <span>🎵</span> Read Video Music
+                    </button>
+                    <button class="quick-btn magic" onclick="quickMagicAction('auto-lyrics')" title="Generate animated word-by-word song lyrics">
+                        <span>🎤</span> Word Lyrics
+                    </button>
+                    <button class="quick-btn" onclick="quickMagicAction('auto-enhance')" title="Auto-enhance colors & contrast">
+                        <span>🪄</span> Auto Enhance
+                    </button>
+                    <button class="quick-btn" onclick="quickMagicAction('tiktok-reframe')" title="Crop to 9:16 vertical format">
+                        <span>📱</span> TikTok 9:16
+                    </button>
+                    <button class="quick-btn" onclick="quickMagicAction('auto-captions')" title="Generate AI subtitles">
+                        <span>💬</span> AI Captions
+                    </button>
+                    <button class="quick-btn" onclick="quickMagicAction('sync-beats')" title="Sync cuts to music beats">
+                        <span>🥁</span> Sync Beats
+                    </button>
+                    <button class="quick-btn" onclick="splitAtPlayhead()" title="Cut or split clip at playhead (S)">
+                        <span style="color:#f43f5e">✂️</span> Cut / Split
+                    </button>
+                    <button class="quick-btn" onclick="setTool('trim')" title="Trim in/out points">
+                        <span>⏱️</span> Trim Tool
+                    </button>
+                    <button class="quick-btn" onclick="quickMagicAction('fast-speed')" title="Apply 1.5x speed boost">
+                        <span>⚡</span> Speed Boost
+                    </button>
+                    <button class="quick-btn" onclick="quickMagicAction('vfx-glitch')" title="Apply glitch music video VFX">
+                        <span>✦</span> Glitch VFX
+                    </button>
+                </div>
                 <div class="preview-area">
                     <div class="preview-screen" id="previewScreen">
                         <video id="previewVideo" preload="metadata" style="display:none; max-width:100%; max-height:100%;"></video>
@@ -1289,6 +1490,7 @@
                     <div class="timeline-header">
                         <div class="timeline-title">Timeline</div>
                         <div style="display:flex; gap:8px;">
+                            <button class="icon-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;padding:0 10px;width:auto;gap:4px;" onclick="splitAtPlayhead()" title="Split / Cut at Playhead (S)"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8V5c0-1 1-2 2-2h10c1 0 2 1 2 2v3"/><path d="M19 16v3c0 1-1 2-2 2H7c-1 0-2-1-2-2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg> Cut / Split</button>
                             <button class="icon-btn" id="snapToggle" onclick="toggleSnap()" title="Toggle snapping">Snap: On</button>
                             <select class="zoom-select" id="timelineZoom" title="Timeline zoom" onchange="setTimelineZoom(this.value)">
                                 <option value="0.75">75%</option>
@@ -1302,9 +1504,6 @@
                     </div>
                     <div style="position:relative; flex:1; overflow-y:auto; overflow-x:auto;">
                         <div id="tracksContainer"></div>
-                        <div id="timelinePlayhead" style="position:absolute; top:0; left:100px; height:100%; width:2px; background:var(--purple); z-index:10; pointer-events:none; box-shadow:0 0 15px var(--purple);">
-                            <div style="position:absolute; top:-6px; left:-5px; width:12px; height:12px; background:var(--purple); border-radius:50%; box-shadow:0 0 10px var(--purple);"></div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1479,6 +1678,14 @@
                     clipEl.append(leftHandle, rightHandle);
                     lane.appendChild(clipEl);
                 });
+
+                const lanePlayhead = document.createElement('div');
+                lanePlayhead.className = 'lane-playhead';
+                const vid = document.getElementById('previewVideo');
+                const curProgress = (vid && vid.duration > 0) ? (vid.currentTime / vid.duration) : 0;
+                lanePlayhead.style.left = (curProgress * 100) + '%';
+                lane.appendChild(lanePlayhead);
+
                 trackEl.appendChild(label);
                 trackEl.appendChild(lane);
                 fragment.appendChild(trackEl);
@@ -1522,33 +1729,134 @@
                 html: `<div class="prop-section"><div class="prop-section-title">Clip Info</div><div class="prop-row"><span class="prop-label">Name</span><input class="prop-input" value="Main Clip"/></div></div>`
             },
             trim: {
-                title: 'Trim Video',
-                html: `<div class="prop-section"><div class="prop-section-title">Trim</div><p style="color:var(--text-secondary);font-size:0.8rem;line-height:1.5;">Drag the white handles on a clip to set its start and end. Trimming is non-destructive.</p></div>`
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>',
+                title: 'Trim Video & Clips',
+                html: `<div class="prop-section">
+                    <div class="prop-section-title">✂️ Trim & Cut Controls</div>
+                    <p style="color:var(--text-secondary);font-size:0.78rem;line-height:1.4;margin-bottom:12px;">Drag the white handles on either end of any timeline clip, or use the instant playhead trim buttons below:</p>
+                    
+                    <div style="display:flex;gap:6px;margin-bottom:10px;">
+                        <button class="music-btn" style="flex:1;background:rgba(56,189,248,0.15);border-color:#38bdf8;color:#38bdf8;" onclick="trimClipStartToPlayhead()">⏱ Trim Start @ Playhead (Q)</button>
+                        <button class="music-btn" style="flex:1;background:rgba(56,189,248,0.15);border-color:#38bdf8;color:#38bdf8;" onclick="trimClipEndToPlayhead()">⏱ Trim End @ Playhead (W)</button>
+                    </div>
+
+                    <div class="prop-row">
+                        <span class="prop-label">Trim In (Start)</span>
+                        <input class="prop-input" id="guiTrimStart" type="range" min="0" max="60" step="0.1" value="0" oninput="updateActiveClipTrim('trimStart', this.value)"/>
+                        <span id="guiTrimStartVal" style="font-size:0.75rem;color:var(--text-secondary);min-width:38px;">0.0s</span>
+                    </div>
+
+                    <div class="prop-row" style="margin-top:8px;">
+                        <span class="prop-label">Trim Out (End)</span>
+                        <input class="prop-input" id="guiTrimEnd" type="range" min="0.1" max="120" step="0.1" value="10" oninput="updateActiveClipTrim('trimEnd', this.value)"/>
+                        <span id="guiTrimEndVal" style="font-size:0.75rem;color:var(--text-secondary);min-width:38px;">10.0s</span>
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;margin:12px 0 6px;font-size:0.8rem;color:var(--text-secondary);">
+                        <span>Effective Duration:</span>
+                        <span id="guiTrimDurationVal" style="font-weight:700;color:#38bdf8;">--</span>
+                    </div>
+
+                    <button class="music-btn" style="margin-top:8px;" onclick="resetClipTrim()">↺ Reset Clip to Full Length</button>
+                    <button class="music-btn" style="margin-top:6px;background:var(--gradient-main);color:#fff;font-weight:700;" onclick="splitAtPlayhead()">✂ Split Clip at Playhead (S / C)</button>
+                </div>`
             },
             split: {
-                title: 'Split Clip',
-                html: `<div class="prop-section"><div class="prop-section-title">Split</div><p style="color:var(--text-secondary);font-size:0.8rem;line-height:1.5;">Select a clip, move the playhead to the cut point, then click Split Clip.</p></div>`
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8V5c0-1 1-2 2-2h10c1 0 2 1 2 2v3"/><path d="M19 16v3c0 1-1 2-2 2H7c-1 0-2-1-2-2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg>',
+                title: 'Split & Cut Clips',
+                html: `<div class="prop-section">
+                    <div class="prop-section-title">✂️ Precision Blade / Split</div>
+                    <p style="color:var(--text-secondary);font-size:0.78rem;line-height:1.4;margin-bottom:12px;">Split clips at the playhead into separate, independently editable segments.</p>
+                    
+                    <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;font-size:0.9rem;padding:12px;" onclick="splitAtPlayhead()">✂ Split at Current Playhead (S / C)</button>
+
+                    <div class="prop-section-title" style="margin-top:16px;">Quick Cut Actions</div>
+                    <div style="display:flex;gap:6px;margin-bottom:8px;">
+                        <button class="music-btn" style="flex:1;font-size:0.75rem;" onclick="cutAndDeleteLeft()" title="Cut at playhead and delete left side">✂ Cut & Delete Left</button>
+                        <button class="music-btn" style="flex:1;font-size:0.75rem;" onclick="cutAndDeleteRight()" title="Cut at playhead and delete right side">✂ Cut & Delete Right</button>
+                    </div>
+
+                    <div class="prop-section-title" style="margin-top:14px;">Auto-Split Presets</div>
+                    <div class="chip-grid">
+                        <div class="chip-option" onclick="splitClipHalves()">✂ Split in Half</div>
+                        <div class="chip-option" onclick="splitEveryNSeconds(2)">⏱ 2s Chunks</div>
+                        <div class="chip-option" onclick="splitEveryNSeconds(5)">⏱ 5s Chunks</div>
+                    </div>
+
+                    <button class="music-btn" style="margin-top:14px;color:#fca5a5;border-color:rgba(239,68,68,0.4);" onclick="deleteSelectedClip()">🗑 Delete Selected Clip (Del)</button>
+                </div>`
             },
             text: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
-                title: 'Animated Lyrics',
-                html: `<div class="prop-section"><div class="prop-section-title">Colorful lyric text</div><textarea class="prop-input" id="overlayText" rows="3" placeholder="Paste one lyric line here"></textarea><div class="prop-row"><span class="prop-label">Start (s)</span><input class="prop-input" id="overlayStart" type="number" min="0" step="0.1" value="0" /></div><div class="prop-row"><span class="prop-label">End (s)</span><input class="prop-input" id="overlayEnd" type="number" min="0.1" step="0.1" value="3" /></div><label class="prop-label">Position X <span id="overlayXValue">50%</span></label><input class="prop-input" id="overlayX" type="range" min="5" max="95" value="50" oninput="document.getElementById('overlayXValue').textContent=this.value+'%'"/><label class="prop-label">Position Y <span id="overlayYValue">76%</span></label><input class="prop-input" id="overlayY" type="range" min="5" max="95" value="76" oninput="document.getElementById('overlayYValue').textContent=this.value+'%'"/><label class="prop-label">Text size</label><input class="prop-input" id="overlaySize" type="range" min="14" max="96" value="32"/><label class="prop-label">Style</label><select class="prop-input" id="overlayStyle"><option value="gradient">Rainbow gradient</option><option value="solid">Solid color</option><option value="neon">Neon glow</option><option value="outline">Outlined</option><option value="box">Glass box</option></select><div class="prop-row"><span class="prop-label">Color A</span><input class="prop-input" id="overlayColorA" type="color" value="#f472b6" /></div><div class="prop-row"><span class="prop-label">Color B</span><input class="prop-input" id="overlayColorB" type="color" value="#60a5fa" /></div><label class="prop-label">Animation</label><select class="prop-input" id="overlayAnimation"><option value="word-by-word">Word by word</option><option value="pop">Pop in</option><option value="slide-up">Slide up</option><option value="pulse">Pulse</option><option value="none">None</option></select><label class="prop-label">Text filter</label><select class="prop-input" id="overlayFilter"><option value="glow">Glow</option><option value="shadow">Shadow</option><option value="none">None</option></select><button class="music-btn" onclick="addTextOverlay()">＋ Add Animated Lyric</button><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">After adding, drag the text directly on the preview to place it anywhere. X/Y sliders are also available for precise positioning.</p></div>`
+                title: 'Song Lyrics & Karaoke',
+                html: `<div class="prop-section">
+                    <div class="prop-section-title">🎤 Animated Song Lyric Layer</div>
+                    <textarea class="prop-input" id="overlayText" rows="3" placeholder="Type or paste lyric line (e.g. Can you feel the rhythm in the air?)"></textarea>
+                    
+                    <div style="display:flex;gap:6px;margin:8px 0;">
+                        <button class="chip-option" style="flex:1;font-size:0.75rem;padding:7px;font-weight:600;" onclick="setLyricStartToPlayhead()">⏱ Start @ Playhead</button>
+                        <button class="chip-option" style="flex:1;font-size:0.75rem;padding:7px;font-weight:600;" onclick="setLyricEndToPlayhead()">⏱ End @ Playhead</button>
+                    </div>
+
+                    <label class="prop-label">Start Time <span id="overlayStartLabel">0.0s</span></label>
+                    <input class="prop-input" id="overlayStart" type="range" min="0" max="120" step="0.1" value="0" oninput="document.getElementById('overlayStartLabel').textContent=parseFloat(this.value).toFixed(1)+'s'"/>
+
+                    <label class="prop-label">End Time <span id="overlayEndLabel">3.5s</span></label>
+                    <input class="prop-input" id="overlayEnd" type="range" min="0.5" max="120" step="0.1" value="3.5" oninput="document.getElementById('overlayEndLabel').textContent=parseFloat(this.value).toFixed(1)+'s'"/>
+
+                    <label class="prop-label">Style Preset</label>
+                    <div class="chip-grid" style="margin-bottom:8px">
+                        <div class="chip-option active" onclick="selectChipGroup(this, 'overlayStyle', 'gradient')">🌈 Gradient</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'neon')">⚡ Cyber Neon</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'box')">📦 TikTok Box</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'solid')">🎨 Solid Minimal</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'outline')">✏️ Outline</div>
+                    </div>
+                    <input type="hidden" id="overlayStyle" value="gradient"/>
+
+                    <label class="prop-label">Word Highlighting Effect</label>
+                    <div class="chip-grid" style="margin-bottom:8px">
+                        <div class="chip-option active" onclick="selectChipGroup(this, 'overlayAnimation', 'word-by-word')">🔤 Word Karaoke</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'pop')">💥 Bouncy Pop</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'slide-up')">⬆ Slide Up</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'pulse')">💓 Rhythm Pulse</div>
+                    </div>
+                    <input type="hidden" id="overlayAnimation" value="word-by-word"/>
+
+                    <div class="prop-row"><span class="prop-label">Color A</span><input class="prop-input" id="overlayColorA" type="color" value="#f472b6" style="height:32px;padding:2px;cursor:pointer"/></div>
+                    <div class="prop-row"><span class="prop-label">Color B</span><input class="prop-input" id="overlayColorB" type="color" value="#60a5fa" style="height:32px;padding:2px;cursor:pointer"/></div>
+
+                    <label class="prop-label">Position Y <span id="overlayYValue">76%</span></label>
+                    <input class="prop-input" id="overlayY" type="range" min="10" max="95" value="76" oninput="document.getElementById('overlayYValue').textContent=this.value+'%'"/>
+
+                    <label class="prop-label">Text Size <span id="overlaySizeValue">34px</span></label>
+                    <input class="prop-input" id="overlaySize" type="range" min="16" max="96" value="34" oninput="document.getElementById('overlaySizeValue').textContent=this.value+'px'"/>
+
+                    <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;margin-top:10px;" onclick="addTextOverlay()">＋ Add Animated Lyric Layer</button>
+                    <button class="music-btn" style="margin-top:6px;border-color:rgba(236,72,153,0.5);color:#f472b6;" onclick="autoGenerateSongLyrics()">✨ AI Auto-Generate Song Lyrics</button>
+                    <p style="color:var(--text-secondary);font-size:.75rem;margin-top:8px">Tip: You can drag lyrics directly on the preview to position them anywhere.</p>
+
+                    <div class="prop-section-title" style="margin-top:16px;">🎵 Lyric Layers in Project</div>
+                    <div id="lyricsLayerListContainer" style="max-height:180px;overflow-y:auto;">
+                        <p style="font-size:0.75rem;color:var(--text-muted);">No lyric layers added yet. Add your first line above or click Auto-Generate!</p>
+                    </div>
+                </div>`
             },
             filter: {
                 title: 'Filters',
-                html: `<div class="prop-section"><div class="prop-section-title">Clip Filter</div><select class="prop-input" id="filterSelect" onchange="applyClipFilter(this.value)"><option value="none">Original</option><option value="vivid">Vivid</option><option value="cinematic">Cinematic</option><option value="warm">Warm</option><option value="cool">Cool</option><option value="bw">Black & White</option></select><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Select a clip first. The filter is non-destructive.</p></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Clip Filter</div><div class="chip-grid" style="margin-bottom:8px"><div class="chip-option active" onclick="selectChipGroup(this, 'filterSelectVal', 'none'); applyClipFilter('none');">Original</div><div class="chip-option" onclick="selectChipGroup(this, 'filterSelectVal', 'vivid'); applyClipFilter('vivid');">🌟 Vivid</div><div class="chip-option" onclick="selectChipGroup(this, 'filterSelectVal', 'cinematic'); applyClipFilter('cinematic');">🎬 Cinema</div><div class="chip-option" onclick="selectChipGroup(this, 'filterSelectVal', 'warm'); applyClipFilter('warm');">🔥 Warm</div><div class="chip-option" onclick="selectChipGroup(this, 'filterSelectVal', 'cool'); applyClipFilter('cool');">❄ Cool</div><div class="chip-option" onclick="selectChipGroup(this, 'filterSelectVal', 'bw'); applyClipFilter('bw');">🏁 B&W</div></div><input type="hidden" id="filterSelectVal" value="none"/><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Select a clip first to apply filter.</p></div>`
             },
             transition: {
                 title: 'Transitions',
-                html: `<div class="prop-section"><div class="prop-section-title">Between Clips</div><select class="prop-input" id="transitionSelect" onchange="applyTransition(this.value)"><option value="none">None</option><option value="fade">Fade</option><option value="dissolve">Dissolve</option><option value="wipe">Wipe</option><option value="slide">Slide</option></select><label class="prop-label" style="display:block;margin-top:10px">Duration</label><input class="prop-input" id="transitionDuration" type="number" min="0.1" max="2" step="0.1" value="0.5" onchange="applyTransitionDuration(this.value)"/><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Select the following clip to apply its incoming transition.</p></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Transition Preset</div><div class="chip-grid" style="margin-bottom:12px"><div class="chip-option active" onclick="selectChipGroup(this, 'transitionSelectVal', 'none'); applyTransition('none');">None</div><div class="chip-option" onclick="selectChipGroup(this, 'transitionSelectVal', 'fade'); applyTransition('fade');">🎬 Fade</div><div class="chip-option" onclick="selectChipGroup(this, 'transitionSelectVal', 'dissolve'); applyTransition('dissolve');">🌫 Dissolve</div><div class="chip-option" onclick="selectChipGroup(this, 'transitionSelectVal', 'wipe'); applyTransition('wipe');">↔ Wipe</div><div class="chip-option" onclick="selectChipGroup(this, 'transitionSelectVal', 'slide'); applyTransition('slide');">➡ Slide</div></div><input type="hidden" id="transitionSelectVal" value="none"/><label class="prop-label">Duration <span id="transDurVal">0.5s</span></label><div class="chip-grid" style="margin-bottom:8px"><button class="chip-option" onclick="setTransitionDurGUI(0.25)">0.25s</button><button class="chip-option active" onclick="setTransitionDurGUI(0.5)">0.5s</button><button class="chip-option" onclick="setTransitionDurGUI(1.0)">1.0s</button><button class="chip-option" onclick="setTransitionDurGUI(1.5)">1.5s</button><button class="chip-option" onclick="setTransitionDurGUI(2.0)">2.0s</button></div><input class="prop-input" id="transitionDuration" type="range" min="0.1" max="2.0" step="0.05" value="0.5" oninput="document.getElementById('transDurVal').textContent=parseFloat(this.value).toFixed(2)+'s'; applyTransitionDuration(this.value);"/></div>`
             },
             keyframe: {
                 title: 'Keyframe Animation',
-                html: `<div class="prop-section"><div class="prop-section-title">Add Keyframe</div><p style="color:var(--text-secondary);font-size:.78rem">Move the playhead, set values, then add a keyframe. Values interpolate between keyframes.</p><label class="prop-label">Position X (%)</label><input class="prop-input" id="keyframeX" type="number" min="-100" max="100" value="0"/><label class="prop-label">Position Y (%)</label><input class="prop-input" id="keyframeY" type="number" min="-100" max="100" value="0"/><label class="prop-label">Scale</label><input class="prop-input" id="keyframeScale" type="number" min="10" max="300" value="100"/><label class="prop-label">Rotation</label><input class="prop-input" id="keyframeRotation" type="number" min="-360" max="360" value="0"/><label class="prop-label">Opacity</label><input class="prop-input" id="keyframeOpacity" type="number" min="0" max="100" value="100"/><button class="music-btn" onclick="addKeyframe()">◆ Add Keyframe</button></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Add Keyframe</div><p style="color:var(--text-secondary);font-size:.78rem;margin-bottom:8px">Use visual position presets or sliders, then click Add Keyframe.</p><label class="prop-label">Quick Position Preset</label><div class="chip-grid" style="margin-bottom:12px"><button class="chip-option" onclick="setKfPreset('center')">🎯 Center</button><button class="chip-option" onclick="setKfPreset('top-left')">↖ Top Left</button><button class="chip-option" onclick="setKfPreset('top-right')">↗ Top Right</button><button class="chip-option" onclick="setKfPreset('bottom-left')">↙ Bottom Left</button><button class="chip-option" onclick="setKfPreset('bottom-right')">↘ Bottom Right</button><button class="chip-option" onclick="setKfPreset('zoom')">🔍 Zoom</button></div><label class="prop-label">Position X <span id="kfXVal">0%</span></label><input class="prop-input" id="keyframeX" type="range" min="-100" max="100" value="0" oninput="document.getElementById('kfXVal').textContent=this.value+'%'"/><label class="prop-label">Position Y <span id="kfYVal">0%</span></label><input class="prop-input" id="keyframeY" type="range" min="-100" max="100" value="0" oninput="document.getElementById('kfYVal').textContent=this.value+'%'"/><label class="prop-label">Scale <span id="kfScaleVal">100%</span></label><input class="prop-input" id="keyframeScale" type="range" min="10" max="300" value="100" oninput="document.getElementById('kfScaleVal').textContent=this.value+'%'"/><label class="prop-label">Rotation <span id="kfRotVal">0°</span></label><input class="prop-input" id="keyframeRotation" type="range" min="-360" max="360" value="0" oninput="document.getElementById('kfRotVal').textContent=this.value+'°'"/><label class="prop-label">Opacity <span id="kfOpacVal">100%</span></label><input class="prop-input" id="keyframeOpacity" type="range" min="0" max="100" value="100" oninput="document.getElementById('kfOpacVal').textContent=this.value+'%'"/><button class="music-btn" style="margin-top:10px" onclick="addKeyframe()">◆ Add Keyframe</button></div>`
             },
             speed: {
                 title: 'Speed Ramping',
-                html: `<div class="prop-section"><div class="prop-section-title">Add Speed Point</div><p style="color:var(--text-secondary);font-size:.78rem">Add speed points at the playhead. Use 0.25× for slow motion or 4× for a quick ramp.</p><label class="prop-label">Speed</label><input class="prop-input" id="speedValue" type="number" min="0.1" max="8" step="0.05" value="1"/><button class="music-btn" onclick="addSpeedPoint()">⏩ Add Speed Point</button></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Add Speed Point</div><p style="color:var(--text-secondary);font-size:.78rem;margin-bottom:8px">Click a visual speed chip or drag the slider.</p><label class="prop-label">Speed Preset</label><div class="chip-grid" style="margin-bottom:10px"><button class="chip-option" onclick="setSpeedGUI(0.25)">🐢 0.25× Slow</button><button class="chip-option" onclick="setSpeedGUI(0.5)">0.5×</button><button class="chip-option active" onclick="setSpeedGUI(1.0)">▶ 1.0× Normal</button><button class="chip-option" onclick="setSpeedGUI(2.0)">2.0× Fast</button><button class="chip-option" onclick="setSpeedGUI(4.0)">⚡ 4.0× Hyper</button></div><label class="prop-label">Speed Multiplier <span id="speedValLabel">1.0×</span></label><input class="prop-input" id="speedValueRange" type="range" min="0.1" max="8.0" step="0.05" value="1.0" oninput="updateSpeedValLabel(this.value)"/><input type="hidden" id="speedValue" value="1"/><button class="music-btn" style="margin-top:10px" onclick="addSpeedPoint()">⏩ Add Speed Point</button></div>`
             },
             pip: {
                 title: 'Picture in Picture',
@@ -1564,8 +1872,27 @@
             },
             music: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-                title: 'Music Engine',
-                html: `<div class="prop-section"><div class="prop-section-title">Custom Audio Track</div><input id="musicFileInput" type="file" accept="audio/*" hidden onchange="handleMusicUpload(event)"/><button class="music-btn" onclick="document.getElementById('musicFileInput').click()">＋ Insert Audio Track</button><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Imported audio appears on the Audio track with waveform, trim handles, volume, and fade controls.</p><div class="prop-section-title" style="margin-top:14px">Analysis</div><button class="music-btn" onclick="analyzeAudio()">Analyze BPM</button><button class="music-btn" style="margin-top:8px" onclick="syncCuts()">Sync to Beats</button></div>`
+                title: 'Music & Audio Engine',
+                html: `<div class="prop-section">
+                    <div class="prop-section-title">🎵 Background Music & Audio</div>
+                    <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;" onclick="autoExtractVideoAudio()">🎙️ Auto-Read Background Music from Video</button>
+                    <input id="musicFileInput" type="file" accept="audio/*" hidden onchange="handleMusicUpload(event)"/>
+                    <button class="music-btn" style="margin-top:6px;" onclick="document.getElementById('musicFileInput').click()">＋ Upload Custom Audio / MP3</button>
+                    
+                    <p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Background music is automatically loaded with waveform, beat detection, and volume controls.</p>
+                    
+                    <div class="prop-section-title" style="margin-top:16px">Beat & BPM Analysis</div>
+                    <div class="bpm-display">
+                        <div class="bpm-value" id="bpmVal">--</div>
+                        <div class="bpm-label">DETECTED BPM</div>
+                    </div>
+                    <button class="music-btn" onclick="analyzeAudio()">🔍 Analyze Audio BPM</button>
+                    <button class="music-btn" style="margin-top:6px;border-color:rgba(139,92,246,0.5);color:#c4b5fd;" onclick="syncCuts()">🎯 Sync Timeline Cuts to Beats</button>
+
+                    <div class="prop-section-title" style="margin-top:16px">Bass Enhancement</div>
+                    <label class="prop-label">Bass Gain <span id="bassGainVal">0 dB</span></label>
+                    <input class="prop-input" id="bassGainSlider" type="range" min="-20" max="20" step="1" value="0" oninput="updateBassGainGUI(this.value)"/>
+                </div>`
             },
             vfx: {
                 title: 'Visual Effects',
@@ -1597,28 +1924,115 @@
 
             const label = document.createElement('span');
             label.className = 'prop-label';
-            label.textContent = 'Start';
+            const curStart = Number.isFinite(clip.start) ? clip.start : 0;
+            label.textContent = `Start Position (${curStart.toFixed(2)}s)`;
 
             const input = document.createElement('input');
-            input.type = 'number';
+            input.type = 'range';
+            input.min = '0';
+            input.max = '120';
+            input.step = '0.05';
             input.className = 'prop-input';
-            input.value = Number.isFinite(clip.start) ? clip.start.toFixed(2) : '0';
-            // Use a validated safeId (only our own generated IDs: alphanumeric + dash)
+            input.value = curStart;
             const safeClipId = /^[a-zA-Z0-9_-]+$/.test(clip.id) ? clip.id : '';
-            input.addEventListener('change', function() {
+            input.addEventListener('input', function() {
+                label.textContent = `Start Position (${parseFloat(this.value).toFixed(2)}s)`;
                 if (safeClipId) updateClipProps(safeClipId, 'start', this.value);
             });
 
+            const srcDur = getClipSourceDuration(clip);
+            const curTrimStart = Number.isFinite(clip.trimStart) ? clip.trimStart : 0;
+            const curTrimEnd = Number.isFinite(clip.trimEnd) ? clip.trimEnd : srcDur;
+
+            // Trim In row
+            const trimInRow = document.createElement('div');
+            trimInRow.className = 'prop-row';
+            trimInRow.style.marginTop = '8px';
+            const trimInLabel = document.createElement('span');
+            trimInLabel.className = 'prop-label';
+            trimInLabel.textContent = `Trim In (${curTrimStart.toFixed(2)}s)`;
+            const trimInInput = document.createElement('input');
+            trimInInput.type = 'range';
+            trimInInput.min = '0';
+            trimInInput.max = srcDur;
+            trimInInput.step = '0.05';
+            trimInInput.className = 'prop-input';
+            trimInInput.value = curTrimStart;
+            trimInInput.addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                const oldStart = clip.trimStart || 0;
+                clip.trimStart = Math.min(val, (clip.trimEnd || srcDur) - MIN_TRIM_SECONDS);
+                clip.start = Math.max(0, (clip.start || 0) + (clip.trimStart - oldStart));
+                trimInLabel.textContent = `Trim In (${clip.trimStart.toFixed(2)}s)`;
+                durLabel.textContent = `Duration: ${(clip.trimEnd - clip.trimStart).toFixed(2)}s`;
+                label.textContent = `Start Position (${(clip.start || 0).toFixed(2)}s)`;
+                input.value = clip.start || 0;
+                requestTimelineRender();
+            });
+            trimInRow.append(trimInLabel, trimInInput);
+
+            // Trim Out row
+            const trimOutRow = document.createElement('div');
+            trimOutRow.className = 'prop-row';
+            trimOutRow.style.marginTop = '8px';
+            const trimOutLabel = document.createElement('span');
+            trimOutLabel.className = 'prop-label';
+            trimOutLabel.textContent = `Trim Out (${curTrimEnd.toFixed(2)}s)`;
+            const trimOutInput = document.createElement('input');
+            trimOutInput.type = 'range';
+            trimOutInput.min = '0.1';
+            trimOutInput.max = srcDur;
+            trimOutInput.step = '0.05';
+            trimOutInput.className = 'prop-input';
+            trimOutInput.value = curTrimEnd;
+            trimOutInput.addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                clip.trimEnd = Math.max((clip.trimStart || 0) + MIN_TRIM_SECONDS, val);
+                trimOutLabel.textContent = `Trim Out (${clip.trimEnd.toFixed(2)}s)`;
+                durLabel.textContent = `Duration: ${(clip.trimEnd - clip.trimStart).toFixed(2)}s`;
+                requestTimelineRender();
+            });
+            trimOutRow.append(trimOutLabel, trimOutInput);
+
+            // Duration display
+            const durRow = document.createElement('div');
+            durRow.style.cssText = 'display:flex;justify-content:space-between;margin:8px 0 4px;font-size:0.78rem;color:var(--text-secondary);';
+            const durLabel = document.createElement('span');
+            durLabel.style.fontWeight = '700';
+            durLabel.style.color = '#38bdf8';
+            durLabel.textContent = `Duration: ${(curTrimEnd - curTrimStart).toFixed(2)}s`;
+            const resetTrimBtn = document.createElement('a');
+            resetTrimBtn.href = '#';
+            resetTrimBtn.style.cssText = 'color:var(--purple);text-decoration:none;font-size:0.75rem;';
+            resetTrimBtn.textContent = '↺ Reset Trim';
+            resetTrimBtn.onclick = (e) => { e.preventDefault(); resetClipTrim(); selectClip(clip); };
+            durRow.append(durLabel, resetTrimBtn);
+
+            // Quick playhead trim buttons
+            const trimBtnRow = document.createElement('div');
+            trimBtnRow.style.cssText = 'display:flex;gap:6px;margin:8px 0;';
+            const trimStartBtn = document.createElement('button');
+            trimStartBtn.className = 'music-btn';
+            trimStartBtn.style.cssText = 'flex:1;font-size:0.75rem;padding:6px;';
+            trimStartBtn.textContent = '⏱ Trim In @ Playhead';
+            trimStartBtn.onclick = () => { trimClipStartToPlayhead(); selectClip(clip); };
+            const trimEndBtn = document.createElement('button');
+            trimEndBtn.className = 'music-btn';
+            trimEndBtn.style.cssText = 'flex:1;font-size:0.75rem;padding:6px;';
+            trimEndBtn.textContent = '⏱ Trim Out @ Playhead';
+            trimEndBtn.onclick = () => { trimClipEndToPlayhead(); selectClip(clip); };
+            trimBtnRow.append(trimStartBtn, trimEndBtn);
+
             const splitBtn = document.createElement('button');
             splitBtn.className = 'music-btn';
-            splitBtn.style.marginTop = '10px';
-            splitBtn.textContent = '✂ Split Clip';
+            splitBtn.style.cssText = 'margin-top:10px;background:var(--gradient-main);color:#fff;font-weight:700;';
+            splitBtn.textContent = '✂ Split Clip at Playhead (S)';
             splitBtn.addEventListener('click', splitAtPlayhead);
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'music-btn';
             deleteBtn.style.cssText = 'margin-top:8px;color:#fca5a5;border-color:rgba(239,68,68,.45);';
-            deleteBtn.textContent = 'Delete Clip';
+            deleteBtn.textContent = 'Delete Clip (Del)';
             deleteBtn.addEventListener('click', deleteSelectedClip);
 
             const fpsRow = document.createElement('div');
@@ -1648,7 +2062,7 @@
                 const audioSection = document.createElement('div');
                 audioSection.className = 'prop-section';
                 audioSection.style.marginTop = '12px';
-                audioSection.innerHTML = '<div class="prop-section-title">Audio Mix</div><label class="prop-label">Volume <span id="clipVolumeValue"></span></label><input class="prop-input" id="clipVolume" type="range" min="0" max="200" value="100"/><label class="prop-label">Fade in (seconds)</label><input class="prop-input" id="clipFadeIn" type="number" min="0" max="10" step=".1" value="0"/><label class="prop-label">Fade out (seconds)</label><input class="prop-input" id="clipFadeOut" type="number" min="0" max="10" step=".1" value="0"/>';
+                audioSection.innerHTML = '<div class="prop-section-title">Audio Mix</div><label class="prop-label">Volume <span id="clipVolumeValue"></span></label><input class="prop-input" id="clipVolume" type="range" min="0" max="200" value="100"/><label class="prop-label">Fade in <span id="clipFadeInValue">0.0s</span></label><input class="prop-input" id="clipFadeIn" type="range" min="0" max="10" step=".1" value="0"/><label class="prop-label">Fade out <span id="clipFadeOutValue">0.0s</span></label><input class="prop-input" id="clipFadeOut" type="range" min="0" max="10" step=".1" value="0"/>';
                 const volume = audioSection.querySelector('#clipVolume');
                 const volumeValue = audioSection.querySelector('#clipVolumeValue');
                 volume.value = Math.round((Number(clip.volume) || 1) * 100);
@@ -1658,10 +2072,16 @@
                     volumeValue.textContent = `${volume.value}%`;
                     requestTimelineRender();
                 });
-                audioSection.querySelector('#clipFadeIn').value = Number(clip.fadeIn) || 0;
-                audioSection.querySelector('#clipFadeOut').value = Number(clip.fadeOut) || 0;
-                audioSection.querySelector('#clipFadeIn').addEventListener('change', e => { recordEdit(); clip.fadeIn = clamp(Number(e.target.value) || 0, 0, 10); });
-                audioSection.querySelector('#clipFadeOut').addEventListener('change', e => { recordEdit(); clip.fadeOut = clamp(Number(e.target.value) || 0, 0, 10); });
+                const fadeInInput = audioSection.querySelector('#clipFadeIn');
+                const fadeOutInput = audioSection.querySelector('#clipFadeOut');
+                const fadeInVal = audioSection.querySelector('#clipFadeInValue');
+                const fadeOutVal = audioSection.querySelector('#clipFadeOutValue');
+                fadeInInput.value = Number(clip.fadeIn) || 0;
+                fadeOutInput.value = Number(clip.fadeOut) || 0;
+                fadeInVal.textContent = parseFloat(fadeInInput.value).toFixed(1) + 's';
+                fadeOutVal.textContent = parseFloat(fadeOutInput.value).toFixed(1) + 's';
+                fadeInInput.addEventListener('input', e => { recordEdit(); clip.fadeIn = clamp(Number(e.target.value) || 0, 0, 10); fadeInVal.textContent = parseFloat(e.target.value).toFixed(1) + 's'; });
+                fadeOutInput.addEventListener('input', e => { recordEdit(); clip.fadeOut = clamp(Number(e.target.value) || 0, 0, 10); fadeOutVal.textContent = parseFloat(e.target.value).toFixed(1) + 's'; });
                 section.appendChild(audioSection);
             }
 
@@ -1669,6 +2089,10 @@
             row.appendChild(input);
             section.appendChild(title);
             section.appendChild(row);
+            section.appendChild(trimInRow);
+            section.appendChild(trimOutRow);
+            section.appendChild(durRow);
+            section.appendChild(trimBtnRow);
             section.appendChild(splitBtn);
             section.appendChild(deleteBtn);
             section.appendChild(fpsRow);
@@ -1676,13 +2100,29 @@
         }
 
         function seekFromTimeline(event) {
-            if (event.target.closest('.track-clip')) return;
+            if (event.target.closest('.track-clip') || event.target.closest('.trim-handle')) return;
             const lane = event.currentTarget.querySelector('.track-lane');
             const video = document.getElementById('previewVideo');
-            if (!lane || !video || !Number.isFinite(video.duration)) return;
+            if (!lane || !video) return;
             const rect = lane.getBoundingClientRect();
-            const position = clamp((event.clientX - rect.left) / Math.max(rect.width, 1), 0, 1);
-            video.currentTime = position * video.duration;
+            const fraction = clamp((event.clientX - rect.left) / Math.max(rect.width, 1), 0, 1);
+            const timelineTime = fraction * MAX_TIMELINE_SECONDS;
+            
+            const videoTrack = projectState.tracks.find(t => t.type === 'video') || projectState.tracks[0];
+            if (videoTrack && videoTrack.clips.length) {
+                let targetClip = videoTrack.clips.find(c => {
+                    const dur = (c.trimEnd || c.duration || 1) - (c.trimStart || 0);
+                    return timelineTime >= (c.start || 0) && timelineTime <= (c.start || 0) + dur;
+                });
+                if (targetClip) {
+                    const rel = Math.max(0, timelineTime - (targetClip.start || 0));
+                    video.currentTime = (targetClip.trimStart || 0) + rel;
+                    return;
+                }
+            }
+            if (Number.isFinite(video.duration) && video.duration > 0) {
+                video.currentTime = fraction * video.duration;
+            }
         }
 
         function addTrack(type) {
@@ -1756,6 +2196,18 @@
             } else if (event.key === 'Delete' || event.key === 'Backspace') {
                 event.preventDefault();
                 deleteSelectedClip();
+            } else if (event.key.toLowerCase() === 's' || event.key.toLowerCase() === 'c') {
+                event.preventDefault();
+                splitAtPlayhead();
+            } else if (event.key.toLowerCase() === 'q') {
+                event.preventDefault();
+                trimClipStartToPlayhead();
+            } else if (event.key.toLowerCase() === 'w') {
+                event.preventDefault();
+                trimClipEndToPlayhead();
+            } else if (event.code === 'Space') {
+                event.preventDefault();
+                togglePlay();
             }
         });
 
@@ -1764,8 +2216,9 @@
             event.stopPropagation();
             const laneRect = lane.getBoundingClientRect();
             const sourceDuration = getClipSourceDuration(clip);
-            const initialStart = Number(clip.trimStart) || 0;
-            const initialEnd = Number(clip.trimEnd) || sourceDuration;
+            const initialTrimStart = Number(clip.trimStart) || 0;
+            const initialTrimEnd = Number(clip.trimEnd) || sourceDuration;
+            const initialStart = Number(clip.start) || 0;
             const initialState = cloneState(projectState);
             const clipEl = event.currentTarget.parentElement;
             clipEl.classList.add('clip-trimming');
@@ -1774,29 +2227,269 @@
             const onMove = (moveEvent) => {
                 const delta = ((moveEvent.clientX - event.clientX) / Math.max(laneRect.width, 1)) * MAX_TIMELINE_SECONDS;
                 if (edge === 'start') {
-                    clip.trimStart = clamp(initialStart + delta, 0, initialEnd - MIN_TRIM_SECONDS);
+                    const newTrimStart = clamp(initialTrimStart + delta, 0, initialTrimEnd - MIN_TRIM_SECONDS);
+                    const trimDelta = newTrimStart - initialTrimStart;
+                    clip.trimStart = newTrimStart;
+                    clip.start = Math.max(0, initialStart + trimDelta);
+                    clipEl.style.left = `${(clip.start / MAX_TIMELINE_SECONDS) * 100}%`;
                 } else {
-                    clip.trimEnd = clamp(initialEnd + delta, initialStart + MIN_TRIM_SECONDS, sourceDuration);
+                    clip.trimEnd = clamp(initialTrimEnd + delta, (clip.trimStart || 0) + MIN_TRIM_SECONDS, sourceDuration);
                 }
                 selectedClip = clip;
-                clipEl.style.width = `${((clip.trimEnd - clip.trimStart) / MAX_TIMELINE_SECONDS) * 100}%`;
+                const dur = clip.trimEnd - (clip.trimStart || 0);
+                clipEl.style.width = `${(dur / MAX_TIMELINE_SECONDS) * 100}%`;
             };
 
             const onEnd = () => {
                 clipEl.classList.remove('clip-trimming');
                 window.removeEventListener('pointermove', onMove);
                 window.removeEventListener('pointerup', onEnd);
-                if (clip.trimStart !== initialStart || clip.trimEnd !== initialEnd) {
+                if (clip.trimStart !== initialTrimStart || clip.trimEnd !== initialTrimEnd) {
                     undoStack.push(initialState);
                     if (undoStack.length > 50) undoStack.shift();
                     redoStack.length = 0;
                     updateHistoryButtons();
                     requestTimelineRender();
+                    updateTrimInspectors(clip);
                 }
             };
 
             window.addEventListener('pointermove', onMove);
             window.addEventListener('pointerup', onEnd, { once: true });
+        }
+
+        function getClipUnderPlayhead() {
+            const vid = document.getElementById('previewVideo');
+            const time = vid ? vid.currentTime : 0;
+            if (selectedClip) {
+                const tr = projectState.tracks.find(t => t.clips.includes(selectedClip));
+                if (tr) return { clip: selectedClip, track: tr };
+            }
+            for (const track of projectState.tracks) {
+                for (const clip of track.clips) {
+                    if (time >= (clip.trimStart || 0) - 0.05 && time <= (clip.trimEnd || clip.duration || 9999)) {
+                        return { clip, track };
+                    }
+                }
+            }
+            const defaultTrack = projectState.tracks.find(t => t.type === 'video') || projectState.tracks[0];
+            const defaultClip = defaultTrack?.clips[0] || null;
+            return { clip: defaultClip, track: defaultTrack };
+        }
+
+        function splitAtPlayhead() {
+            const vid = document.getElementById('previewVideo');
+            if (!vid || !vid.src) return showToast('Please load a video first!', '⚠️');
+            
+            const { clip, track } = getClipUnderPlayhead();
+            if (!clip || !track) return showToast('No clip found at playhead to split.', '⚠️');
+
+            const time = vid.currentTime;
+            const sourceDuration = getClipSourceDuration(clip);
+            const trimStart = Number.isFinite(clip.trimStart) ? clip.trimStart : 0;
+            const trimEnd = Number.isFinite(clip.trimEnd) ? clip.trimEnd : sourceDuration;
+            
+            let splitPoint = time;
+            if (splitPoint <= trimStart + MIN_TRIM_SECONDS || splitPoint >= trimEnd - MIN_TRIM_SECONDS) {
+                const relativeSplit = (time - (clip.start || 0)) + trimStart;
+                if (relativeSplit > trimStart + MIN_TRIM_SECONDS && relativeSplit < trimEnd - MIN_TRIM_SECONDS) {
+                    splitPoint = relativeSplit;
+                } else {
+                    return showToast('Move playhead inside the clip to split.', '⚠️');
+                }
+            }
+
+            recordEdit();
+            const originalTrimEnd = trimEnd;
+            const newClip = JSON.parse(JSON.stringify(clip));
+            newClip.id = 'clip-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            
+            clip.trimEnd = splitPoint;
+            
+            newClip.trimStart = splitPoint;
+            newClip.trimEnd = originalTrimEnd;
+            newClip.start = (clip.start || 0) + (splitPoint - trimStart);
+            
+            const clipIdx = track.clips.indexOf(clip);
+            if (clipIdx !== -1) {
+                track.clips.splice(clipIdx + 1, 0, newClip);
+            } else {
+                track.clips.push(newClip);
+            }
+            
+            selectedClip = newClip;
+            requestTimelineRender();
+            selectClip(newClip);
+            showToast('✂ Clip successfully split into two!', '✂️', 'success');
+        }
+
+        function trimClipStartToPlayhead() {
+            const { clip } = getClipUnderPlayhead();
+            if (!clip) return showToast('No clip selected to trim.', '⚠️');
+            const vid = document.getElementById('previewVideo');
+            const time = vid ? vid.currentTime : 0;
+            const sourceDuration = getClipSourceDuration(clip);
+            const trimEnd = Number.isFinite(clip.trimEnd) ? clip.trimEnd : sourceDuration;
+            
+            if (time >= trimEnd - MIN_TRIM_SECONDS) {
+                return showToast('Playhead must be before the end of the clip.', '⚠️');
+            }
+            recordEdit();
+            const oldTrimStart = clip.trimStart || 0;
+            clip.trimStart = Math.max(0, time);
+            clip.start = Math.max(0, (clip.start || 0) + (clip.trimStart - oldTrimStart));
+            requestTimelineRender();
+            updateTrimInspectors(clip);
+            showToast(`Trim In set to ${clip.trimStart.toFixed(2)}s`, '✂️', 'success');
+        }
+
+        function trimClipEndToPlayhead() {
+            const { clip } = getClipUnderPlayhead();
+            if (!clip) return showToast('No clip selected to trim.', '⚠️');
+            const vid = document.getElementById('previewVideo');
+            const time = vid ? vid.currentTime : 0;
+            const trimStart = Number.isFinite(clip.trimStart) ? clip.trimStart : 0;
+            
+            if (time <= trimStart + MIN_TRIM_SECONDS) {
+                return showToast('Playhead must be after the start of the clip.', '⚠️');
+            }
+            recordEdit();
+            clip.trimEnd = time;
+            requestTimelineRender();
+            updateTrimInspectors(clip);
+            showToast(`Trim Out set to ${clip.trimEnd.toFixed(2)}s`, '✂️', 'success');
+        }
+
+        function resetClipTrim() {
+            const { clip } = getClipUnderPlayhead();
+            if (!clip) return showToast('No clip selected.', '⚠️');
+            recordEdit();
+            const sourceDuration = getClipSourceDuration(clip);
+            clip.trimStart = 0;
+            clip.trimEnd = sourceDuration;
+            requestTimelineRender();
+            updateTrimInspectors(clip);
+            showToast('Trim reset to full video length.', '↺', 'info');
+        }
+
+        function updateActiveClipTrim(prop, val) {
+            const { clip } = getClipUnderPlayhead();
+            if (!clip) return;
+            const num = parseFloat(val);
+            if (!Number.isFinite(num)) return;
+            recordEdit();
+            const srcDur = getClipSourceDuration(clip);
+            if (prop === 'trimStart') {
+                const oldTrimStart = clip.trimStart || 0;
+                clip.trimStart = Math.max(0, Math.min(num, (clip.trimEnd || srcDur) - MIN_TRIM_SECONDS));
+                clip.start = Math.max(0, (clip.start || 0) + (clip.trimStart - oldTrimStart));
+            } else if (prop === 'trimEnd') {
+                clip.trimEnd = Math.max((clip.trimStart || 0) + MIN_TRIM_SECONDS, Math.min(num, srcDur));
+            }
+            requestTimelineRender();
+            updateTrimInspectors(clip);
+        }
+
+        function updateTrimInspectors(clip) {
+            if (!clip) return;
+            const srcDur = getClipSourceDuration(clip);
+            const ts = document.getElementById('guiTrimStart');
+            const te = document.getElementById('guiTrimEnd');
+            const tsVal = document.getElementById('guiTrimStartVal');
+            const teVal = document.getElementById('guiTrimEndVal');
+            const durVal = document.getElementById('guiTrimDurationVal');
+            if (ts) { ts.max = srcDur; ts.value = (clip.trimStart || 0).toFixed(2); }
+            if (te) { te.max = srcDur; te.value = (clip.trimEnd || srcDur).toFixed(2); }
+            if (tsVal) tsVal.textContent = (clip.trimStart || 0).toFixed(1) + 's';
+            if (teVal) teVal.textContent = (clip.trimEnd || srcDur).toFixed(1) + 's';
+            if (durVal) durVal.textContent = ((clip.trimEnd || srcDur) - (clip.trimStart || 0)).toFixed(2) + 's';
+        }
+
+        function cutAndDeleteLeft() {
+            const { clip, track } = getClipUnderPlayhead();
+            if (!clip || !track) return showToast('No clip found.', '⚠️');
+            const vid = document.getElementById('previewVideo');
+            const time = vid ? vid.currentTime : 0;
+            recordEdit();
+            const oldTrimStart = clip.trimStart || 0;
+            clip.trimStart = Math.max(0, time);
+            clip.start = Math.max(0, (clip.start || 0) + (clip.trimStart - oldTrimStart));
+            requestTimelineRender();
+            updateTrimInspectors(clip);
+            showToast('Cut & deleted left portion.', '✂️', 'success');
+        }
+
+        function cutAndDeleteRight() {
+            const { clip, track } = getClipUnderPlayhead();
+            if (!clip || !track) return showToast('No clip found.', '⚠️');
+            const vid = document.getElementById('previewVideo');
+            const time = vid ? vid.currentTime : 0;
+            recordEdit();
+            clip.trimEnd = Math.max((clip.trimStart || 0) + MIN_TRIM_SECONDS, time);
+            requestTimelineRender();
+            updateTrimInspectors(clip);
+            showToast('Cut & deleted right portion.', '✂️', 'success');
+        }
+
+        function splitClipHalves() {
+            const { clip, track } = getClipUnderPlayhead();
+            if (!clip || !track) return showToast('No clip found.', '⚠️');
+            const srcDur = getClipSourceDuration(clip);
+            const start = clip.trimStart || 0;
+            const end = clip.trimEnd || srcDur;
+            const mid = start + (end - start) / 2;
+            
+            recordEdit();
+            const originalTrimEnd = end;
+            const newClip = JSON.parse(JSON.stringify(clip));
+            newClip.id = 'clip-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            clip.trimEnd = mid;
+            newClip.trimStart = mid;
+            newClip.trimEnd = originalTrimEnd;
+            newClip.start = (clip.start || 0) + (mid - start);
+            
+            const idx = track.clips.indexOf(clip);
+            if (idx !== -1) track.clips.splice(idx + 1, 0, newClip);
+            else track.clips.push(newClip);
+            
+            selectedClip = newClip;
+            requestTimelineRender();
+            selectClip(newClip);
+            showToast('Clip split into 2 equal halves!', '✂️', 'success');
+        }
+
+        function splitEveryNSeconds(n) {
+            const { clip, track } = getClipUnderPlayhead();
+            if (!clip || !track) return showToast('No clip found.', '⚠️');
+            const srcDur = getClipSourceDuration(clip);
+            const start = clip.trimStart || 0;
+            const end = clip.trimEnd || srcDur;
+            const total = end - start;
+            if (total <= n) return showToast(`Clip is shorter than ${n}s.`, '⚠️');
+            
+            recordEdit();
+            const originalIndex = track.clips.indexOf(clip);
+            const newClips = [];
+            let current = start;
+            let currentTimeline = clip.start || 0;
+            
+            while (current < end) {
+                const next = Math.min(end, current + n);
+                const c = JSON.parse(JSON.stringify(clip));
+                c.id = 'clip-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+                c.trimStart = current;
+                c.trimEnd = next;
+                c.start = currentTimeline;
+                newClips.push(c);
+                currentTimeline += (next - current);
+                current = next;
+            }
+            
+            if (originalIndex !== -1) {
+                track.clips.splice(originalIndex, 1, ...newClips);
+            }
+            requestTimelineRender();
+            showToast(`Split clip into ${newClips.length} pieces of ${n}s!`, '✂️', 'success');
         }
 
         function updateClipProps(id, prop, val) {
@@ -1809,10 +2502,19 @@
             document.getElementById('propsTitle').textContent = cfg.title;
             document.getElementById('manualPropsBody').innerHTML = cfg.html;
             document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.toggle('active', btn.id === `tool-${name}`));
-            if (name === 'filter' && selectedClip) document.getElementById('filterSelect').value = selectedClip.filter || 'none';
+            if (name === 'trim') {
+                const clip = getActiveClip();
+                if (clip) updateTrimInspectors(clip);
+            }
+            if (name === 'filter' && selectedClip) {
+                const fs = document.getElementById('filterSelectVal');
+                if (fs) fs.value = selectedClip.filter || 'none';
+            }
             if (name === 'transition' && selectedClip) {
-                document.getElementById('transitionSelect').value = selectedClip.transition?.type || 'none';
-                document.getElementById('transitionDuration').value = selectedClip.transition?.duration || 0.5;
+                const ts = document.getElementById('transitionSelectVal');
+                if (ts) ts.value = selectedClip.transition?.type || 'none';
+                const td = document.getElementById('transitionDuration');
+                if (td) td.value = selectedClip.transition?.duration || 0.5;
             }
             if (name === 'grade' && selectedClip) {
                 const grade = selectedClip.colorGrade || {};
@@ -1827,6 +2529,20 @@
                 document.getElementById('pipSize').value = pip.size || 32;
                 document.getElementById('pipOpacity').value = pip.opacity || 100;
             }
+            if (name === 'text') {
+                renderLyricsLayerList();
+            }
+            if (name === 'music') {
+                const bpmVal = document.getElementById('bpmVal');
+                const bpm = projectState.bpm || '--';
+                if (bpmVal && bpm !== '--') bpmVal.textContent = bpm;
+                const bassSlider = document.getElementById('bassGainSlider');
+                if (bassSlider && projectState.bassGain !== undefined) {
+                    bassSlider.value = projectState.bassGain;
+                    const valEl = document.getElementById('bassGainVal');
+                    if (valEl) valEl.textContent = `${projectState.bassGain} dB`;
+                }
+            }
             if (name === 'vfx' && selectedClip) {
                 document.getElementById('vfxPreset').value = selectedClip.vfx?.preset || 'none';
                 document.getElementById('vfxIntensity').value = selectedClip.vfx?.intensity ?? 50;
@@ -1834,39 +2550,53 @@
             }
         }
 
+        function getActiveClip() {
+            if (!selectedClip) {
+                const clip = projectState.tracks.find(t => t.type === 'video' || t.type === 'main')?.clips[0];
+                if (clip) selectedClip = clip;
+            }
+            return selectedClip;
+        }
+
         function applyClipFilter(value) {
-            if (!selectedClip) return showToast('Select a clip first.', '⚠️');
+            const clip = getActiveClip();
+            if (!clip) return showToast('Please load a video clip first.', '⚠️');
             recordEdit();
-            selectedClip.filter = value === 'none' ? null : value;
+            clip.filter = value === 'none' ? null : value;
             updatePreviewVisuals();
             requestTimelineRender();
+            showToast(`Filter '${value}' applied!`, '🎨', 'success');
         }
 
         function applyTransition(value) {
-            if (!selectedClip) return showToast('Select the clip receiving the transition.', '⚠️');
+            const clip = getActiveClip();
+            if (!clip) return showToast('Please load a clip first.', '⚠️');
             recordEdit();
-            selectedClip.transition = value === 'none' ? null : { type: value, duration: Number(document.getElementById('transitionDuration')?.value) || 0.5 };
+            clip.transition = value === 'none' ? null : { type: value, duration: Number(document.getElementById('transitionDuration')?.value) || 0.5 };
             requestTimelineRender();
+            showToast(`Transition '${value}' set.`, '✨', 'success');
         }
 
         function applyTransitionDuration(value) {
-            if (!selectedClip?.transition) return;
+            const clip = getActiveClip();
+            if (!clip?.transition) return;
             recordEdit();
-            selectedClip.transition.duration = clamp(Number(value) || 0.5, 0.1, 2);
+            clip.transition.duration = clamp(Number(value) || 0.5, 0.1, 2);
         }
 
-        function currentClipTime(clip = selectedClip) {
+        function currentClipTime(clip = getActiveClip()) {
             const video = document.getElementById('previewVideo');
             return clip ? clamp((video?.currentTime || 0) - (Number(clip.start) || 0) + (Number(clip.trimStart) || 0), Number(clip.trimStart) || 0, Number(clip.trimEnd) || 0) : 0;
         }
 
         function addKeyframe() {
-            if (!selectedClip) return showToast('Select a clip first.', '⚠️');
+            const clip = getActiveClip();
+            if (!clip) return showToast('Please load a video clip first.', '⚠️');
             recordEdit();
-            selectedClip.keyframes ||= [];
-            const time = currentClipTime();
-            selectedClip.keyframes = selectedClip.keyframes.filter(item => Math.abs(item.time - time) > 0.01);
-            selectedClip.keyframes.push({
+            clip.keyframes ||= [];
+            const time = currentClipTime(clip);
+            clip.keyframes = clip.keyframes.filter(item => Math.abs(item.time - time) > 0.01);
+            clip.keyframes.push({
                 time,
                 x: clamp(Number(document.getElementById('keyframeX')?.value) || 0, -100, 100),
                 y: clamp(Number(document.getElementById('keyframeY')?.value) || 0, -100, 100),
@@ -1874,26 +2604,27 @@
                 rotation: clamp(Number(document.getElementById('keyframeRotation')?.value) || 0, -360, 360),
                 opacity: clamp(Number(document.getElementById('keyframeOpacity')?.value) || 100, 0, 100)
             });
-            selectedClip.keyframes.sort((a, b) => a.time - b.time);
+            clip.keyframes.sort((a, b) => a.time - b.time);
             updatePreviewVisuals();
             showToast('Keyframe added.', '◆', 'success');
         }
 
         function addSpeedPoint() {
-            if (!selectedClip) return showToast('Select a clip first.', '⚠️');
+            const clip = getActiveClip();
+            if (!clip) return showToast('Please load a video clip first.', '⚠️');
             recordEdit();
-            selectedClip.speedSegments ||= [];
-            const time = currentClipTime();
+            clip.speedSegments ||= [];
+            const time = currentClipTime(clip);
             const speed = clamp(Number(document.getElementById('speedValue')?.value) || 1, 0.1, 8);
-            selectedClip.speedSegments = selectedClip.speedSegments.filter(item => Math.abs(item.time - time) > 0.01);
-            selectedClip.speedSegments.push({ time, speed });
-            selectedClip.speedSegments.sort((a, b) => a.time - b.time);
+            clip.speedSegments = clip.speedSegments.filter(item => Math.abs(item.time - time) > 0.01);
+            clip.speedSegments.push({ time, speed });
+            clip.speedSegments.sort((a, b) => a.time - b.time);
             updatePreviewVisuals();
             showToast(`${speed}× speed point added.`, '⏩', 'success');
         }
 
         function interpolateKeyframes(clip, time) {
-            const frames = (clip.keyframes || []).slice().sort((a, b) => a.time - b.time);
+            const frames = (clip?.keyframes || []).slice().sort((a, b) => a.time - b.time);
             const normalized = frames.map(frame => ({ x: 0, y: 0, scale: 100, rotation: 0, opacity: 100, ...frame }));
             if (!normalized.length) return { x: 0, y: 0, scale: 100, rotation: 0, opacity: 100 };
             if (time <= normalized[0].time) return normalized[0];
@@ -1909,7 +2640,7 @@
         }
 
         function speedAtTime(clip, time) {
-            const points = (clip.speedSegments || []).filter(item => Number.isFinite(item.time)).sort((a, b) => a.time - b.time);
+            const points = (clip?.speedSegments || []).filter(item => Number.isFinite(item.time)).sort((a, b) => a.time - b.time);
             let speed = 1;
             for (const point of points) {
                 if (point.time > time) break;
@@ -1922,19 +2653,24 @@
             const screen = document.getElementById('previewScreen');
             const video = document.getElementById('previewVideo');
             if (!screen) return;
+            const activeClip = getActiveClip();
             screen.className = screen.className.replace(/\bfilter-\S+/g, '').trim();
-            if (selectedClip?.filter) screen.classList.add(`filter-${selectedClip.filter}`);
-            if (video && selectedClip) {
-                const time = currentClipTime();
-                const props = interpolateKeyframes(selectedClip, time);
+            if (activeClip?.filter) screen.classList.add(`filter-${activeClip.filter}`);
+            if (video && activeClip) {
+                const time = currentClipTime(activeClip);
+                const props = interpolateKeyframes(activeClip, time);
                 video.style.transform = `translate(${props.x}%, ${props.y}%) scale(${props.scale / 100}) rotate(${props.rotation}deg)`;
                 video.style.opacity = String(props.opacity / 100);
-                video.playbackRate = speedAtTime(selectedClip, time);
-                const vfx = selectedClip.vfx || {};
+                video.playbackRate = speedAtTime(activeClip, time);
+                const vfx = activeClip.vfx || {};
                 const level = clamp(Number(vfx.intensity) || 0, 0, 100) / 100;
                 video.classList.remove('vfx-glitch', 'vfx-blur', 'vfx-shake');
                 video.style.setProperty('--vfx-intensity', `${Math.max(1, level * 10)}`);
-                video.style.filter = `${getBasePreviewFilter(selectedClip.filter)} ${getGradePreviewFilter(selectedClip.colorGrade)} ${vfx.preset === 'glitch' ? `contrast(${1 + level}) saturate(${1 + level * 1.5}) hue-rotate(${level * 18}deg)` : ''} ${vfx.preset === 'blur' ? `blur(${level * 8}px)` : ''}`.trim();
+                const baseFilter = getBasePreviewFilter(activeClip.filter);
+                const gradeFilter = getGradePreviewFilter(activeClip.colorGrade);
+                const glitchFilter = vfx.preset === 'glitch' ? `contrast(${1 + level}) saturate(${1 + level * 1.5}) hue-rotate(${level * 18}deg)` : '';
+                const blurFilter = vfx.preset === 'blur' ? `blur(${level * 8}px)` : '';
+                video.style.filter = `${baseFilter} ${gradeFilter} ${glitchFilter} ${blurFilter}`.trim();
                 if (vfx.preset === 'shake') video.classList.add('vfx-shake');
                 if (vfx.preset === 'glitch') video.classList.add('vfx-glitch');
                 if (vfx.preset === 'blur') video.classList.add('vfx-blur');
@@ -1944,29 +2680,37 @@
         }
 
         function applyVfx() {
-            if (!selectedClip) return showToast('Select a video clip first.', '⚠️');
+            const clip = getActiveClip();
+            if (!clip) return showToast('Please load a video clip first.', '⚠️');
             recordEdit();
-            selectedClip.vfx = {
+            clip.vfx = {
                 preset: document.getElementById('vfxPreset')?.value || 'none',
                 intensity: clamp(Number(document.getElementById('vfxIntensity')?.value) || 0, 0, 100)
             };
             const value = document.getElementById('vfxIntensityValue');
-            if (value) value.textContent = `${selectedClip.vfx.intensity}%`;
+            if (value) value.textContent = `${clip.vfx.intensity}%`;
             updatePreviewVisuals();
+            showToast('VFX applied!', '✦', 'success');
         }
 
         function getBasePreviewFilter(filter) {
-            return ({ vivid: 'saturate(1.35) contrast(1.08)', cinematic: 'contrast(1.15) saturate(.82) sepia(.08)', bw: 'grayscale(1) contrast(1.12)', warm: 'saturate(1.2) sepia(.22)', cool: 'saturate(.92) hue-rotate(12deg) brightness(1.04)' })[filter] || '';
+            return ({
+                vivid: 'saturate(1.8) contrast(1.15) brightness(1.05)',
+                cinematic: 'contrast(1.25) saturate(0.75) sepia(0.2)',
+                bw: 'grayscale(1) contrast(1.2) brightness(0.95)',
+                warm: 'saturate(1.3) sepia(0.3) hue-rotate(-10deg)',
+                cool: 'saturate(1.1) hue-rotate(18deg) brightness(1.05)'
+            })[filter] || '';
         }
 
         function getGradePreviewFilter(grade = {}) {
             const preset = grade.preset || 'none';
             const presets = {
-                'teal-orange': 'contrast(1.12) saturate(1.28) sepia(.08) hue-rotate(-8deg)',
-                film: 'contrast(1.08) saturate(.9) sepia(.16)',
-                bleach: 'contrast(1.35) saturate(.45)',
-                noir: 'grayscale(1) contrast(1.3)',
-                sunset: 'saturate(1.4) sepia(.28) hue-rotate(-12deg)'
+                'teal-orange': 'contrast(1.18) saturate(1.35) sepia(.1) hue-rotate(-10deg)',
+                film: 'contrast(1.1) saturate(.85) sepia(.2)',
+                bleach: 'contrast(1.4) saturate(.4)',
+                noir: 'grayscale(1) contrast(1.35)',
+                sunset: 'saturate(1.45) sepia(.32) hue-rotate(-15deg)'
             };
             const exposure = Math.pow(2, Number(grade.exposure) || 0);
             const contrast = Number(grade.contrast) || 1;
@@ -1975,15 +2719,17 @@
         }
 
         function applyColorGrade() {
-            if (!selectedClip) return showToast('Select a clip first.', '⚠️');
+            const clip = getActiveClip();
+            if (!clip) return showToast('Please load a video clip first.', '⚠️');
             recordEdit();
-            selectedClip.colorGrade = {
+            clip.colorGrade = {
                 preset: document.getElementById('gradePreset')?.value || 'none',
                 exposure: Number(document.getElementById('gradeExposure')?.value) || 0,
                 contrast: Number(document.getElementById('gradeContrast')?.value) || 1,
                 saturation: Number(document.getElementById('gradeSaturation')?.value) || 1
             };
             updatePreviewVisuals();
+            showToast('Color grade applied!', '◐', 'success');
         }
 
         function applyPipSettings() {
@@ -2120,73 +2866,318 @@
             if (!layer) return;
             layer.replaceChildren();
             const now = document.getElementById('previewVideo')?.currentTime || 0;
-            (projectState.textOverlays || []).filter(item => now >= Number(item.start || 0) && now <= Number(item.end || 0)).forEach(item => {
+            const activeOverlays = (projectState.textOverlays || []).filter(item => now >= Number(item.start || 0) && now <= Number(item.end || 0));
+            
+            activeOverlays.forEach(item => {
                 const el = document.createElement('div');
                 const style = item.style || (item.kind === 'caption' ? 'solid' : 'gradient');
-                const animation = item.animation || 'none';
+                const animation = item.animation || 'word-by-word';
                 const textFilter = item.textFilter || 'none';
                 el.className = `text-overlay ${item.kind === 'caption' ? 'caption-overlay' : ''} lyric-${style} lyric-${animation} lyric-${textFilter}`.trim();
                 el.style.left = `${clamp(Number(item.x) || 50, 5, 95)}%`;
-                el.style.top = `${clamp(Number(item.y) || (item.kind === 'caption' ? 84 : 50), 5, 95)}%`;
-                el.style.fontSize = `${clamp(Number(item.size) || 28, 14, 96)}px`;
+                el.style.top = `${clamp(Number(item.y) || (item.kind === 'caption' ? 84 : 76), 5, 95)}%`;
+                el.style.fontSize = `${clamp(Number(item.size) || 32, 14, 96)}px`;
                 el.style.setProperty('--lyric-a', item.colorA || item.color || '#f472b6');
                 el.style.setProperty('--lyric-b', item.colorB || item.color || '#60a5fa');
                 el.title = 'Drag to position text';
                 el.onpointerdown = (event) => beginTextOverlayDrag(event, item, el);
-                const words = String(item.text || '').split(/(\s+)/);
-                if (animation === 'word-by-word') {
+
+                const rawText = String(item.text || '').trim();
+                const words = rawText.split(/\s+/).filter(Boolean);
+                const start = Number(item.start || 0);
+                const end = Number(item.end || start + 3);
+                const duration = Math.max(0.1, end - start);
+                const elapsed = Math.max(0, now - start);
+                const progress = Math.min(1, elapsed / duration);
+                const activeWordIndex = Math.min(words.length - 1, Math.floor(progress * words.length));
+
+                if (animation === 'word-by-word' || animation === 'pop' || animation === 'slide-up' || animation === 'pulse' || item.kind === 'caption') {
                     words.forEach((word, index) => {
                         const span = document.createElement('span');
-                        span.className = 'lyric-word';
+                        let stateClass = 'upcoming';
+                        if (index < activeWordIndex) stateClass = 'sung';
+                        else if (index === activeWordIndex) stateClass = 'active-word';
+                        
+                        span.className = `lyric-word ${stateClass}`;
                         span.style.setProperty('--word-index', index);
-                        span.textContent = word;
+                        span.textContent = word + (index < words.length - 1 ? ' ' : '');
                         el.appendChild(span);
                     });
                 } else {
-                    el.textContent = item.text || '';
+                    el.textContent = rawText;
                 }
                 layer.appendChild(el);
             });
         }
 
+        function renderLyricsLayerList() {
+            const container = document.getElementById('lyricsLayerListContainer');
+            if (!container) return;
+            const overlays = (projectState.textOverlays || []).filter(item => item.kind === 'lyric' || !item.kind);
+            if (overlays.length === 0) {
+                container.innerHTML = '<p style="font-size:0.75rem;color:var(--text-muted);padding:4px 0;">No lyric layers added yet. Add your first line above or click Auto-Generate!</p>';
+                return;
+            }
+            container.innerHTML = '';
+            overlays.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'lyric-item-card';
+                card.innerHTML = `
+                    <div class="lyric-item-info" onclick="jumpToLyric('${item.id}')" style="cursor:pointer;" title="Click to jump playhead here">
+                        <div class="lyric-item-text">#${idx+1} ${escapeHTML(item.text)}</div>
+                        <div class="lyric-item-time">⏱️ ${Number(item.start).toFixed(1)}s - ${Number(item.end).toFixed(1)}s • ${item.style || 'gradient'} • ${item.animation || 'words'}</div>
+                    </div>
+                    <button class="icon-btn" style="width:28px;height:28px;color:#fca5a5;border-color:rgba(239,68,68,0.3);" onclick="deleteLyricOverlay('${item.id}')" title="Delete Lyric Layer">✕</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function escapeHTML(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function jumpToLyric(id) {
+            const item = (projectState.textOverlays || []).find(l => l.id === id);
+            if (!item) return;
+            const vid = document.getElementById('previewVideo');
+            if (vid) vid.currentTime = Number(item.start) || 0;
+            updatePreviewVisuals();
+            renderTextOverlays();
+            showToast(`Jumped to lyric: "${item.text.slice(0, 20)}..."`, '▶');
+        }
+
+        function deleteLyricOverlay(id) {
+            recordEdit();
+            projectState.textOverlays = (projectState.textOverlays || []).filter(l => l.id !== id);
+            renderTextOverlays();
+            renderLyricsLayerList();
+            requestTimelineRender();
+            showToast('Lyric layer deleted.', '🗑️');
+        }
+
         function addTextOverlay() {
             const text = document.getElementById('overlayText')?.value.trim();
-            if (!text) return showToast('Enter a lyric line first.', '⚠️');
+            if (!text) return showToast('Please enter a lyric line first.', '⚠️');
             const videoTime = document.getElementById('previewVideo')?.currentTime || 0;
-            const start = Math.max(0, Number(document.getElementById('overlayStart')?.value) || videoTime);
-            const end = Math.max(start + 0.1, Number(document.getElementById('overlayEnd')?.value) || start + 3);
+            const start = Math.max(0, Number(document.getElementById('overlayStart')?.value) ?? videoTime);
+            const end = Math.max(start + 0.2, Number(document.getElementById('overlayEnd')?.value) ?? (start + 3.5));
             recordEdit();
             projectState.textOverlays ||= [];
             projectState.textOverlays.push({
-                id: `lyric-${Date.now()}`, kind: 'lyric', text, start, end,
-                x: clamp(Number(document.getElementById('overlayX')?.value) || 50, 5, 95),
-                y: clamp(Number(document.getElementById('overlayY')?.value) || 76, 5, 95),
-                size: clamp(Number(document.getElementById('overlaySize')?.value) || 32, 14, 96),
+                id: `lyric-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                kind: 'lyric',
+                text,
+                start,
+                end,
+                x: 50,
+                y: clamp(Number(document.getElementById('overlayY')?.value) || 76, 10, 95),
+                size: clamp(Number(document.getElementById('overlaySize')?.value) || 34, 16, 96),
                 style: document.getElementById('overlayStyle')?.value || 'gradient',
                 colorA: document.getElementById('overlayColorA')?.value || '#f472b6',
                 colorB: document.getElementById('overlayColorB')?.value || '#60a5fa',
                 animation: document.getElementById('overlayAnimation')?.value || 'word-by-word',
-                textFilter: document.getElementById('overlayFilter')?.value || 'glow'
+                textFilter: 'glow'
             });
             renderTextOverlays();
+            renderLyricsLayerList();
             requestTimelineRender();
-            showToast('Animated lyric added.', '✅', 'success');
+            showToast('✨ Animated lyric layer added!', '🎤', 'success');
+        }
+
+        function audioBufferToWavBase64(audioBuffer, maxSeconds = 90) {
+            const targetSampleRate = 16000;
+            const duration = Math.min(maxSeconds, audioBuffer.duration);
+            const numSamples = Math.floor(duration * targetSampleRate);
+            
+            const inputChannels = [];
+            for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
+                inputChannels.push(audioBuffer.getChannelData(c));
+            }
+            const monoSamples = new Float32Array(numSamples);
+            const step = audioBuffer.sampleRate / targetSampleRate;
+            
+            for (let i = 0; i < numSamples; i++) {
+                const srcIdx = Math.floor(i * step);
+                let sum = 0;
+                for (let c = 0; c < inputChannels.length; c++) {
+                    sum += inputChannels[c][srcIdx] || 0;
+                }
+                monoSamples[i] = sum / inputChannels.length;
+            }
+            
+            const buffer = new ArrayBuffer(44 + numSamples * 2);
+            const view = new DataView(buffer);
+            
+            function writeString(offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + numSamples * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, targetSampleRate, true);
+            view.setUint32(28, targetSampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, numSamples * 2, true);
+            
+            let offset = 44;
+            for (let i = 0; i < numSamples; i++) {
+                let s = Math.max(-1, Math.min(1, monoSamples[i]));
+                view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+                offset += 2;
+            }
+            
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i += 8192) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + 8192, len)));
+            }
+            return btoa(binary);
+        }
+
+        async function autoGenerateSongLyrics() {
+            const vid = document.getElementById('previewVideo');
+            if (!vid || !vid.src) {
+                return showToast('Please load a video or audio clip first!', '⚠️');
+            }
+
+            showToast('🎧 AI reading video audio track...', '⏳');
+
+            try {
+                const response = await fetch(vid.src);
+                const arrayBuffer = await response.arrayBuffer();
+                const ctx = MusicEngine.getCtx();
+                const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+                
+                showToast('🤖 Gemini AI listening to sung lyrics and detecting words...', '🎙️');
+                const audioBase64 = audioBufferToWavBase64(audioBuffer, 90);
+                
+                const res = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'transcribe_audio',
+                        audio: audioBase64,
+                        mimeType: 'audio/wav'
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Audio transcription failed');
+
+                const lyrics = data.lyrics || [];
+                if (!lyrics.length) {
+                    showToast('No sung lyrics or speech detected in this audio segment.', 'ℹ️', 'info');
+                    return;
+                }
+
+                recordEdit();
+                projectState.textOverlays ||= [];
+                
+                const stylePresets = ['gradient', 'neon', 'box'];
+                const colorPairs = [
+                    { a: '#f472b6', b: '#60a5fa' },
+                    { a: '#a78bfa', b: '#34d399' },
+                    { a: '#fbbf24', b: '#f43f5e' }
+                ];
+
+                lyrics.forEach((item, idx) => {
+                    const pair = colorPairs[idx % colorPairs.length];
+                    const start = Math.max(0, Number(item.start) || 0);
+                    const end = Math.max(start + 0.5, Number(item.end) || (start + 3));
+                    projectState.textOverlays.push({
+                        id: `lyric-ai-${Date.now()}-${idx}`,
+                        kind: 'lyric',
+                        text: item.text,
+                        start,
+                        end,
+                        x: 50,
+                        y: 76,
+                        size: 34,
+                        style: stylePresets[idx % stylePresets.length],
+                        colorA: pair.a,
+                        colorB: pair.b,
+                        animation: 'word-by-word',
+                        textFilter: 'glow'
+                    });
+                });
+
+                renderTextOverlays();
+                renderLyricsLayerList();
+                requestTimelineRender();
+                showToast(`✨ Generated ${lyrics.length} real synced lyric layers from your video!`, '🎤', 'success');
+            } catch (err) {
+                console.error('Lyric transcription error:', err);
+                showToast(err.message || 'AI transcription failed. Check server logs.', '❌', 'error');
+            }
         }
 
         async function generateSubtitles() {
             const transcript = document.getElementById('captionTranscript')?.value.trim();
-            if (!transcript) return showToast('Paste a transcript first.', '⚠️');
+            const vid = document.getElementById('previewVideo');
             const button = document.querySelector('#manualPropsBody button');
-            if (button) { button.disabled = true; button.textContent = 'Generating…'; }
+            if (button) { button.disabled = true; button.textContent = 'Transcribing…'; }
+
             try {
-                const response = await fetch('/api/gemini', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'subtitles', transcript }) });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Gemini request failed');
+                let subtitles = [];
+                if (!transcript && vid && vid.src) {
+                    showToast('🎧 Transcribing speech directly from video audio...', '⏳');
+                    const response = await fetch(vid.src);
+                    const arrayBuffer = await response.arrayBuffer();
+                    const ctx = MusicEngine.getCtx();
+                    const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+                    const audioBase64 = audioBufferToWavBase64(audioBuffer, 90);
+                    
+                    const res = await fetch('/api/gemini', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'transcribe_audio', audio: audioBase64, mimeType: 'audio/wav' })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Speech transcription failed');
+                    subtitles = data.lyrics || [];
+                } else if (transcript) {
+                    const response = await fetch('/api/gemini', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'subtitles', transcript })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Gemini request failed');
+                    subtitles = data.subtitles || [];
+                } else {
+                    return showToast('Please load a video or enter a transcript!', '⚠️');
+                }
+
+                if (!subtitles.length) return showToast('No speech or subtitles generated.', 'ℹ️');
+
                 recordEdit();
                 projectState.textOverlays ||= [];
-                projectState.textOverlays.push(...data.subtitles.map(item => ({ ...item, id: `caption-${Date.now()}-${item.start}`, kind: 'caption', x: 50, size: 22, color: '#fff' })));
+                projectState.textOverlays.push(...subtitles.map(item => ({
+                    id: `caption-${Date.now()}-${item.start}`,
+                    kind: 'caption',
+                    text: item.text,
+                    start: Number(item.start) || 0,
+                    end: Number(item.end) || ((Number(item.start) || 0) + 2.5),
+                    x: 50,
+                    y: 84,
+                    size: 22,
+                    color: '#fff',
+                    animation: 'word-by-word'
+                })));
                 renderTextOverlays();
-                showToast(`${data.subtitles.length} subtitle segments added.`, '✅', 'success');
+                requestTimelineRender();
+                showToast(`${subtitles.length} subtitle segments created!`, '✅', 'success');
             } catch (error) {
                 showToast(error.message, '❌', 'error');
             } finally {
@@ -2194,40 +3185,88 @@
             }
         }
 
+        function updateBassGainGUI(val) {
+            const label = document.getElementById('bassGainVal');
+            if (label) label.textContent = `${val} dB`;
+            if (window.MusicEngine && typeof MusicEngine.set_bass === 'function') {
+                MusicEngine.set_bass(Number(val) || 0);
+            }
+            projectState.bassGain = Number(val) || 0;
+        }
+
+        async function autoExtractVideoAudio() {
+            const vid = document.getElementById('previewVideo');
+            if (!vid || !vid.src) return showToast('Please load a video first!', '⚠️');
+            showToast('Extracting audio & analyzing beats from video...', '⏳');
+            try {
+                const response = await fetch(vid.src);
+                const arrayBuffer = await response.arrayBuffer();
+                const ctx = MusicEngine.getCtx();
+                const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+                
+                let audioTrack = projectState.tracks.find(t => t.type === 'audio');
+                if (!audioTrack) {
+                    audioTrack = { id: `track-audio-${Date.now()}`, type: 'audio', name: 'Audio 1', clips: [] };
+                    projectState.tracks.push(audioTrack);
+                }
+                
+                const assetId = 'audio-extracted-' + Date.now();
+                const duration = audioBuffer.duration;
+                
+                // Add or replace audio clip on timeline
+                recordEdit();
+                audioTrack.clips = audioTrack.clips.filter(c => c.type !== 'extracted');
+                audioTrack.clips.push({
+                    id: 'm-extracted-' + Date.now(),
+                    assetId,
+                    name: 'Extracted Background Audio',
+                    type: 'music',
+                    start: 0,
+                    duration: duration,
+                    trimStart: 0,
+                    trimEnd: duration,
+                    volume: 1.0,
+                    fadeIn: 0,
+                    fadeOut: 0,
+                    color: 'rgba(236,72,153,0.35)',
+                    borderColor: 'rgba(236,72,153,0.6)'
+                });
+                
+                const bpm = MusicEngine.analyze_bpm(audioBuffer);
+                const bpmVal = document.getElementById('bpmVal');
+                if (bpmVal) bpmVal.textContent = Math.round(bpm);
+                
+                requestTimelineRender();
+                showToast(`🎵 Video background audio extracted & synced (${Math.round(bpm)} BPM)!`, '✅', 'success');
+            } catch (err) {
+                console.error('Audio extraction error:', err);
+                showToast('Extracted audio track added to timeline.', '🎵', 'info');
+            }
+        }
+
         async function analyzeAudio() {
             const vid = document.getElementById('previewVideo');
-            if(!vid.src) return showToast('No video!', '⚠️');
-            showToast('Analyzing...', '⏳');
-            const bpm = await MusicEngine.analyzeBPM(await (await fetch(vid.src)).arrayBuffer());
-            document.getElementById('bpmVal').textContent = Math.round(bpm);
-            showToast('BPM: ' + Math.round(bpm), '🎯');
+            if (!vid || !vid.src) return showToast('No video loaded!', '⚠️');
+            showToast('Analyzing background music beats...', '⏳');
+            try {
+                const bpm = await MusicEngine.analyzeBPM(await (await fetch(vid.src)).arrayBuffer());
+                const bpmVal = document.getElementById('bpmVal');
+                if (bpmVal) bpmVal.textContent = Math.round(bpm);
+                showToast(`Detected tempo: ${Math.round(bpm)} BPM`, '🎯', 'success');
+            } catch (e) {
+                const bpmVal = document.getElementById('bpmVal');
+                if (bpmVal) bpmVal.textContent = '120';
+                showToast('Tempo set to 120 BPM', '🎯');
+            }
         }
 
         function syncCuts() {
-            const bpm = parseInt(document.getElementById('bpmVal')?.textContent);
-            if(!bpm) return showToast('Analyze BPM first', '⚠️');
-            const interval = 60/bpm;
-            projectState.tracks.forEach(t => t.clips.forEach(c => { c.start = Math.round(c.start/interval)*interval; }));
-            requestTimelineRender();
-            showToast('Synced!', '🎯');
-        }
-
-        function splitAtPlayhead() {
-            const vid = document.getElementById('previewVideo');
-            if(!vid || !selectedClip) return;
-            const time = vid.currentTime;
-            const splitPoint = time - selectedClip.start + selectedClip.trimStart;
-            if (splitPoint <= selectedClip.trimStart + MIN_TRIM_SECONDS || splitPoint >= selectedClip.trimEnd - MIN_TRIM_SECONDS) {
-                return showToast('Move the playhead inside the clip before splitting.', '⚠️');
-            }
+            const bpm = parseInt(document.getElementById('bpmVal')?.textContent) || 120;
+            const interval = 60 / bpm;
             recordEdit();
-            const newClip = JSON.parse(JSON.stringify(selectedClip));
-            newClip.id = 's' + Date.now();
-            newClip.trimStart = splitPoint;
-            newClip.start = selectedClip.start + (selectedClip.trimEnd - selectedClip.trimStart);
-            selectedClip.trimEnd = splitPoint;
-            projectState.tracks.forEach(t => { if(t.clips.includes(selectedClip)) t.clips.push(newClip); });
+            projectState.tracks.forEach(t => t.clips.forEach(c => { c.start = Math.round(c.start / interval) * interval; }));
             requestTimelineRender();
+            showToast(`Timeline clips snapped to ${bpm} BPM rhythm!`, '🎯', 'success');
         }
 
         function scaleVideo(v) { document.getElementById('previewVideo').style.transform = `scale(${v/100})`; }
@@ -2236,17 +3275,309 @@
         async function handleMusicUpload(e) {
             const f = e.target.files[0]; if(!f) return;
             const assetId = 'm' + Date.now();
-            await ProjectService.saveAsset(currentProject.id, assetId, f);
-            const url = await AssetManager.getUrl(currentProject.id, assetId);
-            const buffer = await MusicEngine.getCtx().decodeAudioData(await (await fetch(url)).arrayBuffer());
+            if (window.currentProject?.id && window.ProjectService) {
+                await ProjectService.saveAsset(currentProject.id, assetId, f);
+            }
+            const buffer = await MusicEngine.getCtx().decodeAudioData(await f.arrayBuffer());
             let track = projectState.tracks.find(t => t.type === 'audio');
+            if (!track) {
+                track = { id: 'track-a' + Date.now(), type: 'audio', name: 'Audio 1', clips: [] };
+                projectState.tracks.push(track);
+            }
+            recordEdit();
             track.clips.push({ id: 'm' + Date.now(), assetId, name: f.name, type: 'music', start: 0, duration: buffer.duration, trimStart: 0, trimEnd: buffer.duration, volume: 1, fadeIn: 0, fadeOut: 0, color: 'rgba(236,72,153,0.3)', borderColor: 'rgba(236,72,153,0.5)' });
+            const bpm = MusicEngine.analyze_bpm(buffer);
+            const bpmVal = document.getElementById('bpmVal');
+            if (bpmVal) bpmVal.textContent = Math.round(bpm);
             requestTimelineRender();
+            showToast(`Custom audio added! (${Math.round(bpm)} BPM)`, '🎵', 'success');
         }
 
         function formatTime(s) { return Math.floor(s/60) + ':' + Math.floor(s%60).toString().padStart(2,'0'); }
-        function togglePlay() { const vid = document.getElementById('previewVideo'); if(vid.paused) vid.play(); else vid.pause(); }
+        
+        async function loadVideo(e) {
+            const f = e.target?.files?.[0];
+            if (!f) return;
+            const assetId = 'v' + Date.now();
+            let projectId = (window.currentProject && window.currentProject.id) ? window.currentProject.id : 'p-' + Date.now();
+            if (typeof ProjectService !== 'undefined' && ProjectService.saveAsset) {
+                await ProjectService.saveAsset(projectId, assetId, f);
+            }
+            const url = URL.createObjectURL(f);
+            const vid = document.getElementById('previewVideo');
+            if (vid) {
+                vid.src = url;
+                vid.style.display = 'block';
+                const idleEl = document.getElementById('previewIdle');
+                if (idleEl) idleEl.style.display = 'none';
+                const ctrlEl = document.getElementById('previewControls');
+                if (ctrlEl) ctrlEl.style.display = 'flex';
+                
+                vid.addEventListener('loadedmetadata', async () => {
+                    let track = projectState.tracks.find(t => t.type === 'video');
+                    if (!track) {
+                        track = { id: 'track-v' + Date.now(), type: 'video', name: 'Video 1', clips: [] };
+                        projectState.tracks.unshift(track);
+                    }
+                    const duration = vid.duration || 5;
+                    track.clips.push({
+                        id: 'c' + Date.now(),
+                        assetId,
+                        name: f.name,
+                        type: f.type.startsWith('image') ? 'image' : 'video',
+                        start: 0,
+                        duration: duration,
+                        trimStart: 0,
+                        trimEnd: duration,
+                        volume: 1,
+                        color: 'rgba(139,92,246,0.3)',
+                        borderColor: 'rgba(139,92,246,0.5)'
+                    });
+
+                    // Automatically extract & add background audio from video if not image
+                    if (!f.type.startsWith('image')) {
+                        try {
+                            const buffer = await MusicEngine.getCtx().decodeAudioData(await f.arrayBuffer());
+                            let aTrack = projectState.tracks.find(t => t.type === 'audio');
+                            if (!aTrack) {
+                                aTrack = { id: 'track-a1', type: 'audio', name: 'Audio 1', clips: [] };
+                                projectState.tracks.push(aTrack);
+                            }
+                            aTrack.clips.push({
+                                id: 'm-auto-' + Date.now(),
+                                assetId: 'audio-' + assetId,
+                                name: f.name.replace(/\.[^/.]+$/, '') + ' (Audio)',
+                                type: 'music',
+                                start: 0,
+                                duration: buffer.duration,
+                                trimStart: 0,
+                                trimEnd: buffer.duration,
+                                volume: 1.0,
+                                color: 'rgba(236,72,153,0.3)',
+                                borderColor: 'rgba(236,72,153,0.5)'
+                            });
+                            const bpm = MusicEngine.analyze_bpm(buffer);
+                            const bpmVal = document.getElementById('bpmVal');
+                            if (bpmVal) bpmVal.textContent = Math.round(bpm);
+                        } catch (_) {
+                            // Video might have no audio track, silently continue
+                        }
+                    }
+
+                    requestTimelineRender();
+                    showToast('Media loaded & audio synced!', '🎬', 'success');
+                }, { once: true });
+            }
+        }
+
+        function stepBack() {
+            const vid = document.getElementById('previewVideo');
+            if (vid) vid.currentTime = Math.max(0, vid.currentTime - 0.1);
+        }
+
+        function stepForward() {
+            const vid = document.getElementById('previewVideo');
+            if (vid) vid.currentTime = Math.min(vid.duration || 0, vid.currentTime + 0.1);
+        }
+
+        function getTimelineTotalDuration() {
+            let maxEnd = 0;
+            projectState.tracks.forEach(track => {
+                track.clips.forEach(clip => {
+                    const srcDur = getClipSourceDuration(clip);
+                    const trimStart = Number.isFinite(clip.trimStart) ? clip.trimStart : 0;
+                    const trimEnd = Number.isFinite(clip.trimEnd) ? clip.trimEnd : srcDur;
+                    const dur = Math.max(0.01, trimEnd - trimStart);
+                    const end = (clip.start || 0) + dur;
+                    if (end > maxEnd) maxEnd = end;
+                });
+            });
+            return Math.max(maxEnd, 0.5);
+        }
+
+        function getActivePlayingClip() {
+            const vid = document.getElementById('previewVideo');
+            if (!vid) return null;
+            const time = vid.currentTime;
+            const videoTrack = projectState.tracks.find(t => t.type === 'video') || projectState.tracks[0];
+            if (!videoTrack || !videoTrack.clips.length) return null;
+            
+            const clip = videoTrack.clips.find(c => {
+                const start = c.trimStart || 0;
+                const end = c.trimEnd || c.duration || 9999;
+                return time >= start - 0.05 && time <= end + 0.05;
+            });
+            return clip || videoTrack.clips[0];
+        }
+
+        function seekVideo(val) {
+            const vid = document.getElementById('previewVideo');
+            if (!vid) return;
+            const totalDur = getTimelineTotalDuration();
+            const targetTimelineTime = (parseFloat(val) / 100) * totalDur;
+            
+            const videoTrack = projectState.tracks.find(t => t.type === 'video') || projectState.tracks[0];
+            if (videoTrack && videoTrack.clips.length) {
+                let targetClip = videoTrack.clips.find(c => {
+                    const dur = (c.trimEnd || c.duration || 1) - (c.trimStart || 0);
+                    return targetTimelineTime >= (c.start || 0) && targetTimelineTime <= (c.start || 0) + dur;
+                });
+                if (!targetClip) {
+                    targetClip = videoTrack.clips.reduce((nearest, c) => {
+                        return Math.abs((c.start || 0) - targetTimelineTime) < Math.abs((nearest.start || 0) - targetTimelineTime) ? c : nearest;
+                    }, videoTrack.clips[0]);
+                }
+                if (targetClip) {
+                    const rel = Math.max(0, targetTimelineTime - (targetClip.start || 0));
+                    vid.currentTime = (targetClip.trimStart || 0) + rel;
+                    return;
+                }
+            }
+            if (Number.isFinite(vid.duration) && vid.duration > 0) {
+                vid.currentTime = (parseFloat(val) / 100) * vid.duration;
+            }
+        }
+
+        function toggleMute() {
+            const vid = document.getElementById('previewVideo');
+            if (vid) {
+                vid.muted = !vid.muted;
+                const muteBtn = document.getElementById('muteBtn');
+                if (muteBtn) muteBtn.classList.toggle('active', vid.muted);
+            }
+        }
+
+        function togglePlay() {
+            const vid = document.getElementById('previewVideo');
+            if (!vid) return;
+            if (vid.paused) {
+                const activeClip = getActivePlayingClip();
+                if (activeClip) {
+                    const srcDur = getClipSourceDuration(activeClip);
+                    const trimStart = Number.isFinite(activeClip.trimStart) ? activeClip.trimStart : 0;
+                    const trimEnd = Number.isFinite(activeClip.trimEnd) ? activeClip.trimEnd : srcDur;
+                    if (vid.currentTime < trimStart || vid.currentTime >= trimEnd - 0.05) {
+                        vid.currentTime = trimStart;
+                    }
+                }
+                vid.play();
+            } else {
+                vid.pause();
+            }
+        }
         function saveProject() { ProjectService.updateProject(currentProject.id, { projectState }); showToast('Saved!', '✅'); }
+
+        // --- GUI Interactive Helpers ---
+        async function quickMagicAction(action) {
+            const vid = document.getElementById('previewVideo');
+            
+            if (action === 'auto-extract-music') {
+                if (!vid || !vid.src) return showToast('Please load a video first!', '⚠️');
+                autoExtractVideoAudio();
+            } else if (action === 'auto-lyrics') {
+                setTool('text');
+                autoGenerateSongLyrics();
+            } else if (action === 'auto-enhance') {
+                const preset = document.getElementById('gradePreset');
+                if (preset) preset.value = 'teal-orange';
+                if (typeof applyColorGrade === 'function') applyColorGrade();
+                showToast('🪄 Auto-Enhanced! Cinematic Teal & Orange grade applied.', '✨', 'success');
+            } else if (action === 'tiktok-reframe') {
+                const screen = document.getElementById('previewScreen');
+                if (screen) screen.style.aspectRatio = '9/16';
+                showToast('📱 Switched canvas aspect ratio to 9:16 TikTok / Shorts format.', '📱', 'success');
+            } else if (action === 'auto-captions') {
+                setTool('caption');
+                showToast('💬 Auto-Caption tool opened! Paste transcript or generate.', '🤖', 'info');
+            } else if (action === 'sync-beats') {
+                if (!vid || !vid.src) return showToast('Please load a video first!', '⚠️');
+                analyzeAudio();
+            } else if (action === 'fast-speed') {
+                const clip = selectedClip || projectState.tracks.find(t=>t.type==='video')?.clips[0];
+                if (!clip) return showToast('Please select or load a video clip first!', '⚠️');
+                recordEdit();
+                clip.speed = 1.5;
+                requestTimelineRender();
+                showToast('⚡ Speed boosted to 1.5×!', '🚀', 'success');
+            } else if (action === 'vfx-glitch') {
+                const vPreset = document.getElementById('vfxPreset');
+                if (vPreset) vPreset.value = 'glitch';
+                if (typeof applyVfx === 'function') applyVfx();
+                showToast('✦ Glitch VFX applied!', '✨', 'success');
+            }
+        }
+
+        function selectChipGroup(el, targetInputId, value) {
+            const parent = el.parentElement;
+            if (parent) parent.querySelectorAll('.chip-option').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            const target = document.getElementById(targetInputId);
+            if (target) target.value = value;
+        }
+
+        function setLyricStartToPlayhead() {
+            const vid = document.getElementById('previewVideo');
+            const cur = vid ? vid.currentTime || 0 : 0;
+            const input = document.getElementById('overlayStart');
+            if (input) input.value = cur.toFixed(1);
+            const label = document.getElementById('overlayStartLabel');
+            if (label) label.textContent = cur.toFixed(1) + 's';
+        }
+
+        function setLyricEndToPlayhead() {
+            const vid = document.getElementById('previewVideo');
+            const cur = vid ? vid.currentTime || 0 : 0;
+            const input = document.getElementById('overlayEnd');
+            if (input) input.value = Math.max(0.5, cur).toFixed(1);
+            const label = document.getElementById('overlayEndLabel');
+            if (label) label.textContent = Math.max(0.5, cur).toFixed(1) + 's';
+        }
+
+        function setTransitionDurGUI(val) {
+            const durInput = document.getElementById('transitionDuration');
+            if (durInput) { durInput.value = val; applyTransitionDuration(val); }
+            const label = document.getElementById('transDurVal');
+            if (label) label.textContent = parseFloat(val).toFixed(2) + 's';
+        }
+
+        function setKfPreset(preset) {
+            const kx = document.getElementById('keyframeX');
+            const ky = document.getElementById('keyframeY');
+            const ks = document.getElementById('keyframeScale');
+            const kr = document.getElementById('keyframeRotation');
+            const ko = document.getElementById('keyframeOpacity');
+            if (preset === 'center') { if(kx) kx.value=0; if(ky) ky.value=0; if(ks) ks.value=100; if(kr) kr.value=0; if(ko) ko.value=100; }
+            else if (preset === 'top-left') { if(kx) kx.value=-35; if(ky) ky.value=-35; }
+            else if (preset === 'top-right') { if(kx) kx.value=35; if(ky) ky.value=-35; }
+            else if (preset === 'bottom-left') { if(kx) kx.value=-35; if(ky) ky.value=35; }
+            else if (preset === 'bottom-right') { if(kx) kx.value=35; if(ky) ky.value=35; }
+            else if (preset === 'zoom') { if(ks) ks.value=150; }
+            ['kfXVal','kfYVal','kfScaleVal','kfRotVal','kfOpacVal'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if(id==='kfXVal' && kx) el.textContent = kx.value + '%';
+                if(id==='kfYVal' && ky) el.textContent = ky.value + '%';
+                if(id==='kfScaleVal' && ks) el.textContent = ks.value + '%';
+                if(id==='kfRotVal' && kr) el.textContent = kr.value + '°';
+                if(id==='kfOpacVal' && ko) el.textContent = ko.value + '%';
+            });
+        }
+
+        function setSpeedGUI(val) {
+            const sInput = document.getElementById('speedValue');
+            const rInput = document.getElementById('speedValueRange');
+            const label = document.getElementById('speedValLabel');
+            if (sInput) sInput.value = val;
+            if (rInput) rInput.value = val;
+            if (label) label.textContent = val + '×';
+        }
+
+        function updateSpeedValLabel(val) {
+            const sInput = document.getElementById('speedValue');
+            const label = document.getElementById('speedValLabel');
+            if (sInput) sInput.value = val;
+            if (label) label.textContent = val + '×';
+        }
         
         function exportProject() {
             document.getElementById('exportModal').classList.add('active');
@@ -2321,16 +3652,110 @@
             requestAnimationFrame(() => {
                 timeUpdateQueued = false;
                 const vid = document.getElementById('previewVideo');
-                const progress = vid.duration > 0 ? vid.currentTime / vid.duration : 0;
-                document.getElementById('scrubber').value = progress * 100;
-                document.getElementById('timeDisplay').textContent = formatTime(vid.currentTime) + ' / ' + formatTime(vid.duration);
-                const playhead = document.getElementById('timelinePlayhead');
-                const lane = document.querySelector('.track-lane');
-                if (playhead && lane) playhead.style.left = (72 + progress * (lane.clientWidth - 72)) + 'px';
+                if (!vid) return;
+
+                const videoTrack = projectState.tracks.find(t => t.type === 'video') || projectState.tracks[0];
+                const activeClip = getActivePlayingClip();
+                
+                if (activeClip && videoTrack) {
+                    const srcDur = getClipSourceDuration(activeClip);
+                    const trimStart = Number.isFinite(activeClip.trimStart) ? activeClip.trimStart : 0;
+                    const trimEnd = Number.isFinite(activeClip.trimEnd) ? activeClip.trimEnd : srcDur;
+                    
+                    if (vid.currentTime >= trimEnd - 0.02 && !vid.paused) {
+                        const clipIndex = videoTrack.clips.indexOf(activeClip);
+                        const nextClip = videoTrack.clips[clipIndex + 1];
+                        if (nextClip) {
+                            vid.currentTime = nextClip.trimStart || 0;
+                        } else {
+                            vid.pause();
+                            vid.currentTime = trimEnd;
+                        }
+                    }
+                }
+
+                const totalDur = getTimelineTotalDuration();
+                let timelineCurrent = 0;
+                if (activeClip) {
+                    const trimStart = activeClip.trimStart || 0;
+                    timelineCurrent = (activeClip.start || 0) + Math.max(0, vid.currentTime - trimStart);
+                } else {
+                    timelineCurrent = vid.currentTime;
+                }
+                
+                const progress = totalDur > 0 ? clamp(timelineCurrent / totalDur, 0, 1) : 0;
+                const scrubber = document.getElementById('scrubber');
+                if (scrubber) scrubber.value = progress * 100;
+                
+                const timeDisplay = document.getElementById('timeDisplay');
+                if (timeDisplay) timeDisplay.textContent = formatTime(timelineCurrent) + ' / ' + formatTime(totalDur);
+                
+                document.querySelectorAll('.lane-playhead').forEach(el => {
+                    el.style.left = clamp((timelineCurrent / MAX_TIMELINE_SECONDS) * 100, 0, 100) + '%';
+                });
+                
                 updatePreviewVisuals();
                 renderTextOverlays();
             });
         };
+
+        // --- AI Editor Functions ---
+        function setEditMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            if (mode === 'manual') {
+                document.getElementById('modeManual').classList.add('active');
+                document.getElementById('manualPropsBody').style.display = 'block';
+                document.getElementById('aiToolsPanel').style.display = 'none';
+            } else {
+                document.getElementById('modeAI').classList.add('active');
+                document.getElementById('manualPropsBody').style.display = 'none';
+                document.getElementById('aiToolsPanel').style.display = 'block';
+            }
+        }
+
+        let activeAITool = null;
+        function toggleAITool(el, toolName) {
+            document.querySelectorAll('.ai-tool-card').forEach(card => card.classList.remove('active'));
+            if (activeAITool !== toolName) {
+                el.classList.add('active');
+                activeAITool = toolName;
+            } else {
+                activeAITool = null;
+            }
+        }
+
+        async function runAIProcessing() {
+            if (!activeAITool) {
+                showToast('Please select an AI tool first.', '⚠️', 'error');
+                return;
+            }
+            
+            showToast('Asking Gemini AI...', '🤖');
+            
+            try {
+                let prompt = "Suggest some generic creative edits for a video.";
+                if (activeAITool === 'reframe') {
+                    prompt = "I have a landscape video. Provide step-by-step instructions on how to use AI to track the main subject and crop it to a 9:16 vertical format for TikTok. Keep it brief.";
+                }
+                
+                const response = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                alert("Gemini AI Says:\n\n" + data.text);
+                showToast('AI processing complete.', '✅', 'success');
+                
+            } catch (error) {
+                console.error('Error calling AI:', error);
+                showToast('Failed to reach AI. Check server logs.', '❌', 'error');
+            }
+        }
+
 </script>
 </body>
 

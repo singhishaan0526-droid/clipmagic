@@ -7,6 +7,13 @@ build/
 .next/
 .vercel/
 
+# Environment and sensitive keys
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
 # Media files (prevent accidental large commits)
 *.mp4
 *.mov
@@ -22,3 +29,4 @@ build/
 .vscode/
 .idea/
 *.log
+
