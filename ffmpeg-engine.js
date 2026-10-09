@@ -136,6 +136,12 @@ async function exportProjectVideo(projectId, opts = {}) {
                 console.log(`[FFmpeg] Wrote asset to VFS: ${assetId}`);
             }
         }
+        // Keep text rendering self-contained in the browser; FFmpeg.wasm has no
+        // reliable system font lookup, so provide a small bundled font explicitly.
+        const fontResponse = await fetch('vendor/DejaVuSans.ttf', { cache: 'force-cache' });
+        if (!fontResponse.ok) throw new Error('Unable to load the bundled lyric font.');
+        await ffmpeg.writeFile('DejaVuSans.ttf', new Uint8Array(await fontResponse.arrayBuffer()));
+        writtenFiles.push('DejaVuSans.ttf');
 
         showToast('Rendering timeline...', '🎬');
 
@@ -270,6 +276,50 @@ async function exportProjectVideo(projectId, opts = {}) {
             filterParts.push(`[${inputIndex}:v]setpts=PTS-STARTPTS,scale=trunc(iw*${size}/2)*2:-2,format=rgba,colorchannelmixer=aa=${opacity}${pipLabel}`);
             filterParts.push(`${finalVideoMap}${pipLabel}overlay=x=${x}:y=${y}:eof_action=pass:enable='between(t,${start},${end})'${overlayLabel}`);
             finalVideoMap = overlayLabel;
+        });
+
+        const escapeDrawtext = (value) => String(value || '')
+            .replace(/\\/g, '\\\\')
+            .replace(/:/g, '\\:')
+            .replace(/'/g, "\\'")
+            .replace(/\n/g, '\\n');
+        const textOverlays = Array.isArray(state.textOverlays) ? state.textOverlays : [];
+        textOverlays.forEach((item, index) => {
+            const text = escapeDrawtext(item.text);
+            if (!text) return;
+            const start = Math.max(0, Number(item.start) || 0);
+            const end = Math.max(start + 0.05, Number(item.end) || start + 3);
+            const x = clamp(Number(item.x) || 50, 5, 95) / 100;
+            const y = clamp(Number(item.y) || 76, 5, 95) / 100;
+            const size = clamp(Number(item.size) || 32, 14, 96);
+            const colorA = /^#[0-9a-f]{6}$/i.test(item.colorA || '') ? item.colorA : (item.color || '#ffffff');
+            const colorB = /^#[0-9a-f]{6}$/i.test(item.colorB || '') ? item.colorB : '#60a5fa';
+            const style = item.style || 'gradient';
+            const textFilter = item.textFilter || 'none';
+            const animation = item.animation || 'none';
+            const baseX = `(w-text_w)*${x.toFixed(3)}`;
+            const baseY = `(h-text_h)*${y.toFixed(3)}`;
+            const animatedY = animation === 'slide-up'
+                ? `${baseY}+if(lt(t\\,${(start + .35).toFixed(3)})\\,(1-(t-${start.toFixed(3)})/.35)*h*.08\\,0)`
+                : baseY;
+            const alpha = animation === 'pop'
+                ? `if(lt(t\\,${(start + .35).toFixed(3)})\\,min(1\\,(t-${start.toFixed(3)})/.35)\\,1)`
+                : '1';
+            const parts = [
+                `drawtext=fontfile=DejaVuSans.ttf:text='${text}'`,
+                `fontcolor=${colorA}`,
+                `fontsize=${size}`,
+                `x=${baseX}`,
+                `y=${animatedY}`,
+                `alpha=${alpha}`,
+                `enable='between(t\\,${start.toFixed(3)}\\,${end.toFixed(3)})'`
+            ];
+            if (style === 'outline' || style === 'gradient') parts.push(`borderw=${style === 'outline' ? 2 : 1}`, `bordercolor=${colorB}`);
+            if (style === 'box') parts.push('box=1', 'boxborderw=12', 'boxcolor=black@0.45');
+            if (style === 'neon' || textFilter === 'glow') parts.push(`shadowcolor=${colorB}@0.9`, 'shadowx=0', 'shadowy=0');
+            if (textFilter === 'shadow') parts.push('shadowcolor=black@0.85', 'shadowx=3', 'shadowy=3');
+            filterParts.push(`${finalVideoMap}${parts.join(':')}[text${index}]`);
+            finalVideoMap = `[text${index}]`;
         });
 
         // Mix music track if present
