@@ -1030,6 +1030,43 @@
             }
         }
 
+        /* Tablet correction: keep the desktop hierarchy; only collapse columns. */
+        @media (min-width: 601px) and (max-width: 900px) {
+            html, body { height:100%; overflow:hidden; }
+            .editor-shell {
+                grid-template-rows:56px 58px minmax(0,1fr) 260px;
+                height:100dvh;
+                min-height:0;
+            }
+            .editor-topbar {
+                flex-wrap:nowrap;
+                gap:8px;
+                padding:0 12px;
+                min-width:0;
+            }
+            .topbar-status { display:none; }
+            .file-name-input { min-width:110px; flex:1; }
+            .topbar-actions {
+                width:auto;
+                margin-left:auto;
+                flex-wrap:nowrap;
+                flex-shrink:0;
+            }
+            .mode-btn { padding-left:10px; padding-right:10px; }
+            .editor-tools {
+                min-width:0;
+                padding:6px 10px;
+                gap:4px;
+                scrollbar-width:none;
+            }
+            .editor-tools::-webkit-scrollbar { display:none; }
+            .tool-btn { width:48px; height:46px; min-width:48px; }
+            .editor-center { min-height:0; }
+            .preview-area { min-height:0; }
+            .timeline-area { min-height:150px; max-height:32vh; }
+            .editor-props { max-height:260px; min-height:0; }
+        }
+
         /* ── Phone editor: thumb-first controls and a stable one-screen workspace ── */
         @media (max-width: 600px) {
             :root { --mobile-gutter: 10px; }
