@@ -208,7 +208,11 @@
         .preview-screen.filter-warm video { filter: saturate(1.2) sepia(0.22) hue-rotate(-8deg); }
         .preview-screen.filter-cool video { filter: saturate(0.92) hue-rotate(12deg) brightness(1.04); }
         .text-overlay-layer { position:absolute; inset:0; pointer-events:none; z-index:4; }
-        .text-overlay { position:absolute; transform:translate(-50%,-50%); max-width:80%; color:#fff; text-align:center; font-weight:700; text-shadow:0 2px 5px #000; white-space:pre-wrap; line-height:1.12; will-change:transform,opacity,filter; }
+        .text-overlay { position:absolute; transform:translate(-50%,-50%); max-width:80%; color:#fff; text-align:center; font-weight:700; text-shadow:0 2px 5px #000; white-space:pre-wrap; line-height:1.12; will-change:transform,opacity,filter; pointer-events:auto; cursor:grab; user-select:none; touch-action:none; }
+        .text-overlay:hover, .text-overlay.dragging { outline:1px dashed rgba(255,255,255,.8); outline-offset:6px; }
+        .text-overlay.dragging { cursor:grabbing; animation:none !important; transform:translate(-50%,-50%) scale(1) !important; }
+        .text-overlay::after { content:'↕ drag'; position:absolute; left:50%; top:100%; transform:translate(-50%,6px); opacity:0; padding:2px 5px; border-radius:4px; background:rgba(0,0,0,.65); color:#fff; font:600 10px/1 Inter,sans-serif; white-space:nowrap; pointer-events:none; transition:opacity .15s; }
+        .text-overlay:hover::after, .text-overlay.dragging::after { opacity:.9; }
         .text-overlay .lyric-word { display:inline-block; white-space:pre; }
         .lyric-gradient { background:linear-gradient(90deg,var(--lyric-a,#f472b6),var(--lyric-b,#60a5fa),var(--lyric-a,#f472b6)); background-size:220% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:lyricGradient 3s linear infinite; }
         .lyric-neon { text-shadow:0 0 6px var(--lyric-a,#f472b6),0 0 18px var(--lyric-b,#60a5fa),0 2px 5px #000; }
@@ -1528,7 +1532,7 @@
             text: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
                 title: 'Animated Lyrics',
-                html: `<div class="prop-section"><div class="prop-section-title">Colorful lyric text</div><textarea class="prop-input" id="overlayText" rows="3" placeholder="Paste one lyric line here"></textarea><div class="prop-row"><span class="prop-label">Start (s)</span><input class="prop-input" id="overlayStart" type="number" min="0" step="0.1" value="0" /></div><div class="prop-row"><span class="prop-label">End (s)</span><input class="prop-input" id="overlayEnd" type="number" min="0.1" step="0.1" value="3" /></div><label class="prop-label">Position X <span id="overlayXValue">50%</span></label><input class="prop-input" id="overlayX" type="range" min="5" max="95" value="50" oninput="document.getElementById('overlayXValue').textContent=this.value+'%'"/><label class="prop-label">Position Y <span id="overlayYValue">76%</span></label><input class="prop-input" id="overlayY" type="range" min="5" max="95" value="76" oninput="document.getElementById('overlayYValue').textContent=this.value+'%'"/><label class="prop-label">Text size</label><input class="prop-input" id="overlaySize" type="range" min="14" max="96" value="32"/><label class="prop-label">Style</label><select class="prop-input" id="overlayStyle"><option value="gradient">Rainbow gradient</option><option value="solid">Solid color</option><option value="neon">Neon glow</option><option value="outline">Outlined</option><option value="box">Glass box</option></select><div class="prop-row"><span class="prop-label">Color A</span><input class="prop-input" id="overlayColorA" type="color" value="#f472b6" /></div><div class="prop-row"><span class="prop-label">Color B</span><input class="prop-input" id="overlayColorB" type="color" value="#60a5fa" /></div><label class="prop-label">Animation</label><select class="prop-input" id="overlayAnimation"><option value="word-by-word">Word by word</option><option value="pop">Pop in</option><option value="slide-up">Slide up</option><option value="pulse">Pulse</option><option value="none">None</option></select><label class="prop-label">Text filter</label><select class="prop-input" id="overlayFilter"><option value="glow">Glow</option><option value="shadow">Shadow</option><option value="none">None</option></select><button class="music-btn" onclick="addTextOverlay()">＋ Add Animated Lyric</button><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">Set where the line appears, choose its colors and animation, then preview it against your music.</p></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Colorful lyric text</div><textarea class="prop-input" id="overlayText" rows="3" placeholder="Paste one lyric line here"></textarea><div class="prop-row"><span class="prop-label">Start (s)</span><input class="prop-input" id="overlayStart" type="number" min="0" step="0.1" value="0" /></div><div class="prop-row"><span class="prop-label">End (s)</span><input class="prop-input" id="overlayEnd" type="number" min="0.1" step="0.1" value="3" /></div><label class="prop-label">Position X <span id="overlayXValue">50%</span></label><input class="prop-input" id="overlayX" type="range" min="5" max="95" value="50" oninput="document.getElementById('overlayXValue').textContent=this.value+'%'"/><label class="prop-label">Position Y <span id="overlayYValue">76%</span></label><input class="prop-input" id="overlayY" type="range" min="5" max="95" value="76" oninput="document.getElementById('overlayYValue').textContent=this.value+'%'"/><label class="prop-label">Text size</label><input class="prop-input" id="overlaySize" type="range" min="14" max="96" value="32"/><label class="prop-label">Style</label><select class="prop-input" id="overlayStyle"><option value="gradient">Rainbow gradient</option><option value="solid">Solid color</option><option value="neon">Neon glow</option><option value="outline">Outlined</option><option value="box">Glass box</option></select><div class="prop-row"><span class="prop-label">Color A</span><input class="prop-input" id="overlayColorA" type="color" value="#f472b6" /></div><div class="prop-row"><span class="prop-label">Color B</span><input class="prop-input" id="overlayColorB" type="color" value="#60a5fa" /></div><label class="prop-label">Animation</label><select class="prop-input" id="overlayAnimation"><option value="word-by-word">Word by word</option><option value="pop">Pop in</option><option value="slide-up">Slide up</option><option value="pulse">Pulse</option><option value="none">None</option></select><label class="prop-label">Text filter</label><select class="prop-input" id="overlayFilter"><option value="glow">Glow</option><option value="shadow">Shadow</option><option value="none">None</option></select><button class="music-btn" onclick="addTextOverlay()">＋ Add Animated Lyric</button><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">After adding, drag the text directly on the preview to place it anywhere. X/Y sliders are also available for precise positioning.</p></div>`
             },
             filter: {
                 title: 'Filters',
@@ -2049,6 +2053,68 @@
             for (const [id, pip] of pipVideoCache) if (!activeIds.has(id)) pip.style.display = 'none'; else pip.style.display = 'block';
         }
 
+        let activeTextDrag = null;
+
+        function syncTextOverlayPositionControls(item) {
+            const x = clamp(Number(item.x) || 50, 5, 95);
+            const y = clamp(Number(item.y) || 76, 5, 95);
+            const xInput = document.getElementById('overlayX');
+            const yInput = document.getElementById('overlayY');
+            if (xInput) xInput.value = String(Math.round(x));
+            if (yInput) yInput.value = String(Math.round(y));
+            const xValue = document.getElementById('overlayXValue');
+            const yValue = document.getElementById('overlayYValue');
+            if (xValue) xValue.textContent = `${Math.round(x)}%`;
+            if (yValue) yValue.textContent = `${Math.round(y)}%`;
+        }
+
+        function beginTextOverlayDrag(event, item, element) {
+            if (event.button !== undefined && event.button !== 0) return;
+            event.preventDefault();
+            event.stopPropagation();
+            recordEdit();
+            activeTextDrag = {
+                item,
+                element,
+                pointerId: event.pointerId,
+                startX: event.clientX,
+                startY: event.clientY,
+                startItemX: Number(item.x) || 50,
+                startItemY: Number(item.y) || 76,
+                rect: document.getElementById('previewScreen')?.getBoundingClientRect()
+            };
+            element.classList.add('dragging');
+            try { element.setPointerCapture?.(event.pointerId); } catch (_) { /* window listeners still track the drag */ }
+            window.addEventListener('pointermove', moveTextOverlayDrag);
+            window.addEventListener('pointerup', endTextOverlayDrag, { once: true });
+            window.addEventListener('pointercancel', endTextOverlayDrag, { once: true });
+        }
+
+        function moveTextOverlayDrag(event) {
+            const drag = activeTextDrag;
+            if (!drag || (drag.pointerId !== undefined && event.pointerId !== drag.pointerId)) return;
+            const rect = drag.rect || document.getElementById('previewScreen')?.getBoundingClientRect();
+            if (!rect || !rect.width || !rect.height) return;
+            drag.item.x = clamp(drag.startItemX + ((event.clientX - drag.startX) / rect.width) * 100, 5, 95);
+            drag.item.y = clamp(drag.startItemY + ((event.clientY - drag.startY) / rect.height) * 100, 5, 95);
+            drag.element.style.left = `${drag.item.x}%`;
+            drag.element.style.top = `${drag.item.y}%`;
+            syncTextOverlayPositionControls(drag.item);
+        }
+
+        function endTextOverlayDrag(event) {
+            const drag = activeTextDrag;
+            if (!drag) return;
+            if (event?.pointerId !== undefined && drag.pointerId !== undefined && event.pointerId !== drag.pointerId) return;
+            drag.element.classList.remove('dragging');
+            try { drag.element.releasePointerCapture?.(drag.pointerId); } catch (_) { /* capture may already be released */ }
+            activeTextDrag = null;
+            window.removeEventListener('pointermove', moveTextOverlayDrag);
+            window.removeEventListener('pointercancel', endTextOverlayDrag);
+            requestTimelineRender();
+            showToast('Text position updated.', '↕', 'success');
+        }
+
         function renderTextOverlays() {
             const layer = document.getElementById('textOverlayLayer');
             if (!layer) return;
@@ -2065,6 +2131,8 @@
                 el.style.fontSize = `${clamp(Number(item.size) || 28, 14, 96)}px`;
                 el.style.setProperty('--lyric-a', item.colorA || item.color || '#f472b6');
                 el.style.setProperty('--lyric-b', item.colorB || item.color || '#60a5fa');
+                el.title = 'Drag to position text';
+                el.onpointerdown = (event) => beginTextOverlayDrag(event, item, el);
                 const words = String(item.text || '').split(/(\s+)/);
                 if (animation === 'word-by-word') {
                     words.forEach((word, index) => {
