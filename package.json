@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Static site for Clip Magic editor",
   "scripts": {
-    "start": "node server.js",
-    "serve": "node server.js"
+    "start": "node backend/server.js",
+    "serve": "node backend/server.js"
   },
   "devDependencies": {
     "http-server": "^14.1.1",

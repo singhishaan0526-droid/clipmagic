@@ -1,6 +1,9 @@
+const path = require('path');
+// Load environment variables from backend or root .env
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 require('dotenv').config();
+
 const express = require('express');
-const path    = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app  = express();
@@ -17,6 +20,7 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
     next();
 });
 
@@ -51,30 +55,33 @@ app.use(express.urlencoded({ extended: false, limit: '25mb' }));
 // Gemini requests stay server-side; GEMINI_API_KEY is read only from the environment.
 app.post('/api/gemini', apiRateLimiter, require('./api/gemini'));
 
-// ── Static files ──────────────────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, '.'), {
-    // Prevent directory listing
+// ── Static Frontend Files ───────────────────────────────────────────────────
+const frontendDir = path.join(__dirname, '../frontend');
+app.use(express.static(frontendDir, {
     index: 'index.html'
 }));
 
-// Fallback to index.html for root path
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Route helpers for clean URLs
+app.get('/', (req, res) => res.sendFile(path.join(frontendDir, 'index.html')));
+app.get('/editor', (req, res) => res.sendFile(path.join(frontendDir, 'editor.html')));
+app.get('/upload', (req, res) => res.sendFile(path.join(frontendDir, 'upload.html')));
+app.get('/dashboard', (req, res) => res.sendFile(path.join(frontendDir, 'dashboard.html')));
+app.get('/about', (req, res) => res.sendFile(path.join(frontendDir, 'about.html')));
+app.get('/login', (req, res) => res.sendFile(path.join(frontendDir, 'login.html')));
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 const server = app.listen(PORT, () => {
     console.log(`[Clip Magic] Server running at http://localhost:${PORT}`);
+    console.log(`[Clip Magic] Serving frontend from: ${frontendDir}`);
 });
 
-// L2 FIX: graceful shutdown on SIGTERM / SIGINT
+// Graceful shutdown on SIGTERM / SIGINT
 function shutdown(signal) {
     console.log(`[Clip Magic] Received ${signal}. Shutting down gracefully…`);
     server.close(() => {
         console.log('[Clip Magic] HTTP server closed.');
         process.exit(0);
     });
-    // Force-exit after 10 s if connections linger
     setTimeout(() => process.exit(1), 10_000).unref();
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'));
