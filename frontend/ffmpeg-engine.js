@@ -159,6 +159,53 @@ async function exportProjectVideo(projectId, opts = {}) {
             .flatMap(track => Array.isArray(track.clips) ? track.clips : [])
             .filter(clip => clip.assetId);
 
+        // Check if user requested Lossless Stream Copy or if timeline allows lossless fast-export
+        const isLosslessRequested = opts.presetPlatform === 'lossless' || opts.quality === 'lossless';
+        const hasTextOverlays = Array.isArray(state.textOverlays) && state.textOverlays.length > 0;
+        const targetFirstClip = clips[0] || {};
+        const hasLegacyKeyframes = Array.isArray(targetFirstClip.keyframes) && targetFirstClip.keyframes.length > 0;
+        const animFirst = targetFirstClip.animation;
+        const hasAnimTracks = animFirst && Object.values(animFirst).some(track => Array.isArray(track) && track.length > 0);
+        const hasKeyframesFirst = hasLegacyKeyframes || hasAnimTracks || !!targetFirstClip.activePreset;
+        const hasTransformFirst = targetFirstClip.transform && (targetFirstClip.transform.scale !== 100 || targetFirstClip.transform.x !== 0 || targetFirstClip.transform.y !== 0 || targetFirstClip.transform.rotation !== 0 || targetFirstClip.transform.opacity !== 100);
+        const isSingleClipTrim = clips.length === 1 && pipClips.length === 0 && (!musicTrack || !musicTrack.clips || musicTrack.clips.length === 0) && !targetFirstClip.filter && !targetFirstClip.colorGrade?.preset && !targetFirstClip.vfx?.preset && !hasKeyframesFirst && !hasTransformFirst;
+
+        if (isLosslessRequested || (opts.losslessAuto && isSingleClipTrim && !hasTextOverlays)) {
+            showToast('⚡ Instant Lossless Stream Copy rendering...', '⚡', 'success');
+            const targetClip = clips[0];
+            const trimStart = Number.isFinite(targetClip.trimStart) ? Math.max(0, targetClip.trimStart) : 0;
+            const trimEnd = Number.isFinite(targetClip.trimEnd) && targetClip.trimEnd > trimStart ? targetClip.trimEnd : null;
+            const duration = trimEnd !== null ? trimEnd - trimStart : null;
+
+            const losslessArgs = [
+                '-ss', trimStart.toString(),
+                ...(duration !== null ? ['-t', duration.toString()] : []),
+                '-i', targetClip.assetId,
+                '-c', 'copy',
+                '-movflags', '+faststart',
+                'output.mp4'
+            ];
+
+            console.log('[FFmpeg] Executing Lossless Stream Copy: ', losslessArgs.join(' '));
+            await ffmpeg.exec(losslessArgs);
+            writtenFiles.push('output.mp4');
+
+            const data = await ffmpeg.readFile('output.mp4');
+            const blob = new Blob([data.buffer], { type: 'video/mp4' });
+            outputUrl = URL.createObjectURL(blob);
+            try { await ffmpeg.deleteFile('output.mp4'); } catch (_) {}
+            
+            if (aiOverlay) aiOverlay.classList.remove('active');
+            showToast('⚡ Lossless Export Complete in seconds!', '⚡', 'success');
+
+            const a = document.createElement('a');
+            a.href = outputUrl;
+            a.download = `clip-magic-lossless-${Date.now()}.mp4`;
+            a.click();
+            setTimeout(() => { if (outputUrl) URL.revokeObjectURL(outputUrl); }, 6000);
+            return;
+        }
+
         // 3. Build validated input arguments for video clips
         const inputArgs = [];
         let inputCount = 0;
@@ -223,6 +270,109 @@ async function exportProjectVideo(projectId, opts = {}) {
             const videoLabel = `[video${idx}]`;
             const videoFilters = ['setpts=PTS-STARTPTS'];
             if (targetHeight) videoFilters.push(`scale=-2:${targetHeight}:flags=lanczos`);
+
+            // Motion & Keyframe Camera Zoom/Pan/Rotate/Opacity Filters
+            const clipDur = Math.max(0.1, (Number(clip.trimEnd) || Number(clip.duration) || 1) - (Number(clip.trimStart) || 0));
+            const durStr = clipDur.toFixed(2);
+            const anim = clip.animation || {};
+            const legacyKfs = Array.isArray(clip.keyframes) ? clip.keyframes.slice().sort((a, b) => a.time - b.time) : [];
+
+            // Helper to generate piecewise linear expressions for unlimited keyframes
+            function buildFfmpegPiecewiseExpr(track, defaultVal = 0) {
+                if (!track || !track.length) return String(defaultVal);
+                const sorted = track.slice().sort((a, b) => a.t - b.t);
+                if (sorted.length === 1) return String(sorted[0].v ?? defaultVal);
+                let expr = String(sorted[sorted.length - 1].v);
+                for (let i = sorted.length - 2; i >= 0; i--) {
+                    const k0 = sorted[i];
+                    const k1 = sorted[i + 1];
+                    const t0 = Math.max(0, k0.t);
+                    const t1 = Math.max(t0 + 0.001, k1.t);
+                    const dt = (t1 - t0).toFixed(3);
+                    const v0 = k0.v;
+                    const v1 = k1.v;
+                    const dv = v1 - v0;
+                    const lerpPart = `(${v0}+(${dv})*min(max(t-${t0.toFixed(3)},0),${dt})/${dt})`;
+                    expr = `if(lt(t,${t1.toFixed(3)}),${lerpPart},${expr})`;
+                }
+                return expr;
+            }
+
+            // Scale / Zoom / Pan Multi-Keyframe Animation
+            const scaleTrack = Array.isArray(anim.scale) && anim.scale.length > 0 ? anim.scale.slice().sort((a, b) => a.t - b.t) : null;
+            const posXTrack = Array.isArray(anim.positionX) && anim.positionX.length > 0 ? anim.positionX.slice().sort((a, b) => a.t - b.t) : null;
+            const posYTrack = Array.isArray(anim.positionY) && anim.positionY.length > 0 ? anim.positionY.slice().sort((a, b) => a.t - b.t) : null;
+            const rotTrack = Array.isArray(anim.rotation) && anim.rotation.length > 0 ? anim.rotation.slice().sort((a, b) => a.t - b.t) : null;
+            const opacTrack = Array.isArray(anim.opacity) && anim.opacity.length > 0 ? anim.opacity.slice().sort((a, b) => a.t - b.t) : null;
+
+            if (scaleTrack && scaleTrack.length >= 1) {
+                const scaleExpr = buildFfmpegPiecewiseExpr(scaleTrack.map(k => ({ t: k.t, v: (k.v || 100) / 100 })), 1.0);
+                const posXExpr = posXTrack && posXTrack.length > 0 ? buildFfmpegPiecewiseExpr(posXTrack, 0) : '0';
+                const posYExpr = posYTrack && posYTrack.length > 0 ? buildFfmpegPiecewiseExpr(posYTrack, 0) : '0';
+                videoFilters.push(`crop=w='iw/(${scaleExpr})':h='ih/(${scaleExpr})':x='(iw-ow)*(0.5+(${posXExpr})/200)':y='(ih-oh)*(0.5+(${posYExpr})/200)',scale=iw:-2`);
+            } else if ((posXTrack && posXTrack.length > 0) || (posYTrack && posYTrack.length > 0)) {
+                const posXExpr = posXTrack && posXTrack.length > 0 ? buildFfmpegPiecewiseExpr(posXTrack, 0) : '0';
+                const posYExpr = posYTrack && posYTrack.length > 0 ? buildFfmpegPiecewiseExpr(posYTrack, 0) : '0';
+                videoFilters.push(`crop=w='iw*0.9':h='ih*0.9':x='(iw-ow)*(0.5+(${posXExpr})/200)':y='(ih-oh)*(0.5+(${posYExpr})/200)',scale=iw:-2`);
+            } else if (legacyKfs.length > 0) {
+                const k0 = legacyKfs[0];
+                const k1 = legacyKfs[legacyKfs.length - 1];
+                if (clip.activePreset === 'zoom-in' || (k0.scale < k1.scale)) {
+                    const s0 = (k0.scale || 100) / 100;
+                    const s1 = (k1.scale || 135) / 100;
+                    const ds = Math.max(0.05, s1 - s0);
+                    videoFilters.push(`crop=w='iw*(1/${s0}-${ds}*t/(${durStr}*${s1}))':h='ih*(1/${s0}-${ds}*t/(${durStr}*${s1}))':x='(iw-ow)/2':y='(ih-oh)/2',scale=iw:-2`);
+                } else if (clip.activePreset === 'zoom-out' || (k0.scale > k1.scale)) {
+                    const s0 = (k0.scale || 135) / 100;
+                    const s1 = (k1.scale || 100) / 100;
+                    const ds = Math.max(0.05, s0 - s1);
+                    videoFilters.push(`crop=w='iw*(1/${s0}+${ds}*t/(${durStr}*${s0}))':h='ih*(1/${s0}+${ds}*t/(${durStr}*${s0}))':x='(iw-ow)/2':y='(ih-oh)/2',scale=iw:-2`);
+                } else if (clip.activePreset === 'pan-left-right') {
+                    videoFilters.push(`crop=w='iw*0.82':h='ih*0.82':x='(iw-ow)*(t/${durStr})':y='(ih-oh)/2',scale=iw:-2`);
+                } else if (clip.activePreset === 'pan-top-bottom') {
+                    videoFilters.push(`crop=w='iw*0.82':h='ih*0.82':x='(iw-ow)/2':y='(ih-oh)*(t/${durStr})',scale=iw:-2`);
+                } else if (clip.activePreset === 'punch-in') {
+                    const punchT = Math.min(0.4, clipDur * 0.3).toFixed(2);
+                    videoFilters.push(`crop=w='if(lt(t,${punchT}),iw*(1-0.3*t/${punchT}),iw*0.7)':h='if(lt(t,${punchT}),ih*(1-0.3*t/${punchT}),ih*0.7)':x='(iw-ow)/2':y='(ih-oh)/2',scale=iw:-2`);
+                } else {
+                    const s0 = (k0.scale || 100) / 100;
+                    const s1 = (k1.scale || 100) / 100;
+                    const ds = s1 - s0;
+                    videoFilters.push(`crop=w='iw*(1/${s0}-${ds}*t/(${durStr}*${Math.max(s0, s1, 1)}))':h='ih*(1/${s0}-${ds}*t/(${durStr}*${Math.max(s0, s1, 1)}))':x='(iw-ow)*(0.5+(${k0.x || 0}+(${k1.x || 0}-${k0.x || 0})*t/${durStr})/200)':y='(ih-oh)*(0.5+(${k0.y || 0}+(${k1.y || 0}-${k0.y || 0})*t/${durStr})/200)',scale=iw:-2`);
+                }
+            } else if (clip.transform) {
+                const scale = Number(clip.transform.scale) || 100;
+                const xPct = Number(clip.transform.x) || 0;
+                const yPct = Number(clip.transform.y) || 0;
+                const rot = Number(clip.transform.rotation) || 0;
+                if (scale !== 100 || xPct !== 0 || yPct !== 0) {
+                    const s = scale / 100;
+                    const xNorm = 0.5 + (xPct / 200);
+                    const yNorm = 0.5 + (yPct / 200);
+                    videoFilters.push(`crop=w='iw/${s}':h='ih/${s}':x='(iw-ow)*${xNorm.toFixed(3)}':y='(ih-oh)*${yNorm.toFixed(3)}',scale=iw:-2`);
+                }
+                if (rot !== 0) {
+                    videoFilters.push(`rotate=${(rot * Math.PI / 180).toFixed(4)}:fillcolor=black@0`);
+                }
+            }
+
+            if (rotTrack && rotTrack.length >= 1) {
+                const rotExpr = buildFfmpegPiecewiseExpr(rotTrack, 0);
+                videoFilters.push(`rotate='((${rotExpr})*PI/180)':fillcolor=black@0`);
+            }
+
+            if (opacTrack && opacTrack.length >= 2) {
+                const o0 = opacTrack[0].v;
+                const o1 = opacTrack[opacTrack.length - 1].v;
+                if (o0 === 0 && o1 === 100) {
+                    const d = Math.max(0.1, opacTrack[1].t - opacTrack[0].t);
+                    videoFilters.push(`fade=t=in:st=${opacTrack[0].t.toFixed(2)}:d=${d.toFixed(2)}`);
+                } else if (o0 === 100 && o1 === 0) {
+                    const d = Math.max(0.1, opacTrack[opacTrack.length - 1].t - opacTrack[opacTrack.length - 2].t);
+                    videoFilters.push(`fade=t=out:st=${opacTrack[opacTrack.length - 2].t.toFixed(2)}:d=${d.toFixed(2)}`);
+                }
+            }
+
             if (filterMap[clip.filter]) videoFilters.push(filterMap[clip.filter]);
             if (gradeMap[clip.colorGrade?.preset]) videoFilters.push(gradeMap[clip.colorGrade.preset]);
             if (Number(clip.colorGrade?.exposure)) videoFilters.push(`eq=brightness=${Math.max(-1, Math.min(1, Number(clip.colorGrade.exposure)))}`);
@@ -239,10 +389,28 @@ async function exportProjectVideo(projectId, opts = {}) {
             }
             filterParts.push(`[${idx}:v]${videoFilters.join(',')}${videoLabel}`);
             vStreams.push(videoLabel);
-            if (clip.hasAudio !== false) {
+            const isClipAudioAllowed = !state.muteVideoAudio && clip.hasAudio !== false && !clip.muteAudio && (clip.volume === undefined || clip.volume > 0);
+            if (isClipAudioAllowed) {
                 const audioLabel = `[audio${idx}]`;
-                const audioFilters = [`volume=${Math.max(0, Math.min(2, Number(clip.volume) || 1))}`];
+                const baseVolume = Math.max(0, Math.min(2, Number(clip.volume) || 1));
+                const audioFilters = [];
                 const clipDuration = Math.max(0.1, (Number(clip.trimEnd) || 30) - (Number(clip.trimStart) || 0));
+
+                const volTrack = Array.isArray(anim.volume) && anim.volume.length > 0 ? anim.volume.slice().sort((a, b) => a.t - b.t) : null;
+                if (volTrack && volTrack.length >= 2) {
+                    const v0 = volTrack[0].v;
+                    const v1 = volTrack[volTrack.length - 1].v;
+                    if (v0 === 0 && v1 > 0) {
+                        const d = Math.max(0.1, volTrack[1].t - volTrack[0].t);
+                        audioFilters.push(`afade=t=in:st=${volTrack[0].t.toFixed(2)}:d=${d.toFixed(2)}`);
+                    }
+                    if (volTrack.length >= 4) {
+                        const dOut = Math.max(0.1, volTrack[3].t - volTrack[2].t);
+                        audioFilters.push(`afade=t=out:st=${volTrack[2].t.toFixed(2)}:d=${dOut.toFixed(2)}`);
+                    }
+                }
+
+                audioFilters.push(`volume=${baseVolume}`);
                 if (Number(clip.fadeIn) > 0) audioFilters.push(`afade=t=in:st=0:d=${Math.min(Number(clip.fadeIn), clipDuration)}`);
                 if (Number(clip.fadeOut) > 0) audioFilters.push(`afade=t=out:st=${Math.max(0, clipDuration - Number(clip.fadeOut))}:d=${Math.min(Number(clip.fadeOut), clipDuration)}`);
                 filterParts.push(`[${idx}:a]${audioFilters.join(',')}${audioLabel}`);
@@ -323,6 +491,7 @@ async function exportProjectVideo(projectId, opts = {}) {
         });
 
         // Mix music track if present
+        const isVideoAudioMuted = Boolean(state.muteVideoAudio) || clips.every(c => c.hasAudio === false || c.volume === 0 || c.muteAudio === true);
         let finalAudioMap;
         if (musicInputs.length) {
             const musicLabels = musicInputs.map(({ clip, index }, musicIndex) => {
@@ -337,8 +506,17 @@ async function exportProjectVideo(projectId, opts = {}) {
                 filterParts.push(`[${index}:a]${filters.join(',')}${label}`);
                 return label;
             });
-            filterParts.push(`[outa_vid]${musicLabels.join('')}amix=inputs=${musicLabels.length + 1}:duration=first[outa]`);
-            finalAudioMap = '[outa]';
+            if (isVideoAudioMuted) {
+                if (musicLabels.length === 1) {
+                    finalAudioMap = musicLabels[0];
+                } else {
+                    filterParts.push(`${musicLabels.join('')}amix=inputs=${musicLabels.length}:duration=longest[outa]`);
+                    finalAudioMap = '[outa]';
+                }
+            } else {
+                filterParts.push(`[outa_vid]${musicLabels.join('')}amix=inputs=${musicLabels.length + 1}:duration=first[outa]`);
+                finalAudioMap = '[outa]';
+            }
         } else {
             finalAudioMap = '[outa_vid]';
         }

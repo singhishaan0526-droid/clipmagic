@@ -208,9 +208,25 @@ const MusicEngine = (() => {
      */
     async function decode_audio(url) {
         const ctx = getCtx();
+        if (ctx && ctx.state === 'suspended') {
+            try { await ctx.resume(); } catch (_) {}
+        }
         const res = await fetch(url);
         const ab = await res.arrayBuffer();
-        return ctx.decodeAudioData(ab);
+        return new Promise((resolve, reject) => {
+            try {
+                const p = ctx.decodeAudioData(
+                    ab.slice(0),
+                    buf => resolve(buf),
+                    err => reject(err)
+                );
+                if (p && typeof p.then === 'function') {
+                    p.then(resolve).catch(reject);
+                }
+            } catch (e) {
+                reject(e);
+            }
+        });
     }
 
     /**
@@ -231,14 +247,25 @@ const MusicEngine = (() => {
         return offCtx.startRendering();
     }
 
-    /**
-     * analyzeBPM(arrayBuffer) → Promise<number>
-     * High-level entry point that takes an ArrayBuffer (from fetch or FileReader)
-     * and returns the detected BPM.
-     */
     async function analyzeBPM(arrayBuffer) {
         const ctx = getCtx();
-        const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+        if (ctx && ctx.state === 'suspended') {
+            try { await ctx.resume(); } catch (_) {}
+        }
+        const audioBuffer = await new Promise((resolve, reject) => {
+            try {
+                const p = ctx.decodeAudioData(
+                    arrayBuffer.slice(0),
+                    buf => resolve(buf),
+                    err => reject(err)
+                );
+                if (p && typeof p.then === 'function') {
+                    p.then(resolve).catch(reject);
+                }
+            } catch (e) {
+                reject(e);
+            }
+        });
         return analyze_bpm(audioBuffer);
     }
 
