@@ -610,7 +610,7 @@
                                     <button class="btn btn-secondary btn-sm"
                                         onclick="window.location.href='editor.html'">Edit</button>
                                     <button class="btn btn-primary btn-sm"
-                                        onclick="showToast('Downloading…','<i data-lucide="download" style="width:16px; height:16px; margin-right:4px;"></i>️')">Export</button>
+                                        onclick="showToast('Downloading…','📥')">Export</button>
                                 </div>
                             </div>
 
@@ -634,7 +634,7 @@
                                     <button class="btn btn-secondary btn-sm"
                                         onclick="window.location.href='editor.html'">Edit</button>
                                     <button class="btn btn-primary btn-sm"
-                                        onclick="showToast('Downloading…','<i data-lucide="download" style="width:16px; height:16px; margin-right:4px;"></i>️')">Export</button>
+                                        onclick="showToast('Downloading…','📥')">Export</button>
                                 </div>
                             </div>
 
@@ -651,7 +651,7 @@
                                         <span class="project-meta-item"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> 4:12</span>
                                         <span class="project-meta-item"><i data-lucide="calendar" style="width:14px; height:14px; margin-right:4px;"></i> Feb 27</span>
                                         <span class="badge badge-green" style="font-size:0.68rem; padding:3px 8px;">AI
-                                            Active</span>
+                                             Active</span>
                                     </div>
                                 </div>
                                 <div class="project-actions">
@@ -680,7 +680,7 @@
                                     <button class="btn btn-secondary btn-sm"
                                         onclick="window.location.href='editor.html'">Edit</button>
                                     <button class="btn btn-primary btn-sm"
-                                        onclick="showToast('Downloading…','<i data-lucide="download" style="width:16px; height:16px; margin-right:4px;"></i>️')">Export</button>
+                                        onclick="showToast('Downloading…','📥')">Export</button>
                                 </div>
                             </div>
 
@@ -702,7 +702,7 @@
                                     <button class="btn btn-secondary btn-sm"
                                         onclick="window.location.href='editor.html'">Edit</button>
                                     <button class="btn btn-ghost btn-sm"
-                                        onclick="showToast('Deleted!','<i data-lucide="trash-2" style="width:16px; height:16px;"></i>')">Delete</button>
+                                        onclick="showToast('Deleted!','🗑️')">Delete</button>
                                 </div>
                             </div>
                         </div>
@@ -734,19 +734,19 @@
                         <div class="sidebar-card">
                             <div class="sidebar-card-title"><i data-lucide="cpu" style="width:18px; height:18px;"></i> Quick AI Tools</div>
                             <div class="tools-grid">
-                                <div class="tool-btn" onclick="showToast('AI Cut launched!','<i data-lucide="scissors" style="width:20px; height:20px;"></i>')">
+                                <div class="tool-btn" onclick="showToast('AI Cut launched!','✂️')">
                                     <div class="tool-btn-icon"><i data-lucide="scissors" style="width:20px; height:20px;"></i></div>
                                     <div class="tool-btn-label">Smart Cut</div>
                                 </div>
-                                <div class="tool-btn" onclick="showToast('Captions tool launched!','<i data-lucide="message-square" style="width:20px; height:20px;"></i>')">
+                                <div class="tool-btn" onclick="showToast('Captions tool launched!','💬')">
                                     <div class="tool-btn-icon"><i data-lucide="message-square" style="width:20px; height:20px;"></i></div>
                                     <div class="tool-btn-label">Captions</div>
                                 </div>
-                                <div class="tool-btn" onclick="showToast('Color grade launched!','<i data-lucide="palette" style="width:20px; height:20px;"></i>')">
+                                <div class="tool-btn" onclick="showToast('Color grade launched!','🎨')">
                                     <div class="tool-btn-icon"><i data-lucide="palette" style="width:20px; height:20px;"></i></div>
                                     <div class="tool-btn-label">Color Grade</div>
                                 </div>
-                                <div class="tool-btn" onclick="showToast('Music sync launched!','<i data-lucide="music" style="width:20px; height:20px;"></i>')">
+                                <div class="tool-btn" onclick="showToast('Music sync launched!','🎵')">
                                     <div class="tool-btn-icon"><i data-lucide="music" style="width:20px; height:20px;"></i></div>
                                     <div class="tool-btn-label">Music Sync</div>
                                 </div>
@@ -758,7 +758,7 @@
                             <div class="sidebar-card-title"><i data-lucide="clock" style="width:14px; height:14px; margin-right:4px;"></i> Recent Activity</div>
                             <div class="activity-list">
                                 <div class="activity-item">
-                                    <div class="activity-icon a-export"><i data-lucide="download" style="width:16px; height:16px; margin-right:4px;"></i>️</div>
+                                    <div class="activity-icon a-export">📥</div>
                                     <div class="activity-text">
                                         <strong>Exported "Product Launch Reel"</strong>
                                         <div class="activity-time">Today, 6:12 PM</div>
@@ -945,7 +945,7 @@
             if (confirm('Are you sure you want to delete this project?')) {
                 ProjectService.deleteProject(id);
                 renderProjects();
-                showToast('Project deleted', '<i data-lucide="trash-2" style="width:16px; height:16px;"></i>');
+                showToast('Project deleted', '🗑️');
             }
         }
     </script>
