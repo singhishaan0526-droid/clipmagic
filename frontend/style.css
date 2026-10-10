@@ -1,10 +1,10 @@
 /* ========================================
-   CLIP MAGIC — Global Design System
+   CLIP MAGIC â€” Global Design System
    ======================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
-/* === CSS Variables — Dark Mode (default) === */
+/* === CSS Variables â€” Dark Mode (default) === */
 :root {
   --bg-primary: hsl(220, 15%, 8%);
   --bg-secondary: hsl(220, 15%, 10%);
@@ -38,7 +38,7 @@
   --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
-/* === CSS Variables — Light Mode === */
+/* === CSS Variables â€” Light Mode === */
 [data-theme="light"] {
   --bg-primary: #FAFAFA;
   --bg-secondary: #F3F4F6;
@@ -67,7 +67,7 @@
 }
 
 
-/* === CSS Variables — Vaporwave Mode === */
+/* === CSS Variables â€” Vaporwave Mode === */
 [data-theme="vaporwave"] {
   --bg-primary: #1a0b2e;
   --bg-secondary: #2d1b4e;
@@ -129,7 +129,7 @@
   line-height: 1;
 }
 
-/* dark mode → show moon, hide sun */
+/* dark mode â†’ show moon, hide sun */
 .theme-toggle .icon-sun {
   opacity: 0;
   transform: translateY(10px) rotate(-30deg);
@@ -140,7 +140,7 @@
   transform: translateY(0) rotate(0deg);
 }
 
-/* light mode → show sun, hide moon */
+/* light mode â†’ show sun, hide moon */
 [data-theme="light"] .theme-toggle .icon-sun {
   opacity: 1;
   transform: translateY(0) rotate(0deg);
@@ -751,19 +751,29 @@ footer .footer-links a:hover {
 /* === Responsive === */
 @media (max-width: 768px) {
   .navbar {
-    padding: 14px 20px;
-    flex-wrap: wrap;
-    row-gap: 10px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 8px;
   }
 
   .nav-links {
-    display: none;
+    display: flex;
+    gap: 6px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    padding: 5px 8px;
+    font-size: 0.78rem;
   }
 
   .nav-cta {
-    width: 100%;
+    width: auto;
     justify-content: flex-end;
-    flex-wrap: wrap;
+    gap: 6px;
   }
 
   .section {
@@ -865,7 +875,7 @@ footer .footer-links a:hover {
   flex-shrink: 0;
 }
 
-/* Tool buttons � cleaner active state with accent left border */
+/* Tool buttons — cleaner active state with accent left border */
 .tool-btn.active {
   background: rgba(59, 130, 246, 0.15) !important;
   color: var(--purple) !important;
@@ -960,3 +970,4 @@ footer .footer-links a:hover {
   background: hsla(210, 80%, 50%, 0.05);
   border-color: var(--purple);
 }
+

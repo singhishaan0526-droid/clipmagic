@@ -1557,8 +1557,91 @@
       .metric-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
+    .mobile-menu-btn {
+      display: none;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-size: 1.25rem;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .mobile-menu-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: #38bdf8;
+    }
+
+    .mobile-drawer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 998;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .mobile-drawer-overlay.open {
+      display: block;
+      opacity: 1;
+    }
+
+    .mobile-drawer {
+      position: fixed;
+      top: 66px;
+      left: 12px;
+      right: 12px;
+      background: rgba(14, 18, 32, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 20px;
+      z-index: 999;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      transform: translateY(-10px);
+      transition: transform 0.25s ease, opacity 0.25s ease;
+      opacity: 0;
+    }
+
+    .mobile-drawer.open {
+      display: flex;
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .mobile-drawer a {
+      color: #e2e8f0;
+      text-decoration: none;
+      font-size: 0.98rem;
+      font-weight: 600;
+      padding: 10px 14px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mobile-drawer a:hover, .mobile-drawer a:active {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
     @media (max-width: 768px) {
       .nav-menu { display: none; }
+      .mobile-menu-btn { display: flex; }
+      .btn-nav-ghost { display: none; }
+      .btn-nav-glow { padding: 6px 12px; font-size: 0.8rem; }
       .bento-grid { grid-template-columns: 1fr; }
       .bento-large { grid-column: span 1; }
       .playground-display-box { grid-template-columns: 1fr; }
@@ -1578,6 +1661,22 @@
     <div class="aurora-orb orb-3"></div>
   </div>
   <div class="bg-grid-overlay"></div>
+
+  <!-- Mobile Drawer Overlay -->
+  <div class="mobile-drawer-overlay" id="mobileDrawerOverlay" onclick="toggleMobileMenu()"></div>
+  <div class="mobile-drawer" id="mobileDrawer">
+    <a href="#demo" onclick="toggleMobileMenu()"><span>▶</span> Live Demo</a>
+    <a href="#features" onclick="toggleMobileMenu()"><span>✨</span> Superpowers</a>
+    <a href="#workflow" onclick="toggleMobileMenu()"><span>⚙️</span> How It Works</a>
+    <a href="#pricing" onclick="toggleMobileMenu()"><span>💎</span> Pricing</a>
+    <a href="#testimonials" onclick="toggleMobileMenu()"><span>⭐</span> Creators</a>
+    <a href="#faq" onclick="toggleMobileMenu()"><span>❓</span> FAQ</a>
+    <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:4px 0;">
+    <a href="dashboard.html"><span>📁</span> Dashboard</a>
+    <a href="upload.html"><span>📤</span> Quick Upload</a>
+    <a href="login.html"><span>🔑</span> Sign In</a>
+    <a href="editor.html" style="background:linear-gradient(135deg,#6366f1,#38bdf8); color:#fff; justify-content:center; font-weight:700; margin-top:4px;">🚀 Launch Editor ✦</a>
+  </div>
 
   <div class="landing-wrapper">
     <!-- Sticky Glass Navbar -->
@@ -1601,6 +1700,7 @@
         <div class="nav-cta-group">
           <a href="login.html" class="btn-nav-ghost">Sign In</a>
           <a href="editor.html" class="btn-nav-glow">Launch Editor ✦</a>
+          <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-label="Toggle navigation menu">☰</button>
         </div>
       </div>
     </header>
@@ -2412,6 +2512,23 @@
       document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
       if (!isOpen) {
         item.classList.add('open');
+      }
+    }
+
+    // ── Mobile Drawer Toggle ─────────────────────────────────────────────
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobileDrawer');
+      const overlay = document.getElementById('mobileDrawerOverlay');
+      const btn = document.getElementById('mobileMenuBtn');
+      const isOpen = drawer.classList.contains('open');
+      if (isOpen) {
+        drawer.classList.remove('open');
+        overlay.classList.remove('open');
+        if (btn) btn.textContent = '☰';
+      } else {
+        drawer.classList.add('open');
+        overlay.classList.add('open');
+        if (btn) btn.textContent = '✕';
       }
     }
   </script>

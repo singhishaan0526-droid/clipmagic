@@ -41,7 +41,23 @@ const MusicEngine = (() => {
             bassFilter.connect(gainNode);
             gainNode.connect(audioCtx.destination);
         }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(() => {});
+        }
         return audioCtx;
+    }
+
+    // Auto-unlock audio on mobile touch / click
+    if (typeof window !== 'undefined') {
+        const unlockAudio = () => {
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
+            }
+            window.removeEventListener('pointerdown', unlockAudio);
+            window.removeEventListener('touchstart', unlockAudio);
+        };
+        window.addEventListener('pointerdown', unlockAudio, { passive: true });
+        window.addEventListener('touchstart', unlockAudio, { passive: true });
     }
 
     /**
