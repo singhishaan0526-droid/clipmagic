@@ -386,6 +386,24 @@ async function exportProjectVideo(projectId, opts = {}) {
             const transitionDuration = Math.min(2, Math.max(0.1, Number(clip.transition?.duration) || 0.5));
             if (incomingTransition === 'fade' || incomingTransition === 'dissolve') {
                 videoFilters.push(`fade=t=in:st=0:d=${transitionDuration}`);
+            } else if (incomingTransition === 'fade-black') {
+                videoFilters.push(`fade=t=in:st=0:d=${transitionDuration}:color=black`);
+            } else if (incomingTransition === 'fade-white') {
+                videoFilters.push(`fade=t=in:st=0:d=${transitionDuration}:color=white`);
+            } else if (incomingTransition === 'slide-left' || incomingTransition === 'slide') {
+                videoFilters.push(`fade=t=in:st=0:d=${transitionDuration * 0.7}`);
+            } else if (incomingTransition === 'slide-right') {
+                videoFilters.push(`fade=t=in:st=0:d=${transitionDuration * 0.7}`);
+            } else if (incomingTransition === 'zoom-in' || incomingTransition === 'zoom') {
+                videoFilters.push(`fade=t=in:st=0:d=${transitionDuration * 0.6}`);
+            } else if (incomingTransition === 'zoom-out') {
+                videoFilters.push(`fade=t=in:st=0:d=${transitionDuration * 0.6}`);
+            } else if (incomingTransition === 'spin') {
+                videoFilters.push(`fade=t=in:st=0:d=${transitionDuration * 0.7}`);
+            } else if (incomingTransition === 'motion-blur') {
+                videoFilters.push(`boxblur=8:1:enable='between(t,0,${transitionDuration})',fade=t=in:st=0:d=${transitionDuration}`);
+            } else if (incomingTransition === 'wipe') {
+                videoFilters.push(`fade=t=in:st=0:d=${transitionDuration}`);
             }
             filterParts.push(`[${idx}:v]${videoFilters.join(',')}${videoLabel}`);
             vStreams.push(videoLabel);
