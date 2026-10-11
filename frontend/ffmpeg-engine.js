@@ -3,6 +3,15 @@
 
 let ffmpeg = null;
 let ffmpegLoadPromise = null;
+let currentExportState = 'idle'; // 'idle' | 'preparing' | 'rendering' | 'cancelling' | 'completed' | 'failed'
+let activeExport = null;
+let lastExportedResult = null;
+
+function setExportState(state, data = {}) {
+    currentExportState = state;
+    window.exportState = state;
+    window.dispatchEvent(new CustomEvent('export:state', { detail: { state, ...data } }));
+}
 
 // Icon identifiers mapped to safe inline SVG — never put user data inside these.
 const ICONS = {
@@ -22,10 +31,16 @@ async function loadFFmpeg() {
         const FFmpegLib = window.FFmpegWASM || window.FFmpeg || window;
         if (!FFmpegLib.FFmpeg) throw new Error('FFmpeg library is unavailable');
         const instance = new FFmpegLib.FFmpeg();
-        instance.on('progress', ({ progress }) => {
-            const pct = Math.round(progress * 100);
+        instance.on('progress', ({ progress, time }) => {
+            const pct = Math.min(100, Math.max(0, Math.round((progress || 0) * 100)));
+            if (activeExport) activeExport.progress = pct;
+            window.dispatchEvent(new CustomEvent('export:progress', { detail: { pct, progress, time } }));
             const pb = document.getElementById('aiProgress');
             if (pb) pb.style.width = pct + '%';
+            const ep = document.getElementById('exportPct');
+            if (ep) ep.textContent = pct + '%';
+            const ec = document.getElementById('exportCircle');
+            if (ec) ec.style.strokeDashoffset = (314 - (314 * pct) / 100).toString();
         });
 
         // The single-threaded FFmpeg API is more stable in browser memory-constrained
@@ -93,6 +108,9 @@ async function exportProjectVideo(projectId, opts = {}) {
     const fps = [24, 30, 60].includes(Number(opts.fps)) ? Number(opts.fps) : null;
     if (opts.format && opts.format !== 'mp4') throw new Error('Only MP4 export is currently supported.');
 
+    activeExport = { id: Date.now(), cancelled: false, progress: 0 };
+    setExportState('preparing');
+
     if (!ffmpeg) {
         showToast('Starting FFmpeg engine just-in-time...', '⚙️');
         await loadFFmpeg();
@@ -124,6 +142,7 @@ async function exportProjectVideo(projectId, opts = {}) {
 
         let totalInputBytes = 0;
         for (const assetId of uniqueAssetIds) {
+            if (activeExport.cancelled) throw new Error('Export cancelled by user');
             const file = await ProjectService.getAsset(projectId, assetId);
             if (file) {
                 totalInputBytes += file.size || 0;
@@ -143,14 +162,14 @@ async function exportProjectVideo(projectId, opts = {}) {
         await ffmpeg.writeFile('DejaVuSans.ttf', new Uint8Array(await fontResponse.arrayBuffer()));
         writtenFiles.push('DejaVuSans.ttf');
 
-        showToast('Rendering timeline...', '🎬');
+        if (activeExport.cancelled) throw new Error('Export cancelled by user');
 
         // 2. Identify tracks
         const videoTrack = state.tracks.find(t => t.type === 'video');
         const musicTrack = state.tracks.find(t => t.type === 'audio' || t.type === 'music');
 
         if (!videoTrack || !Array.isArray(videoTrack.clips) || videoTrack.clips.length === 0) {
-            throw new Error('No video clips to export');
+            throw new Error('No video clips to export. Please import media first.');
         }
 
         const clips = videoTrack.clips;
@@ -172,6 +191,7 @@ async function exportProjectVideo(projectId, opts = {}) {
 
         if (isLosslessRequested || (opts.losslessAuto && isSingleClipTrim && !hasTextOverlays)) {
             showToast('⚡ Instant Lossless Stream Copy rendering...', '⚡', 'success');
+            setExportState('rendering', { mode: 'lossless' });
             const targetClip = clips[0];
             const trimStart = Number.isFinite(targetClip.trimStart) ? Math.max(0, targetClip.trimStart) : 0;
             const trimEnd = Number.isFinite(targetClip.trimEnd) && targetClip.trimEnd > trimStart ? targetClip.trimEnd : null;
@@ -194,16 +214,26 @@ async function exportProjectVideo(projectId, opts = {}) {
             const blob = new Blob([data.buffer], { type: 'video/mp4' });
             outputUrl = URL.createObjectURL(blob);
             try { await ffmpeg.deleteFile('output.mp4'); } catch (_) {}
-            
-            if (aiOverlay) aiOverlay.classList.remove('active');
+
+            const projName = (window.currentProject && window.currentProject.name) || 'clip-magic';
+            const filename = `${projName.replace(/[^a-z0-9_-]/gi, '_')}-lossless-${Date.now()}.mp4`;
+            lastExportedResult = {
+                blob,
+                url: outputUrl,
+                filename,
+                size: blob.size,
+                preset: 'lossless'
+            };
+
+            setExportState('completed', { result: lastExportedResult });
             showToast('⚡ Lossless Export Complete in seconds!', '⚡', 'success');
 
-            const a = document.createElement('a');
-            a.href = outputUrl;
-            a.download = `clip-magic-lossless-${Date.now()}.mp4`;
-            a.click();
-            setTimeout(() => { if (outputUrl) URL.revokeObjectURL(outputUrl); }, 6000);
-            return;
+            const ep = document.getElementById('exportPct');
+            if (ep) ep.textContent = '100%';
+            const ec = document.getElementById('exportCircle');
+            if (ec) ec.style.strokeDashoffset = '0';
+
+            return lastExportedResult;
         }
 
         // 3. Build validated input arguments for video clips
@@ -562,10 +592,13 @@ async function exportProjectVideo(projectId, opts = {}) {
         ];
 
         console.log('[FFmpeg] Executing: ', finalArgs.join(' '));
+        setExportState('rendering', { mode: 're-encode' });
         await ffmpeg.exec(finalArgs);
         writtenFiles.push('output.mp4');
 
-        // 6. Read result and download
+        if (activeExport.cancelled) throw new Error('Export cancelled by user');
+
+        // 6. Read result
         const data = await ffmpeg.readFile('output.mp4');
         const blob = new Blob([data.buffer], { type: 'video/mp4' });
         outputUrl  = URL.createObjectURL(blob);
@@ -574,32 +607,91 @@ async function exportProjectVideo(projectId, opts = {}) {
         const outputIndex = writtenFiles.indexOf('output.mp4');
         if (outputIndex >= 0) writtenFiles.splice(outputIndex, 1);
 
-        if (aiOverlay) aiOverlay.classList.remove('active');
+        const projName = (window.currentProject && window.currentProject.name) || 'clip-magic';
+        const filename = `${projName.replace(/[^a-z0-9_-]/gi, '_')}-export-${Date.now()}.mp4`;
+        lastExportedResult = {
+            blob,
+            url: outputUrl,
+            filename,
+            size: blob.size,
+            preset: opts.presetPlatform || 'standard'
+        };
+
+        setExportState('completed', { result: lastExportedResult });
         showToast('Render Complete!', '✅', 'success');
 
-        const a    = document.createElement('a');
-        a.href     = outputUrl;
-        a.download = `clip-magic-export-${Date.now()}.mp4`;
-        a.click();
+        const ep = document.getElementById('exportPct');
+        if (ep) ep.textContent = '100%';
+        const ec = document.getElementById('exportCircle');
+        if (ec) ec.style.strokeDashoffset = '0';
 
-        // L3 FIX: revoke after the browser has had time to begin the download
-        setTimeout(() => {
-            if (outputUrl) { URL.revokeObjectURL(outputUrl); outputUrl = null; }
-        }, 5000);
+        return lastExportedResult;
 
     } catch (err) {
+        if (activeExport && activeExport.cancelled) {
+            console.log('[FFmpeg] Export was cancelled by user.');
+            setExportState('idle');
+            showToast('Export cancelled.', 'ℹ️', 'info');
+            return null;
+        }
         console.error(err);
-        showToast('Export failed: ' + err.message, '❌', 'error');
-        const aiOverlay = document.getElementById('aiOverlay') || document.getElementById('exportModal');
-        if (aiOverlay) aiOverlay.classList.remove('active');
+        setExportState('failed', { error: err.message || 'Render failed' });
+        showToast('Export failed: ' + (err.message || 'Unknown error'), '❌', 'error');
         if (outputUrl) { URL.revokeObjectURL(outputUrl); outputUrl = null; }
     } finally {
         // L3 FIX: always delete VFS files to free WASM memory
         for (const name of writtenFiles) {
             try { await ffmpeg.deleteFile(name); } catch (_) { /* ignore */ }
         }
+        if (activeExport) {
+            activeExport = null;
+        }
     }
 }
+
+// ─── EXPORT CONTROLS & STATE GETTERS ──────────────────────────────────────────
+
+window.getExportState = function () {
+    return currentExportState;
+};
+
+window.getLastExportResult = function () {
+    return lastExportedResult;
+};
+
+window.cancelActiveExport = async function () {
+    if (!activeExport || currentExportState === 'idle' || currentExportState === 'completed') {
+        setExportState('idle');
+        return;
+    }
+    setExportState('cancelling');
+    activeExport.cancelled = true;
+    try {
+        if (ffmpeg) {
+            ffmpeg.terminate();
+            ffmpeg = null;
+            ffmpegLoadPromise = null;
+        }
+    } catch (e) {
+        console.warn('Error during ffmpeg termination:', e);
+    }
+    setExportState('idle');
+    showToast('Export cancelled.', 'ℹ️', 'info');
+};
+
+window.downloadLastExport = function () {
+    if (!lastExportedResult || !lastExportedResult.url) {
+        showToast('No exported video ready to download.', '⚠️', 'error');
+        return;
+    }
+    const a = document.createElement('a');
+    a.href = lastExportedResult.url;
+    a.download = lastExportedResult.filename || `clip-magic-${Date.now()}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast('Download started!', '⬇️', 'success');
+};
 
 // ─── EDITOR UI INTEGRATION ───────────────────────────────────────────────────
 
@@ -607,7 +699,15 @@ window.handleEditorExport = async function (opts = {}) {
     const projId = window.currentProject ? window.currentProject.id : null;
     if (!projId) {
         showToast('No active project to export.', '⚠️', 'error');
-        return;
+        setExportState('failed', { error: 'No active project' });
+        return null;
     }
-    await exportProjectVideo(projId, opts);
+    const state = window.projectState;
+    const vTrack = state?.tracks?.find(t => t.type === 'video');
+    if (!vTrack || !vTrack.clips || vTrack.clips.length === 0) {
+        showToast('Please import video media before exporting.', '⚠️', 'error');
+        setExportState('failed', { error: 'No video media in timeline' });
+        return null;
+    }
+    return await exportProjectVideo(projId, opts);
 };

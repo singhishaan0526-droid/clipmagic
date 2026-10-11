@@ -34,10 +34,10 @@ window.addEventListener('scroll', () => {
 
 // === Active nav link ===
 document.addEventListener('DOMContentLoaded', () => {
-  const page = location.pathname.split('/').pop() || 'index.html';
+  const page = location.pathname.split('/').pop() || '';
   document.querySelectorAll('.nav-links a').forEach(a => {
     const href = a.getAttribute('href');
-    if (href === page || (page === '' && href === 'index.html')) {
+    if (href === page || ((page === '' || page === 'index.html') && (href === '/' || href === 'index.html'))) {
       a.classList.add('active');
     }
   });
@@ -50,6 +50,8 @@ function showToast(message, icon = '<i data-lucide="sparkles" style="width:18px;
 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
   // H2 FIX: message via textContent, not innerHTML — blocks XSS
   const iconSpan = document.createElement('span');
   iconSpan.className = 'toast-icon';
@@ -297,16 +299,77 @@ const ProjectService = {
   },
 
   getProject(id) {
+    if (!id) return null;
     return this.getProjects().find(p => p.id === id);
   },
 
-  updateProject(id, updates) {
+  updateProject(id, updates = {}) {
+    if (!id) return null;
     const projects = this.getProjects();
     const idx = projects.findIndex(p => p.id === id);
     if (idx !== -1) {
-      projects[idx] = { ...projects[idx], ...updates };
+      projects[idx] = {
+        ...projects[idx],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
       this.saveProjects(projects);
+      return projects[idx];
+    } else {
+      // Upsert: ensures a freshly opened or session project is never silently lost
+      const newProj = {
+        id,
+        name: updates.name || (window.currentProject && window.currentProject.name) || 'Untitled Project',
+        timestamp: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: updates.status || 'draft',
+        duration: updates.duration || '0:00',
+        size: updates.size || '0 MB',
+        thumbType: 1,
+        projectState: updates.projectState || {
+          tracks: [
+            { id: 'track-v1', type: 'video', name: 'Video 1', clips: [] },
+            { id: 'track-a1', type: 'audio', name: 'Audio 1', clips: [] }
+          ]
+        },
+        ...updates
+      };
+      projects.unshift(newProj);
+      this.saveProjects(projects);
+      return newProj;
     }
+  },
+
+  exportProjectBackup(id) {
+    const project = this.getProject(id);
+    if (!project) throw new Error('Project not found in local browser storage.');
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(project, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute('href', dataStr);
+    dlAnchor.setAttribute('download', `${(project.name || 'clipmagic-project').replace(/[^a-z0-9_-]/gi, '_')}.clipmagic.json`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  },
+
+  async importProjectBackup(jsonString) {
+    const parsed = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+    if (!parsed || typeof parsed !== 'object') throw new Error('Invalid project file format.');
+    if (!parsed.projectState || !Array.isArray(parsed.projectState.tracks)) {
+      throw new Error('Project file missing valid timeline tracks.');
+    }
+    const newId = 'proj-' + Date.now();
+    const imported = {
+      ...parsed,
+      id: newId,
+      name: (parsed.name || 'Imported Project') + ' (Restored)',
+      timestamp: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    const projects = this.getProjects();
+    projects.unshift(imported);
+    this.saveProjects(projects);
+    return imported;
   },
 
   async deleteProject(id) {

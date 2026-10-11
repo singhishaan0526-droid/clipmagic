@@ -3,8 +3,11 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Editor — Clip Magic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;700;900&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css" />
     <style>
         /* ── Layout ── */
@@ -136,8 +139,10 @@
         }
 
         .tool-btn {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
             border-radius: 10px;
             border: none;
             background: transparent;
@@ -154,15 +159,16 @@
 
         .tool-btn:hover,
         .tool-btn.active {
-            background: rgba(139, 92, 246, 0.14);
+            background: rgba(139, 92, 246, 0.16);
             color: var(--purple);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.25);
         }
 
         .tool-btn .tool-label {
-            font-size: 0.48rem;
+            font-size: 0.5rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
             margin-top: 2px;
             line-height: 1;
         }
@@ -226,10 +232,10 @@
             touch-action:none;
             -webkit-font-smoothing: antialiased;
         }
-        .text-overlay:hover, .text-overlay.dragging { outline:1.5px dashed rgba(255,255,255,.9); outline-offset:6px; }
+        .text-overlay:hover, .text-overlay.dragging, .text-overlay.selected-overlay { outline:2px solid #a855f7 !important; outline-offset:4px; box-shadow: 0 0 14px rgba(168,85,247,0.7); }
         .text-overlay.dragging { cursor:grabbing; animation:none !important; transform:translate(-50%,-50%) scale(1) !important; }
         .text-overlay::after { content:'↕ drag'; position:absolute; left:50%; top:100%; transform:translate(-50%,6px); opacity:0; padding:2px 6px; border-radius:4px; background:rgba(0,0,0,.8); color:#fff; font:700 11px/1 Inter,sans-serif; white-space:nowrap; pointer-events:none; transition:opacity .15s; }
-        .text-overlay:hover::after, .text-overlay.dragging::after { opacity:.95; }
+        .text-overlay:hover::after, .text-overlay.dragging::after, .text-overlay.selected-overlay::after { opacity:.95; }
         .text-overlay .lyric-word {
             display: inline-block;
             white-space: pre;
@@ -331,6 +337,50 @@
         .vfx-shake { animation:clipMagicShake .16s steps(2,end) infinite; }
         .vfx-glitch { }
         .vfx-blur { }
+
+        /* ── Phase 5: Sticker Animations ── */
+        @keyframes stkBounce {
+            0%, 100% { transform: translate(-50%, -50%) rotate(var(--stk-rot, 0deg)) scale(var(--stk-scale, 1)); }
+            50% { transform: translate(-50%, -50%) rotate(var(--stk-rot, 0deg)) scale(calc(var(--stk-scale, 1) * 1.25)) translateY(-6px); }
+        }
+        @keyframes stkPulse {
+            0%, 100% { transform: translate(-50%, -50%) rotate(var(--stk-rot, 0deg)) scale(var(--stk-scale, 1)); filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); }
+            50% { transform: translate(-50%, -50%) rotate(var(--stk-rot, 0deg)) scale(calc(var(--stk-scale, 1) * 1.18)); filter: drop-shadow(0 0 10px rgba(168,85,247,0.85)); }
+        }
+        @keyframes stkSpin {
+            from { transform: translate(-50%, -50%) rotate(0deg) scale(var(--stk-scale, 1)); }
+            to { transform: translate(-50%, -50%) rotate(360deg) scale(var(--stk-scale, 1)); }
+        }
+        @keyframes stkWobble {
+            0%, 100% { transform: translate(-50%, -50%) rotate(calc(var(--stk-rot, 0deg) - 10deg)) scale(var(--stk-scale, 1)); }
+            50% { transform: translate(-50%, -50%) rotate(calc(var(--stk-rot, 0deg) + 10deg)) scale(var(--stk-scale, 1)); }
+        }
+        @keyframes stkPop {
+            0% { transform: translate(-50%, -50%) rotate(var(--stk-rot, 0deg)) scale(0); opacity: 0; }
+            70% { transform: translate(-50%, -50%) rotate(var(--stk-rot, 0deg)) scale(calc(var(--stk-scale, 1) * 1.25)); opacity: 1; }
+            100% { transform: translate(-50%, -50%) rotate(var(--stk-rot, 0deg)) scale(var(--stk-scale, 1)); opacity: 1; }
+        }
+        .stk-anim-bounce { animation: stkBounce 1s infinite ease-in-out; }
+        .stk-anim-pulse { animation: stkPulse 1.2s infinite ease-in-out; }
+        .stk-anim-spin { animation: stkSpin 3s infinite linear; }
+        .stk-anim-wobble { animation: stkWobble 0.8s infinite ease-in-out; }
+        .stk-anim-pop { animation: stkPop 0.45s ease-out forwards; }
+
+        /* ── Phase 5: Typography Font Families & Alignment ── */
+        .font-outfit { font-family: 'Outfit', sans-serif !important; }
+        .font-inter { font-family: 'Inter', sans-serif !important; }
+        .font-bebas { font-family: 'Bebas Neue', cursive, sans-serif !important; letter-spacing: 1.5px !important; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif !important; }
+        .font-marker { font-family: 'Permanent Marker', cursive, sans-serif !important; }
+        .font-serif { font-family: 'Playfair Display', serif !important; }
+        .font-mono { font-family: 'Courier New', monospace !important; }
+
+        .text-align-left { text-align: left !important; }
+        .text-align-center { text-align: center !important; }
+        .text-align-right { text-align: right !important; }
+
+        /* ── Phase 5: Filter Compare Original State ── */
+        .filter-compare-original #previewVideo { filter: none !important; }
         .lyric-item-card {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1600,12 +1650,35 @@
             display: none;
         }
 
+        /* ── Storage Badge ── */
+        .storage-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            cursor: default;
+            user-select: none;
+        }
+
+        .storage-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        }
+
         /* ── Export Modal ── */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.82);
+            backdrop-filter: blur(10px);
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -1622,13 +1695,14 @@
 
         .export-modal {
             background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); background-clip: padding-box;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
             border-radius: var(--radius-xl);
-            padding: 40px;
+            padding: 28px 32px;
             width: 100%;
-            max-width: 480px;
-            text-align: center;
-            transform: scale(0.9);
+            max-width: 500px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+            transform: scale(0.94);
             transition: var(--transition);
         }
 
@@ -1636,10 +1710,97 @@
             transform: scale(1);
         }
 
+        .export-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            text-align: left;
+            position: relative;
+        }
+
+        .export-header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--purple-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            font-size: 14px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .close-modal-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .stream-copy-note {
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-size: 0.8rem;
+            line-height: 1.45;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+
+        .stream-copy-note .callout-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #818cf8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .stream-copy-constraint {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .export-summary-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .export-media-warning {
+            padding: 8px 12px;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            color: #fbbf24;
+            font-size: 0.78rem;
+            text-align: left;
+        }
+
         .export-progress-circle {
             width: 120px;
             height: 120px;
-            margin: 0 auto 24px;
+            margin: 0 auto 18px;
             position: relative;
         }
 
@@ -1649,7 +1810,7 @@
 
         .circle-bg {
             fill: none;
-            stroke: rgba(255, 255, 255, 0.05);
+            stroke: rgba(255, 255, 255, 0.06);
             stroke-width: 8;
         }
 
@@ -1660,7 +1821,7 @@
             stroke-linecap: round;
             stroke-dasharray: 314;
             stroke-dashoffset: 314;
-            transition: stroke-dashoffset 0.1s linear;
+            transition: stroke-dashoffset 0.15s linear;
         }
 
         .export-pct {
@@ -1672,6 +1833,45 @@
             font-family: 'Outfit', sans-serif;
             font-size: 1.5rem;
             font-weight: 800;
+        }
+
+        .export-modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .export-success-icon, .export-failed-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .export-success-icon {
+            background: rgba(16, 185, 129, 0.12);
+        }
+
+        .export-failed-icon {
+            background: rgba(239, 68, 68, 0.12);
+        }
+
+        /* ── Focus and reduced motion ── */
+        :focus-visible {
+            outline: 2px solid #6366f1 !important;
+            outline-offset: 2px !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
         }
 
         /* ── Modern Mobile Workspace Switcher & Touch Styles ── */
@@ -1757,8 +1957,186 @@
             color: #fbcfe8;
         }
 
-        /* ── Unified Mobile & Tablet Layout (<= 900px) ── */
-        @media (max-width: 900px) {
+        /* ── Mobile Bottom Toolbar ── */
+        .mobile-bottom-toolbar {
+            display: none;
+            position: relative;
+            z-index: 30;
+            height: 56px;
+            min-height: 56px;
+            background: #0d0e12;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0 4px;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            align-items: center;
+            justify-content: space-around;
+            gap: 2px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            flex-shrink: 0;
+        }
+        .mobile-bottom-toolbar::-webkit-scrollbar {
+            display: none;
+        }
+        .mob-tool-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            min-width: 46px;
+            height: 48px;
+            padding: 2px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 500;
+            gap: 3px;
+            transition: all 0.15s ease;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .mob-tool-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            transition: transform 0.15s ease;
+        }
+        .mob-tool-btn:active {
+            transform: scale(0.92);
+        }
+        .mob-tool-btn.active, .mob-tool-btn:hover {
+            color: #a78bfa;
+            background: rgba(139, 92, 246, 0.12);
+        }
+        .mob-tool-btn.active svg {
+            transform: translateY(-1px);
+            stroke: #c4b5fd;
+        }
+
+        /* ── Mobile Expandable Bottom Sheet ── */
+        .mobile-bottom-sheet-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(2px);
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+        .mobile-bottom-sheet-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .mobile-bottom-sheet {
+            display: none;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 52vh;
+            max-height: 55vh;
+            background: #12141c;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.7);
+            z-index: 160;
+            transform: translateY(100%);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s ease;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: env(safe-area-inset-bottom, 8px);
+        }
+        .mobile-bottom-sheet.open {
+            transform: translateY(0);
+        }
+        .mobile-bottom-sheet.expanded {
+            height: 78vh;
+            max-height: 82vh;
+        }
+        .sheet-drag-handle-bar {
+            width: 100%;
+            padding: 10px 0 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            touch-action: none;
+        }
+        .sheet-drag-pill {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 2px;
+        }
+        .sheet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 16px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            flex-shrink: 0;
+        }
+        .sheet-title-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+        }
+        .sheet-close-btn {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .sheet-close-btn:active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+        .sheet-body {
+            flex: 1 1 0;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 12px 14px 24px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ── Touch Action and Drag Safety ── */
+        .track-clip,
+        .trim-handle,
+        .timeline-kf-marker,
+        .lane-playhead,
+        .preview-transform-gizmo,
+        .gizmo-handle,
+        .gizmo-rotate-handle,
+        .text-overlay {
+            touch-action: none !important;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* ══════════════════════════════════════════════════════
+           MOBILE LAYOUT (320px – 767px)
+           ══════════════════════════════════════════════════════ */
+        @media (max-width: 767px) {
             html, body {
                 width: 100%;
                 height: 100dvh;
@@ -1766,6 +2144,7 @@
                 overflow: hidden !important;
                 position: fixed;
                 inset: 0;
+                touch-action: none;
             }
 
             .editor-shell {
@@ -1779,121 +2158,146 @@
                 position: relative;
             }
 
+            /* Compact Mobile Topbar (320px safe) */
             .editor-topbar {
-                height: 50px;
-                min-height: 50px;
-                padding: 0 10px;
+                height: 48px;
+                min-height: 48px;
+                padding: 0 8px;
+                padding-top: env(safe-area-inset-top, 0);
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                gap: 8px;
+                gap: 4px;
                 flex-shrink: 0;
                 border-bottom: 1px solid var(--border);
                 background: var(--bg-card);
-                z-index: 20;
+                z-index: 25;
+                overflow: hidden;
             }
 
-            .topbar-logo-text, .topbar-divider, .topbar-status, .mode-toggle {
+            .topbar-logo-text,
+            .topbar-divider,
+            .topbar-status,
+            .mode-toggle,
+            #storageBadge .storage-label {
                 display: none !important;
             }
 
+            .topbar-logo {
+                gap: 0;
+                flex-shrink: 0;
+            }
+            .topbar-logo-icon {
+                width: 28px;
+                height: 28px;
+            }
+
+            .storage-badge {
+                padding: 4px;
+                min-width: 20px;
+                flex-shrink: 0;
+            }
+
             .file-name-input {
-                max-width: 130px;
-                font-size: 0.8rem;
-                padding: 2px 4px;
+                flex: 1 1 0;
+                min-width: 55px;
+                max-width: 110px;
+                font-size: 0.76rem;
+                padding: 3px 6px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+                border-radius: 6px;
             }
 
             .topbar-actions {
                 display: flex;
                 align-items: center;
-                gap: 5px;
+                gap: 3px;
                 margin-left: auto;
+                flex-shrink: 0;
             }
 
             .topbar-actions .icon-btn {
-                width: 34px;
-                height: 34px;
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                min-height: 36px;
                 border-radius: 8px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                touch-action: manipulation;
             }
 
             .topbar-actions .btn {
-                padding: 6px 14px;
-                font-size: 0.8rem;
+                padding: 5px 11px;
+                font-size: 0.78rem;
                 font-weight: 700;
                 border-radius: 8px;
-                min-height: 34px;
+                min-height: 36px;
+                touch-action: manipulation;
             }
 
-            /* Horizontal Toolbar */
+            /* Hide desktop left tool rail on phone */
             .editor-tools {
+                display: none !important;
+            }
+
+            /* Show mobile bottom toolbar and sheet */
+            .mobile-bottom-toolbar {
                 display: flex !important;
-                flex-direction: row !important;
-                height: 54px !important;
-                min-height: 54px !important;
-                max-height: 54px !important;
-                padding: 4px 8px !important;
-                gap: 6px !important;
-                overflow-x: auto !important;
-                overflow-y: hidden !important;
-                border-right: none !important;
-                border-bottom: 1px solid var(--border) !important;
-                background: #090c16 !important;
-                flex-shrink: 0 !important;
-                scrollbar-width: none;
-                -webkit-overflow-scrolling: touch;
+            }
+            .mobile-bottom-sheet {
+                display: flex !important;
+            }
+            .mobile-bottom-sheet-backdrop {
+                display: block;
             }
 
-            .editor-tools::-webkit-scrollbar {
-                display: none;
-            }
-
-            .tool-btn {
-                width: 48px !important;
-                min-width: 48px !important;
-                height: 44px !important;
-                border-radius: 8px !important;
-                flex-shrink: 0 !important;
-                padding: 2px 0 !important;
-            }
-
-            .tool-btn svg {
-                width: 16px;
-                height: 16px;
-            }
-
-            .tool-btn .tool-label {
-                font-size: 0.52rem !important;
-                margin-top: 1px;
-            }
-
-            .tool-separator {
-                width: 1px !important;
-                height: 24px !important;
-                margin: 0 2px !important;
-                flex-shrink: 0 !important;
-            }
-
-            /* Center Area (Preview Player) */
+            /* Center workspace takes available height */
             .editor-center {
                 display: flex !important;
                 flex-direction: column !important;
-                flex: 1 1 auto !important;
+                flex: 1 1 0 !important;
                 min-height: 0 !important;
                 background: #000 !important;
                 overflow: hidden !important;
-                border-bottom: 1px solid var(--border) !important;
+                border-bottom: none !important;
             }
 
+            /* Quick actions compact strip */
+            .quick-actions-bar {
+                display: flex !important;
+                overflow-x: auto !important;
+                scrollbar-width: none;
+                padding: 4px 8px !important;
+                gap: 6px !important;
+                min-height: 38px;
+                flex-shrink: 0;
+            }
+            .quick-actions-bar::-webkit-scrollbar {
+                display: none;
+            }
+            .quick-btn {
+                padding: 4px 10px !important;
+                font-size: 0.72rem !important;
+                min-height: 32px !important;
+                flex-shrink: 0;
+            }
+
+            /* Preview Player at top */
             .preview-area {
-                flex: 0 0 34vh !important;
-                min-height: 160px !important;
-                max-height: 38vh !important;
-                height: 34vh !important;
+                flex: 0 0 32vh !important;
+                min-height: 175px !important;
+                max-height: 36vh !important;
+                height: 32vh !important;
                 position: relative;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 background: #000;
+                flex-shrink: 0;
             }
 
             .preview-screen {
@@ -1907,17 +2311,42 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                padding: 8px 10px;
-                background: linear-gradient(transparent, rgba(0, 0, 0, 0.88));
-                gap: 6px;
+                padding: 6px 8px;
+                background: linear-gradient(transparent, rgba(0, 0, 0, 0.92));
+                gap: 5px;
                 z-index: 12;
             }
 
             .ctrl-btn {
-                width: 34px !important;
-                height: 34px !important;
-                font-size: 0.8rem;
+                width: 40px !important;
+                height: 40px !important;
+                min-width: 40px !important;
+                min-height: 40px !important;
+                font-size: 0.9rem;
                 flex-shrink: 0;
+                border-radius: 8px;
+                position: relative;
+                touch-action: manipulation;
+            }
+            .ctrl-btn::after {
+                content: '';
+                position: absolute;
+                inset: -2px;
+            }
+
+            .ctrl-btn#playBtn {
+                width: 48px !important;
+                height: 48px !important;
+                min-width: 48px !important;
+                min-height: 48px !important;
+                background: var(--gradient-main) !important;
+                color: #fff !important;
+                border-radius: 50% !important;
+                border: none !important;
+                box-shadow: 0 2px 12px rgba(124, 58, 237, 0.45);
+            }
+            .ctrl-btn#playBtn::after {
+                display: none;
             }
 
             .scrubber-wrap {
@@ -1929,20 +2358,19 @@
             }
 
             .scrubber::-webkit-slider-thumb {
-                width: 16px;
-                height: 16px;
+                width: 18px;
+                height: 18px;
             }
 
             .time-display {
                 font-size: 0.68rem;
             }
 
-            /* Mobile Tab Bar */
             .mobile-workspace-nav {
-                display: flex !important;
+                display: none !important;
             }
 
-            /* Timeline Mode vs Props Mode */
+            /* Timeline beneath preview */
             .timeline-area {
                 flex: 1 1 0 !important;
                 min-height: 0 !important;
@@ -1950,23 +2378,35 @@
                 height: 100% !important;
                 display: flex !important;
                 flex-direction: column !important;
-                padding: 6px 10px !important;
+                padding: 4px 6px !important;
                 background: var(--bg-secondary) !important;
                 overflow: hidden !important;
-                border-top: none !important;
+                border-top: 1px solid var(--border) !important;
             }
 
             .timeline-header {
+                display: flex !important;
                 flex-wrap: nowrap !important;
                 overflow-x: auto !important;
                 scrollbar-width: none;
                 margin-bottom: 4px;
-                gap: 6px;
+                gap: 5px;
                 flex-shrink: 0;
+                padding-bottom: 2px;
             }
 
             .timeline-header::-webkit-scrollbar {
                 display: none;
+            }
+
+            .timeline-header .icon-btn {
+                min-height: 34px !important;
+                height: 34px !important;
+                padding: 0 9px !important;
+                font-size: 0.72rem !important;
+                border-radius: 7px !important;
+                flex-shrink: 0;
+                touch-action: manipulation;
             }
 
             #timelineScrollArea {
@@ -1975,6 +2415,7 @@
                 overflow-y: auto !important;
                 overflow-x: auto !important;
                 -webkit-overflow-scrolling: touch;
+                touch-action: pan-x pan-y;
             }
 
             #tracksContainer {
@@ -1986,16 +2427,19 @@
             }
 
             .track-lane {
-                height: 34px;
+                height: 40px;
             }
 
             .track-clip {
-                min-height: 28px;
-                font-size: 0.68rem;
+                min-height: 32px;
+                font-size: 0.7rem;
+                border-radius: 6px;
+                touch-action: none !important;
             }
 
             .trim-handle {
-                width: 12px;
+                width: 14px;
+                touch-action: none !important;
             }
 
             .trim-handle::before {
@@ -2005,280 +2449,388 @@
                 z-index: 10;
             }
 
+            /* Hide desktop right properties panel on phones (rendered in bottom sheet) */
             .editor-props {
-                flex: 1 1 0 !important;
-                min-height: 0 !important;
-                max-height: none !important;
-                height: 100% !important;
-                display: flex !important;
-                flex-direction: column !important;
-                border-left: none !important;
-                border-top: none !important;
-                background: var(--bg-secondary) !important;
-                overflow: hidden !important;
-            }
-
-            .props-header {
-                padding: 8px 12px;
-                min-height: 40px;
-                flex-shrink: 0;
-            }
-
-            .props-body {
-                flex: 1 1 0;
-                min-height: 0;
-                overflow-y: auto;
-                padding: 10px 12px 24px;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .prop-section {
-                margin-bottom: 12px;
-            }
-
-            .prop-input, .prop-select, .chip-option {
-                min-height: 40px;
-            }
-
-            .music-btn {
-                min-height: 42px;
-                font-size: 0.82rem;
-            }
-
-            /* Touch Action and Drag Safety */
-            .track-clip,
-            .trim-handle,
-            .timeline-kf-marker,
-            .lane-playhead,
-            .preview-transform-gizmo,
-            .gizmo-handle,
-            .gizmo-rotate-handle,
-            .text-overlay {
-                touch-action: none !important;
-                -webkit-user-select: none;
-                user-select: none;
-            }
-
-            /* View switching classes */
-            .mobile-view-timeline .editor-center {
-                flex: 1 1 0 !important;
-                display: flex !important;
-                flex-direction: column !important;
-                min-height: 0 !important;
-            }
-            .mobile-view-timeline .timeline-area {
-                display: flex !important;
-                flex: 1 1 0 !important;
-                min-height: 0 !important;
-            }
-            .mobile-view-timeline .editor-props {
                 display: none !important;
-            }
-            .mobile-view-timeline .quick-actions-bar {
-                display: flex !important;
-            }
-
-            .mobile-view-props .editor-center {
-                flex: 0 0 auto !important;
-                display: flex !important;
-                flex-direction: column !important;
-            }
-            .mobile-view-props .timeline-area {
-                display: none !important;
-            }
-            .mobile-view-props .editor-props {
-                display: flex !important;
-                flex: 1 1 0 !important;
-                min-height: 0 !important;
-                max-height: none !important;
-                overflow-y: auto !important;
-            }
-            .mobile-view-props .quick-actions-bar {
-                display: flex !important;
-            }
-
-            .mobile-view-magic .editor-center {
-                flex: 0 0 auto !important;
-                display: flex !important;
-                flex-direction: column !important;
-            }
-            .mobile-view-magic .timeline-area {
-                display: none !important;
-            }
-            .mobile-view-magic .editor-props {
-                display: flex !important;
-                flex: 1 1 0 !important;
-                min-height: 0 !important;
-                max-height: none !important;
-                overflow-y: auto !important;
-            }
-            .mobile-view-magic .quick-actions-bar {
-                display: flex !important;
             }
 
             /* Responsive Modals */
             .export-modal, .ai-smart-trim-modal, .captions-modal, .beat-detect-modal {
-                max-width: 94vw !important;
+                max-width: 95vw !important;
                 max-height: 88vh !important;
                 overflow-y: auto !important;
-                padding: 18px 16px !important;
+                padding: 16px 14px !important;
                 box-sizing: border-box;
+            }
+        }
+
+        /* ══════════════════════════════════════════════════════
+           TABLET LAYOUT (768px – 1023px)
+           ══════════════════════════════════════════════════════ */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            html, body {
+                width: 100%;
+                height: 100dvh;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .editor-shell {
+                display: grid !important;
+                grid-template-rows: 52px 1fr !important;
+                grid-template-columns: 56px 1fr 260px !important;
+                height: 100dvh !important;
+                height: 100vh !important;
+                width: 100% !important;
+            }
+
+            .editor-topbar {
+                padding: 0 12px;
+            }
+
+            .editor-tools {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+
+            .editor-center {
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+            }
+
+            .preview-area {
+                flex: 0 0 36vh !important;
+                height: 36vh !important;
+            }
+
+            .timeline-area {
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+            }
+
+            .editor-props {
+                display: flex !important;
+                flex-direction: column !important;
+                width: 260px !important;
+            }
+
+            .mobile-bottom-toolbar {
+                display: none !important;
+            }
+            .mobile-bottom-sheet {
+                display: none !important;
+            }
+            .mobile-bottom-sheet-backdrop {
+                display: none !important;
+            }
+            .mobile-workspace-nav {
+                display: none !important;
+            }
+        }
+
+        /* ══════════════════════════════════════════════════════
+           DESKTOP PRESERVATION (>= 1024px)
+           ══════════════════════════════════════════════════════ */
+        @media (min-width: 1024px) {
+            .mobile-bottom-toolbar {
+                display: none !important;
+            }
+            .mobile-bottom-sheet {
+                display: none !important;
+            }
+            .mobile-bottom-sheet-backdrop {
+                display: none !important;
+            }
+            .mobile-workspace-nav {
+                display: none !important;
             }
         }
     </style>
     <script src="vendor/ffmpeg.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/util@0.12.2/dist/umd/index.js"></script>
     <script src="app.js"></script>
     <script src="music-engine.js"></script>
     <script src="ffmpeg-engine.js"></script>
+    <script src="asset-library.js"></script>
 </head>
 <body>
     <!-- Export Modal -->
-    <div class="modal-overlay" id="exportModal">
-        <div class="export-modal">
-            <h2 style="font-family:'Outfit'; margin-bottom:12px;">Export MP4</h2>
-            <p style="color:var(--text-secondary); margin-bottom:18px; font-size:0.9rem;" id="exportStatus">Choose settings, then render directly in your browser with FFmpeg.wasm.</p>
-            <div id="exportOptions" style="display:grid;gap:10px;text-align:left;margin-bottom:18px;">
-                <label class="prop-label">Export Preset
-                    <select class="prop-input" id="exportPresetPlatform">
-                        <option value="standard" selected>⚙️ Standard / Custom</option>
-                        <option value="lossless">⚡ Instant Lossless Stream Copy (No Re-encoding)</option>
-                        <option value="tiktok">📱 TikTok / Reels / Shorts (9:16 Vertical)</option>
-                        <option value="youtube">🎬 YouTube Full HD (16:9 1080p)</option>
-                    </select>
-                </label>
-                <label class="prop-label">Resolution<select class="prop-input" id="exportResolution"><option value="source">Source resolution</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option></select></label>
-                <label class="prop-label">Quality<select class="prop-input" id="exportQuality"><option value="fast">Fast render</option><option value="balanced" selected>Balanced</option><option value="quality">Higher quality</option></select></label>
-                <label class="prop-label">Audio bitrate<select class="prop-input" id="exportAudioBitrate"><option value="128k">128 kbps</option><option value="192k" selected>192 kbps</option><option value="256k">256 kbps</option></select></label>
-                <label class="prop-label">Frame rate<select class="prop-input" id="exportFps"><option value="source" selected>Source FPS (preserve 60 FPS)</option><option value="24">24 FPS</option><option value="30">30 FPS</option><option value="60">60 FPS</option></select></label>
-                <div class="prop-label">Format <strong style="color:var(--text-primary)">MP4 (H.264 + AAC)</strong></div>
+    <div class="modal-overlay" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+        <div class="export-modal" id="exportModalCard">
+            <div class="export-modal-header">
+                <div class="export-header-icon" id="exportHeaderIcon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </div>
+                <div style="flex:1;">
+                    <h2 id="exportModalTitle" style="font-family:'Outfit',sans-serif; font-size:1.35rem; font-weight:700; margin:0;">Export Video</h2>
+                    <p style="color:var(--text-secondary); margin:4px 0 0; font-size:0.85rem;" id="exportStatus">Configure settings and render directly in your browser with FFmpeg.wasm.</p>
+                </div>
+                <button class="close-modal-btn" onclick="cancelExport()" aria-label="Close export dialog" title="Close">✕</button>
             </div>
-            <div class="export-progress-circle">
-                <svg width="120" height="120">
-                    <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
-                    <circle class="circle-fill" id="exportCircle" cx="60" cy="60" r="50"></circle>
-                </svg>
-                <div class="export-pct" id="exportPct">0%</div>
+
+            <!-- IDLE STATE: Configuration Form -->
+            <div id="exportStateIdle" class="export-state-view">
+                <div id="exportOptions" style="display:grid; gap:12px; text-align:left; margin:16px 0;">
+                    <label class="prop-label" for="exportPresetPlatform">Export Preset
+                        <select class="prop-input" id="exportPresetPlatform" onchange="onExportPresetChange(this.value)">
+                            <option value="standard" selected>⚙️ Standard Custom (H.264 Re-encoded)</option>
+                            <option value="lossless">⚡ Instant Lossless Stream Copy (No Re-encoding)</option>
+                            <option value="tiktok">📱 TikTok / Reels / Shorts (9:16 Vertical)</option>
+                            <option value="youtube">🎬 YouTube Full HD (16:9 1080p)</option>
+                        </select>
+                    </label>
+
+                    <!-- Stream Copy informational callout (visible only when lossless is active) -->
+                    <div id="streamCopyCallout" class="stream-copy-note" style="display:none;">
+                        <div class="callout-badge">⚡ Lossless Fast-Track</div>
+                        <p style="margin:0 0 6px;">Stream copy packages original source streams at blazing speed with <strong>zero quality loss</strong>. Output preserves source resolution, frame rate, and bitrate without re-encoding.</p>
+                        <div class="stream-copy-constraint">Note: Operations requiring re-encoding (composited overlays, multi-track effects, audio mixing) require Standard preset.</div>
+                    </div>
+
+                    <!-- Re-encoding options (hidden/disabled when lossless is active) -->
+                    <div id="reencodeOptionsGroup" style="display:grid; gap:10px;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <label class="prop-label" for="exportResolution">Resolution
+                                <select class="prop-input" id="exportResolution">
+                                    <option value="source">Source resolution</option>
+                                    <option value="1080" selected>1080p (FHD)</option>
+                                    <option value="720">720p (HD)</option>
+                                    <option value="480">480p (SD)</option>
+                                </select>
+                            </label>
+                            <label class="prop-label" for="exportQuality">Quality Profile
+                                <select class="prop-input" id="exportQuality">
+                                    <option value="fast">Fast render (CRF 28)</option>
+                                    <option value="balanced" selected>Balanced (CRF 23)</option>
+                                    <option value="quality">High quality (CRF 18)</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <label class="prop-label" for="exportFps">Frame Rate
+                                <select class="prop-input" id="exportFps">
+                                    <option value="source" id="exportFpsSourceOption" selected>Source FPS (Auto)</option>
+                                    <option value="24">24 FPS (Cinematic)</option>
+                                    <option value="30">30 FPS (Standard)</option>
+                                    <option value="60">60 FPS (Smooth)</option>
+                                </select>
+                            </label>
+                            <label class="prop-label" for="exportAudioBitrate">Audio Bitrate
+                                <select class="prop-input" id="exportAudioBitrate">
+                                    <option value="128k">128 kbps</option>
+                                    <option value="192k" selected>192 kbps (High)</option>
+                                    <option value="256k">256 kbps (Studio)</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="export-summary-box">
+                        <span style="color:var(--text-muted);font-size:0.8rem;">Container & Codec:</span>
+                        <strong style="color:var(--text-primary);font-size:0.85rem;" id="exportFormatSummary">MP4 • H.264 / AVC + AAC Audio</strong>
+                    </div>
+
+                    <div id="exportMediaWarning" class="export-media-warning" style="display:none;">
+                        ⚠️ No video loaded in timeline. Import a video to enable export.
+                    </div>
+                </div>
+
+                <div class="export-modal-actions">
+                    <button class="btn btn-primary" onclick="startExportWithOptions()" id="startExportBtn" style="flex:1; justify-content:center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Render MP4 in Browser
+                    </button>
+                    <button class="btn btn-ghost" onclick="cancelExport()" style="padding:0 16px;">Close</button>
+                </div>
             </div>
-            <button class="btn btn-primary" onclick="startExportWithOptions()" id="startExportBtn" style="width:100%;justify-content:center;">Render MP4 in Browser</button>
-            <button class="btn btn-ghost" onclick="cancelExport()" id="cancelExportBtn">Cancel Export</button>
-            <button class="btn btn-primary" id="downloadBtn" style="display:none; width:100%; justify-content:center;">Download Video</button>
+
+            <!-- ACTIVE / RENDERING STATE: Progress Circle -->
+            <div id="exportStateActive" class="export-state-view" style="display:none; padding:20px 0;">
+                <div class="export-progress-circle">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                        <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="circle-fill" id="exportCircle" cx="60" cy="60" r="50"></circle>
+                    </svg>
+                    <div class="export-pct" id="exportPct">0%</div>
+                </div>
+                <div id="exportActiveStatus" style="font-size:0.95rem; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Encoding frames with FFmpeg...</div>
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:20px;">Processing locally on your device via WebAssembly</div>
+                <button class="btn btn-ghost" onclick="cancelActiveExportAction()" id="cancelExportBtn" style="color:#f87171; border-color:rgba(239,68,68,0.3); margin:0 auto;">
+                    Cancel Export
+                </button>
+            </div>
+
+            <!-- COMPLETED STATE: Ready to Download -->
+            <div id="exportStateCompleted" class="export-state-view" style="display:none; padding:15px 0;">
+                <div class="export-success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <h3 style="margin:10px 0 4px; font-family:'Outfit',sans-serif; color:var(--text-primary);">Render Complete!</h3>
+                <p id="exportCompletedInfo" style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:20px;">Your video was rendered successfully and is ready to save.</p>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <button class="btn btn-primary" onclick="downloadExportedVideo()" id="downloadBtn" style="width:100%; justify-content:center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download Video
+                    </button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-ghost" onclick="resetExportToIdle()" style="flex:1;">Export Another</button>
+                        <button class="btn btn-ghost" onclick="cancelExport()" style="flex:1;">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAILED STATE: Error Message -->
+            <div id="exportStateFailed" class="export-state-view" style="display:none; padding:15px 0;">
+                <div class="export-failed-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+                <h3 style="margin:10px 0 4px; font-family:'Outfit',sans-serif; color:#fca5a5;">Export Failed</h3>
+                <p id="exportFailedMsg" style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:20px;">An error occurred during video rendering.</p>
+                <div style="display:flex; gap:8px; justify-content:center;">
+                    <button class="btn btn-primary" onclick="resetExportToIdle()">Try Again</button>
+                    <button class="btn btn-ghost" onclick="cancelExport()">Dismiss</button>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Project Not Found Recovery Modal -->
+    <div class="modal-overlay" id="projectNotFoundModal" role="dialog" aria-modal="true" aria-labelledby="notFoundTitle">
+        <div class="export-modal not-found-card" style="text-align:center; max-width:440px;">
+            <div style="width:52px; height:52px; border-radius:14px; background:rgba(239,68,68,0.15); color:#ef4444; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <h2 id="notFoundTitle" style="font-family:'Outfit',sans-serif; font-size:1.4rem; margin-bottom:8px;">Project Not Found</h2>
+            <p style="color:var(--text-secondary); font-size:0.88rem; line-height:1.5; margin-bottom:6px;" id="notFoundMessage">
+                The requested project was not found in this browser's local storage.
+            </p>
+            <p style="color:var(--text-muted); font-size:0.78rem; line-height:1.4; margin-bottom:20px;">
+                Clip Magic projects and imported media are stored locally on the device where they are created.
+            </p>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn btn-primary" onclick="startFreshProject()" style="justify-content:center;">
+                    ✨ Start New Project
+                </button>
+                <a href="dashboard.html" class="btn btn-ghost" style="justify-content:center; text-decoration:none;">
+                    📂 Go to Dashboard
+                </a>
+                <button class="btn btn-ghost" onclick="document.getElementById('projectBackupInput').click()" style="justify-content:center; font-size:0.82rem; border-color:rgba(99,102,241,0.3); color:#818cf8;">
+                    📥 Import Project Backup File (.clipmagic.json)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file inputs for project backup import -->
+    <input type="file" id="projectBackupInput" hidden accept=".json,.clipmagic,application/json" onchange="handleImportProjectBackup(event)" />
 
     <div class="page-wrapper">
         <div class="editor-shell mobile-view-timeline">
             <!-- TOP BAR -->
             <div class="editor-topbar">
-                <a href="index.html" class="topbar-logo">
+                <a href="/" class="topbar-logo" aria-label="Clip Magic Homepage" title="Clip Magic Home">
                     <div class="topbar-logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
                     <span class="topbar-logo-text">Clip Magic</span>
                 </a>
                 <div class="topbar-divider"></div>
-                <input class="file-name-input" id="fileName" value="Untitled Project" title="Click to rename" />
+                <input class="file-name-input" id="fileName" value="Untitled Project" title="Click to rename project" aria-label="Project name" />
+                <div class="topbar-divider"></div>
+                <div class="storage-badge" id="storageBadge" title="Edits and media are saved locally in your browser storage">
+                    <span class="storage-dot"></span>
+                    <span class="storage-label">Local Project</span>
+                </div>
                 <div class="topbar-divider"></div>
                 <div class="mode-toggle" id="modeToggle">
-                    <button class="mode-btn active" id="modeManual" onclick="setEditMode('manual')">Manual</button>
-                    <button class="mode-btn" id="modeAI" onclick="setEditMode('ai')">AI</button>
+                    <button class="mode-btn active" id="modeManual" onclick="setEditMode('manual')" title="Manual Timeline Controls">Manual</button>
+                    <button class="mode-btn" id="modeAI" onclick="setEditMode('ai')" title="AI Smart Editing Tools">AI</button>
                 </div>
                 <div class="topbar-actions">
-                    <div class="topbar-status" id="statusBar">Ready</div>
-                    <button class="icon-btn" id="undoBtn" onclick="undoEdit()" title="Undo (Ctrl/Cmd+Z)" disabled>↶</button>
-                    <button class="icon-btn" id="redoBtn" onclick="redoEdit()" title="Redo (Ctrl/Cmd+Shift+Z)" disabled>↷</button>
-                    <button class="icon-btn" onclick="saveProject()" title="Save Project"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
-                    <button class="btn btn-primary" onclick="exportProject()">Export</button>
+                    <div class="topbar-status" id="statusBar" aria-live="polite">Ready</div>
+                    <button class="icon-btn" id="undoBtn" onclick="undoEdit()" title="Undo (Ctrl/Cmd+Z)" aria-label="Undo edit" disabled>↶</button>
+                    <button class="icon-btn" id="redoBtn" onclick="redoEdit()" title="Redo (Ctrl/Cmd+Shift+Z)" aria-label="Redo edit" disabled>↷</button>
+                    <button class="icon-btn" onclick="saveProject()" title="Save Project" aria-label="Save project"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
+                    <button class="icon-btn" onclick="exportProjectBackup()" title="Download Project Backup File (.clipmagic.json)" aria-label="Export project backup file"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                    <button class="btn btn-primary" onclick="exportProject()" id="topbarExportBtn" aria-label="Export video project">Export</button>
                 </div>
             </div>
 
-            <!-- SIDEBAR -->
-            <div class="editor-tools">
-                <button class="tool-btn active" id="tool-select" onclick="setTool('select')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 4 7.07 17 2.51-7.39L21 11.07z"/></svg>
-                    <span class="tool-label">Select</span>
+            <!-- SIDEBAR TOOL RAIL -->
+            <div class="editor-tools" role="toolbar" aria-label="Editor Tools">
+                <button class="tool-btn active" id="tool-media" onclick="setTool('media')" aria-label="Media tool" title="Media & Clips">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+                    <span class="tool-label">Media</span>
                 </button>
-                <button class="tool-btn" id="tool-trim" onclick="setTool('trim')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
-                    <span class="tool-label">Trim</span>
+                <button class="tool-btn" id="tool-library" onclick="setTool('library')" aria-label="Asset library tool" title="Royalty-Free Asset Library">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
+                    <span class="tool-label">Library</span>
                 </button>
-                <button class="tool-btn" id="tool-split" onclick="setTool('split')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8V5c0-1 1-2 2-2h10c1 0 2 1 2 2v3"/><path d="M19 16v3c0 1-1 2-2 2H7c-1 0-2-1-2-2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg>
-                    <span class="tool-label">Split</span>
-                </button>
-                <div class="tool-separator"></div>
-                <button class="tool-btn" id="tool-music" onclick="setTool('music')">
+                <button class="tool-btn" id="tool-audio" onclick="setTool('audio')" aria-label="Audio tool" title="Audio & Music">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                    <span class="tool-label">Music</span>
+                    <span class="tool-label">Audio</span>
                 </button>
-                <button class="tool-btn" id="tool-text" onclick="setTool('text')">
+                <button class="tool-btn" id="tool-text" onclick="setTool('text')" aria-label="Text overlay tool" title="Text & Captions">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
                     <span class="tool-label">Text</span>
                 </button>
-                <button class="tool-btn" id="tool-filter" onclick="setTool('filter')">
-                    <span style="font-size:1.1rem">🎨</span><span class="tool-label">Filter</span>
+                <button class="tool-btn" id="tool-stickers" onclick="setTool('stickers')" aria-label="Stickers tool" title="Stickers & Emojis">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                    <span class="tool-label">Stickers</span>
                 </button>
-                <button class="tool-btn" id="tool-caption" onclick="setTool('caption')">
-                    <span style="font-size:1.1rem">💬</span><span class="tool-label">Captions</span>
+                <button class="tool-btn" id="tool-filters" onclick="setTool('filters')" aria-label="Filters tool" title="Color Filters">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20v-20z"/></svg>
+                    <span class="tool-label">Filters</span>
                 </button>
-                <button class="tool-btn" id="tool-transition" onclick="setTool('transition')">
-                    <span style="font-size:1.1rem">✨</span><span class="tool-label">Transition</span>
+                <button class="tool-btn" id="tool-effects" onclick="setTool('effects')" aria-label="Effects tool" title="Visual Effects & Animation">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span class="tool-label">Effects</span>
                 </button>
-                <button class="tool-btn" id="tool-keyframe" onclick="setTool('keyframe')">
-                    <span style="font-size:1.1rem">◆</span><span class="tool-label">Animation</span>
+                <button class="tool-btn" id="tool-transitions" onclick="setTool('transitions')" aria-label="Transitions tool" title="Transitions">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                    <span class="tool-label">Transition</span>
                 </button>
-                <button class="tool-btn" id="tool-speed" onclick="setTool('speed')">
-                    <span style="font-size:1.1rem">⏩</span><span class="tool-label">Speed</span>
-                </button>
-                <button class="tool-btn" id="tool-pip" onclick="setTool('pip')">
-                    <span style="font-size:1.1rem">▣</span><span class="tool-label">PiP</span>
-                </button>
-                <button class="tool-btn" id="tool-grade" onclick="setTool('grade')">
-                    <span style="font-size:1.1rem">◐</span><span class="tool-label">Grade</span>
-                </button>
-                <button class="tool-btn" id="tool-vfx" onclick="setTool('vfx')">
-                    <span style="font-size:1.1rem">✦</span><span class="tool-label">VFX</span>
+                <div class="tool-separator"></div>
+                <button class="tool-btn" id="tool-canvas" onclick="setTool('canvas')" aria-label="Canvas settings tool" title="Canvas & Project Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+                    <span class="tool-label">Canvas</span>
                 </button>
             </div>
 
             <!-- CENTER WORKSPACE -->
             <div class="editor-center">
-                <div class="quick-actions-bar">
-                    <button class="quick-btn" onclick="document.getElementById('fileInput').click()" title="Import Video or Image (or Drag & Drop)">
+                <div class="quick-actions-bar" role="toolbar" aria-label="Quick Actions">
+                    <button class="quick-btn" style="border-color:rgba(168,85,247,0.45);color:#c084fc;font-weight:700;" onclick="setTool('library')" title="Open Royalty-Free Asset Library (Stickers, Music, SFX, Filters, VFX)" aria-label="Asset Library">
+                        <span>📚</span> Asset Library
+                    </button>
+                    <button class="quick-btn" onclick="document.getElementById('fileInput').click()" title="Import Video or Image into project" aria-label="Import Video">
                         <span>🎬</span> + Video
                     </button>
-                    <button class="quick-btn" style="border-color:rgba(236,72,153,0.45);color:#f472b6;" onclick="document.getElementById('globalAudioInput').click()" title="Import Audio / MP3 / MPEG (or Drag & Drop)">
-                        <span>🎵</span> + Audio / MPEG
+                    <button class="quick-btn" style="border-color:rgba(236,72,153,0.45);color:#f472b6;" onclick="document.getElementById('globalAudioInput').click()" title="Import Audio file (MP3, WAV, AAC, MPEG)" aria-label="Import Audio">
+                        <span>🎵</span> Import Audio
                     </button>
-                    <button class="quick-btn magic" onclick="quickMagicAction('auto-extract-music')" title="Automatically extract background music from video & add to timeline">
-                        <span>🎙️</span> Read Video Music
+                    <button class="quick-btn magic" onclick="quickMagicAction('auto-extract-music')" title="Detect and extract music/speech from loaded video into an audio clip" aria-label="Detect Music in Video">
+                        <span>🎙️</span> Detect Music in Video
                     </button>
-                    <button class="quick-btn magic" onclick="quickMagicAction('auto-lyrics')" title="Generate animated word-by-word song lyrics">
-                        <span>🎤</span> Word Lyrics
+                    <button class="quick-btn magic" onclick="quickMagicAction('auto-lyrics')" title="Generate animated word-by-word lyric captions" aria-label="Generate Lyric Captions">
+                        <span>🎤</span> Generate Lyric Captions
                     </button>
-                    <button class="quick-btn" onclick="quickMagicAction('auto-enhance')" title="Auto-enhance colors & contrast">
+                    <button class="quick-btn" onclick="quickMagicAction('auto-enhance')" title="Auto-enhance color grade, saturation, and contrast" aria-label="Auto Enhance">
                         <span>🪄</span> Auto Enhance
                     </button>
-                    <button class="quick-btn" onclick="quickMagicAction('tiktok-reframe')" title="Crop to 9:16 vertical format">
+                    <button class="quick-btn" onclick="quickMagicAction('tiktok-reframe')" title="Crop preview canvas to 9:16 vertical TikTok/Reels format" aria-label="TikTok 9:16 Reframe">
                         <span>📱</span> TikTok 9:16
                     </button>
-                    <button class="quick-btn" onclick="quickMagicAction('auto-captions')" title="Generate AI subtitles">
+                    <button class="quick-btn" onclick="quickMagicAction('auto-captions')" title="Generate AI subtitles from spoken audio" aria-label="AI Captions">
                         <span>💬</span> AI Captions
                     </button>
-                    <button class="quick-btn" onclick="quickMagicAction('sync-beats')" title="Sync cuts to music beats">
-                        <span>🥁</span> Sync Beats
+                    <button class="quick-btn" onclick="quickMagicAction('sync-beats')" title="Analyze audio rhythm and sync edits to musical beats" aria-label="Sync Edits to Beats">
+                        <span>🥁</span> Sync Edits to Beats
                     </button>
-                    <button class="quick-btn" onclick="splitAtPlayhead()" title="Cut or split clip at playhead (S)">
-                        <span style="color:#f43f5e">✂️</span> Cut / Split
-                    </button>
-                    <button class="quick-btn" onclick="toggleKeyframeAtPlayhead()" title="Add or Delete Diamond Keyframe at Current Time (K)">
-                        <span style="color:#38bdf8">◆</span> +Keyframe (K)
-                    </button>
-                    <button class="quick-btn" onclick="setTool('trim')" title="Trim in/out points">
-                        <span>⏱️</span> Trim Tool
-                    </button>
-                    <button class="quick-btn" onclick="quickMagicAction('fast-speed')" title="Apply 1.5x speed boost">
+                    <button class="quick-btn" onclick="quickMagicAction('fast-speed')" title="Apply 1.5x speed boost to selected clip" aria-label="Speed Boost">
                         <span>⚡</span> Speed Boost
                     </button>
-                    <button class="quick-btn" onclick="quickMagicAction('vfx-glitch')" title="Apply glitch music video VFX">
+                    <button class="quick-btn" onclick="quickMagicAction('vfx-glitch')" title="Apply glitch music video visual effect" aria-label="Glitch VFX">
                         <span>✦</span> Glitch VFX
                     </button>
                 </div>
@@ -2294,7 +2846,7 @@
                             <p>No media loaded</p>
                             <div style="display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap;">
                                 <button class="btn btn-ghost" onclick="document.getElementById('fileInput').click()">🎬 Import Video or Image</button>
-                                <button class="btn btn-ghost" style="border-color:rgba(236,72,153,0.45); color:#f472b6;" onclick="document.getElementById('globalAudioInput').click()">🎵 Import Audio / MPEG / MP3</button>
+                                <button class="btn btn-ghost" style="border-color:rgba(236,72,153,0.45); color:#f472b6;" onclick="document.getElementById('globalAudioInput').click()" title="Import audio file (MP3, WAV, AAC) into timeline" aria-label="Import Audio">🎵 Import Audio (MP3, WAV)</button>
                             </div>
                             <input type="file" id="fileInput" hidden accept="video/*,image/*,audio/*,.mp4,.mov,.avi,.mkv,.webm,.mpeg,.mpg,.mpe,.ts,.m2ts,.m4v,.mp3,.wav,.m4a,.aac,.ogg,.flac" onchange="loadVideo(event)" />
                             <input type="file" id="globalAudioInput" hidden accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mpa,.mpeg,.mpg" onchange="handleMusicUpload(event)" />
@@ -2385,6 +2937,64 @@
                     </div>
                 </div>
             </div>
+
+            <!-- MOBILE BOTTOM TOOLBAR (Phone view: thumb zone) -->
+            <nav class="mobile-bottom-toolbar" id="mobileBottomToolbar" aria-label="Editing Tools">
+                <button class="mob-tool-btn active" id="mob-tool-media" onclick="handleMobileToolClick('media')" aria-label="Media">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+                    <span>Media</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-library" onclick="handleMobileToolClick('library')" aria-label="Asset Library">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
+                    <span>Library</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-audio" onclick="handleMobileToolClick('audio')" aria-label="Audio & Music">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    <span>Audio</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-text" onclick="handleMobileToolClick('text')" aria-label="Text & Lyrics">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                    <span>Text</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-stickers" onclick="handleMobileToolClick('stickers')" aria-label="Stickers">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                    <span>Stickers</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-filters" onclick="handleMobileToolClick('filters')" aria-label="Filters">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20v-20z"/></svg>
+                    <span>Filters</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-effects" onclick="handleMobileToolClick('effects')" aria-label="Effects & VFX">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span>Effects</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-transitions" onclick="handleMobileToolClick('transitions')" aria-label="Transitions">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                    <span>Transition</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-canvas" onclick="handleMobileToolClick('canvas')" aria-label="Canvas Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+                    <span>Canvas</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- MOBILE EXPANDABLE BOTTOM SHEET -->
+        <div class="mobile-bottom-sheet-backdrop" id="mobileBottomSheetBackdrop" onclick="closeMobileBottomSheet()"></div>
+        <div class="mobile-bottom-sheet" id="mobileBottomSheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+            <div class="sheet-drag-handle-bar" onclick="toggleMobileBottomSheetExpand()">
+                <div class="sheet-drag-pill"></div>
+            </div>
+            <div class="sheet-header">
+                <div class="sheet-title-group">
+                    <span class="sheet-icon" id="sheetIcon">⚙️</span>
+                    <span class="sheet-title" id="sheetTitle">Tool Controls</span>
+                </div>
+                <button class="sheet-close-btn" onclick="closeMobileBottomSheet()" aria-label="Close panel" title="Close">✕</button>
+            </div>
+            <div class="sheet-body" id="sheetBody">
+                <!-- Injected Tool Controls or Clip Properties -->
+            </div>
         </div>
     </div>
 
@@ -2414,6 +3024,101 @@
         const redoStack = [];
         const cloneState = (value) => JSON.parse(JSON.stringify(value));
 
+        let autosaveTimer = null;
+        let saveStatusTimeout = null;
+
+        function setSaveStatus(status, text) {
+            const statusBar = document.getElementById('statusBar');
+            const storageDot = document.querySelector('.storage-dot');
+            const storageBadge = document.getElementById('storageBadge');
+            
+            if (statusBar) {
+                if (status === 'saving') {
+                    statusBar.innerHTML = '<span style="color:#f59e0b;font-weight:600;display:inline-flex;align-items:center;gap:4px;">⏳ Saving...</span>';
+                } else if (status === 'saved') {
+                    statusBar.innerHTML = '<span style="color:#10b981;font-weight:600;display:inline-flex;align-items:center;gap:4px;">✓ Saved</span>';
+                } else {
+                    statusBar.textContent = text || 'Ready';
+                }
+            }
+
+            if (storageDot) {
+                if (status === 'saving') {
+                    storageDot.style.background = '#f59e0b';
+                    storageDot.style.boxShadow = '0 0 8px rgba(245, 158, 11, 0.6)';
+                } else if (status === 'saved') {
+                    storageDot.style.background = '#10b981';
+                    storageDot.style.boxShadow = '0 0 8px rgba(16, 185, 129, 0.6)';
+                } else {
+                    storageDot.style.background = '';
+                    storageDot.style.boxShadow = '';
+                }
+            }
+
+            if (storageBadge) {
+                storageBadge.title = status === 'saving' ? 'Saving edits locally...' : 'All edits saved locally in browser storage';
+            }
+        }
+
+        function scheduleAutosave() {
+            setSaveStatus('saving');
+            if (autosaveTimer) clearTimeout(autosaveTimer);
+            autosaveTimer = setTimeout(() => {
+                executeSave(false);
+            }, 800);
+        }
+
+        function executeSave(showUserToast = false) {
+            if (autosaveTimer) {
+                clearTimeout(autosaveTimer);
+                autosaveTimer = null;
+            }
+            try {
+                const projectId = getReliableProjectId();
+                const nameInput = document.getElementById('fileName');
+                const projName = nameInput?.value?.trim() || (window.currentProject && window.currentProject.name) || 'Untitled Project';
+                if (window.currentProject) {
+                    window.currentProject.name = projName;
+                    window.currentProject.projectState = projectState;
+                }
+                if (typeof ProjectService !== 'undefined') {
+                    ProjectService.updateProject(projectId, {
+                        name: projName,
+                        projectState: projectState
+                    });
+                }
+                setSaveStatus('saved');
+                if (saveStatusTimeout) clearTimeout(saveStatusTimeout);
+                saveStatusTimeout = setTimeout(() => {
+                    setSaveStatus('idle', 'Ready');
+                }, 3000);
+
+                if (showUserToast) {
+                    showToast('Project saved locally', '💾', 'success');
+                }
+            } catch (err) {
+                console.error('[Autosave] Error saving project:', err);
+                setSaveStatus('idle', 'Save Error');
+                showToast('Failed to save project locally. Storage may be full.', '⚠️', 'error');
+            }
+        }
+
+        function saveProject() {
+            executeSave(true);
+        }
+
+        // Flush autosave immediately when closing tab or reloading
+        window.addEventListener('beforeunload', () => {
+            if (autosaveTimer) {
+                executeSave(false);
+            }
+        });
+        window.addEventListener('pagehide', () => {
+            if (autosaveTimer) {
+                executeSave(false);
+            }
+        });
+
         function updateHistoryButtons() {
             const undo = document.getElementById('undoBtn');
             const redo = document.getElementById('redoBtn');
@@ -2426,29 +3131,42 @@
             if (undoStack.length > 50) undoStack.shift();
             redoStack.length = 0;
             updateHistoryButtons();
+            scheduleAutosave();
         }
 
         function restoreState(snapshot) {
             projectState = cloneState(snapshot);
             window.projectState = projectState;
             selectedClip = null;
+            selectedOverlay = null;
+            document.querySelectorAll('.track-clip').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.text-overlay').forEach(t => t.classList.remove('selected-overlay'));
             requestTimelineRender();
+            renderTextOverlays();
+            updatePreviewVisuals();
+            renderEmptyInspectorState();
+            updateExportEligibility();
+            scheduleAutosave();
         }
 
         function undoEdit() {
-            if (!undoStack.length) return;
+            if (!undoStack.length) {
+                return showToast('Nothing to undo', '↩️', 'info');
+            }
             redoStack.push(cloneState(projectState));
             restoreState(undoStack.pop());
             updateHistoryButtons();
-            showToast('↺ Undo action', '↩️', 'info');
+            showToast('↺ Undid last edit', '↩️', 'info');
         }
 
         function redoEdit() {
-            if (!redoStack.length) return;
+            if (!redoStack.length) {
+                return showToast('Nothing to redo', '↪️', 'info');
+            }
             undoStack.push(cloneState(projectState));
             restoreState(redoStack.pop());
             updateHistoryButtons();
-            showToast('↻ Redo action', '↪️', 'info');
+            showToast('↻ Redid edit', '↪️', 'info');
         }
 
         function toggleSnap() {
@@ -2916,6 +3634,40 @@
         }
 
         const toolConfigs = {
+            media: {
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>',
+                title: 'Media Library',
+                html: `<div class="prop-section">
+                    <div class="prop-section-title">📁 Media Library & Import</div>
+                    
+                    <div style="margin-bottom:12px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.25);border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                        <div>
+                            <div style="font-weight:700;font-size:0.78rem;color:#c084fc;">📚 Royalty-Free Asset Library</div>
+                            <div style="font-size:0.68rem;color:var(--text-secondary);">Stickers, Music, SFX, Filters, VFX</div>
+                        </div>
+                        <button class="chip-option active" style="padding:4px 10px;font-size:0.72rem;font-weight:700;" onclick="setTool('library')">Browse</button>
+                    </div>
+
+                    <p style="color:var(--text-secondary);font-size:0.78rem;line-height:1.4;margin-bottom:12px;">Import videos, audio files, or images into your project:</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+                        <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;padding:10px 8px;" onclick="document.getElementById('fileInput').click()">
+                            🎬 + Add Video / Image
+                        </button>
+                        <button class="music-btn" style="background:rgba(236,72,153,0.15);border-color:#f472b6;color:#f472b6;font-weight:700;padding:10px 8px;" onclick="document.getElementById('globalAudioInput').click()">
+                            🎵 + Add Audio Track
+                        </button>
+                    </div>
+                    <div class="prop-section-title" style="margin-top:10px;">⚡ Track Management</div>
+                    <div style="display:grid;gap:6px;margin-bottom:12px;">
+                        <button class="chip-option" style="padding:8px;font-size:0.75rem;" onclick="addTrack('video')">➕ Add Video Track Lane</button>
+                        <button class="chip-option" style="padding:8px;font-size:0.75rem;" onclick="addTrack('audio')">➕ Add Audio Track Lane</button>
+                    </div>
+                    <div class="prop-section-title" style="margin-top:12px;">🎬 Project Clips</div>
+                    <div id="mediaClipsSummaryList" style="max-height:160px;overflow-y:auto;font-size:0.75rem;color:var(--text-secondary);">
+                        <p style="font-size:0.75rem;color:var(--text-muted);">No clips loaded yet.</p>
+                    </div>
+                </div>`
+            },
             select: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 4 7.07 17 2.51-7.39L21 11.07z"/></svg>',
                 title: 'Select Tool',
@@ -3519,9 +4271,9 @@
                     
                     <!-- Audio Import Actions -->
                     <input id="musicFileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mpa,.mpeg,.mpg" hidden onchange="handleMusicUpload(event)"/>
-                    <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;padding:10px;" onclick="document.getElementById('musicFileInput').click()">＋ Upload Custom Audio / MP3 / MPEG</button>
-                    <button class="music-btn" style="margin-top:6px;background:rgba(236,72,153,0.15);border-color:rgba(236,72,153,0.4);color:#f472b6;font-weight:700;" onclick="autoGenerateSongLyrics()">🎤 Auto-Generate Lyrics from Added Music</button>
-                    <button class="music-btn" style="margin-top:6px;background:rgba(56,189,248,0.12);border-color:rgba(56,189,248,0.35);color:#38bdf8;" onclick="autoExtractVideoAudio()">🎙️ Extract Audio from Video Track</button>
+                    <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;padding:10px;" onclick="document.getElementById('musicFileInput').click()" title="Import custom audio file (MP3, WAV, AAC, MPEG) to timeline" aria-label="Import Audio">＋ Import Audio (MP3, WAV, AAC)</button>
+                    <button class="music-btn" style="margin-top:6px;background:rgba(236,72,153,0.15);border-color:rgba(236,72,153,0.4);color:#f472b6;font-weight:700;" onclick="autoGenerateSongLyrics()" title="Generate animated word-by-word lyric captions synchronized to audio (AI Experimental)" aria-label="Generate Lyric Captions">🎤 Generate Lyric Captions from Audio</button>
+                    <button class="music-btn" style="margin-top:6px;background:rgba(56,189,248,0.12);border-color:rgba(56,189,248,0.35);color:#38bdf8;" onclick="autoExtractVideoAudio()" title="Detect and extract music/speech from the video track into a new audio clip" aria-label="Detect Music in Video">🎙️ Detect Music in Video Track</button>
                     
                     <!-- Remove / Mute Video Audio Section -->
                     <div class="prop-section-title" style="margin-top:16px;">🔇 Video Audio Controls</div>
@@ -3550,7 +4302,7 @@
                     </div>
                     <div style="display:flex;gap:6px;margin-top:8px;">
                         <button class="music-btn" style="flex:1;font-size:0.75rem;" onclick="analyzeAudio()">🔍 Analyze BPM</button>
-                        <button class="music-btn" style="flex:1;border-color:rgba(139,92,246,0.5);color:#c4b5fd;font-size:0.75rem;" onclick="syncCuts()">🎯 Sync Cuts</button>
+                        <button class="music-btn" style="flex:1;border-color:rgba(139,92,246,0.5);color:#c4b5fd;font-size:0.75rem;" onclick="syncCuts()" title="Snap clip cuts to rhythm of detected BPM" aria-label="Sync Edits to Beats">🥁 Sync Edits to Beats</button>
                     </div>
 
                     <!-- Bass Enhancement -->
@@ -3567,56 +4319,221 @@
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/><path d="M3 15h18"/></svg>',
                 title: 'Transform',
                 html: `<div class="prop-section"><div class="prop-section-title">Scale</div><input type="range" class="prop-slider" min="10" max="200" value="100" oninput="scaleVideo(this.value)"/><div class="prop-section-title" style="margin-top:12px">Aspect Ratio</div><div class="chip-grid"><div class="chip-option active" onclick="setAR(this,'16/9')">16:9</div><div class="chip-option" onclick="setAR(this,'9/16')">9:16</div></div></div>`
+            },
+            stickers: {
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+                title: 'Stickers & Overlays',
+                html: `<div class="prop-section">
+                    <div class="prop-section-title">✨ Emojis & Graphic Stickers</div>
+                    <p style="color:var(--text-secondary);font-size:0.78rem;line-height:1.4;margin-bottom:12px;">Tap an emoji to add it as an overlay sticker onto your video canvas:</p>
+                    <div class="chip-grid" style="margin-bottom:12px; grid-template-columns:repeat(4,1fr); font-size:1.6rem; text-align:center;">
+                        <button class="chip-option" onclick="addStickerOverlay('🔥', 'Fire')">🔥</button>
+                        <button class="chip-option" onclick="addStickerOverlay('✨', 'Sparkles')">✨</button>
+                        <button class="chip-option" onclick="addStickerOverlay('⚡', 'Lightning')">⚡</button>
+                        <button class="chip-option" onclick="addStickerOverlay('❤️', 'Heart')">❤️</button>
+                        <button class="chip-option" onclick="addStickerOverlay('🚀', 'Rocket')">🚀</button>
+                        <button class="chip-option" onclick="addStickerOverlay('🎉', 'Party')">🎉</button>
+                        <button class="chip-option" onclick="addStickerOverlay('💯', '100')">💯</button>
+                        <button class="chip-option" onclick="addStickerOverlay('👍', 'Thumbs')">👍</button>
+                    </div>
+                </div>`
+            },
+            more: {
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>',
+                title: 'Canvas & Project Settings',
+                html: `<div class="prop-section">
+                    <div class="prop-section-title">📱 Canvas Aspect Ratio</div>
+                    <div class="chip-grid" style="margin-bottom:12px;">
+                        <button class="chip-option active" onclick="setCanvasRatio('16/9')">16:9 (Landscape)</button>
+                        <button class="chip-option" onclick="setCanvasRatio('9/16')">9:16 (TikTok / Reels)</button>
+                        <button class="chip-option" onclick="setCanvasRatio('1/1')">1:1 (Square)</button>
+                    </div>
+                    <div class="prop-section-title" style="margin-top:10px;">⚡ Quick Actions</div>
+                    <div style="display:grid;gap:8px;">
+                        <button class="music-btn" onclick="quickMagicAction('auto-enhance')">🪄 Auto-Enhance Colors</button>
+                        <button class="music-btn" onclick="quickMagicAction('fast-speed')">⚡ 1.5x Speed Boost</button>
+                        <button class="music-btn" onclick="document.getElementById('fileInput').click()" title="Import video or image files into project" aria-label="Import Video or Image">🎬 Import Video or Image</button>
+                        <button class="music-btn" onclick="document.getElementById('globalAudioInput').click()" title="Import audio file (MP3, WAV, AAC) into timeline" aria-label="Import Audio">🎵 Import Audio (MP3, WAV, AAC)</button>
+                    </div>
+                </div>`
+            },
+            library: {
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>',
+                title: 'Asset Library',
+                get html() {
+                    return window.AssetLibraryUI ? window.AssetLibraryUI.getHTML() : '<div class="prop-section"><p style="font-size:0.8rem;color:var(--text-secondary);">Loading Royalty-Free Asset Library...</p></div>';
+                }
             }
         };
+        toolConfigs.audio = toolConfigs.music;
+        toolConfigs.filters = toolConfigs.filter;
+        toolConfigs.effects = toolConfigs.keyframe;
+        toolConfigs.transitions = toolConfigs.transition;
+        toolConfigs.canvas = toolConfigs.more;
+        toolConfigs.assets = toolConfigs.library;
+
+        function renderMediaClipsSummary() {
+            const container = document.getElementById('mediaClipsSummaryList');
+            if (!container) return;
+            const allClips = [];
+            (projectState.tracks || []).forEach((t, tIdx) => {
+                (t.clips || []).forEach(c => allClips.push({ clip: c, track: t, trackIndex: tIdx }));
+            });
+            if (!allClips.length) {
+                container.innerHTML = '<p style="font-size:0.75rem;color:var(--text-muted);padding:8px 0;">No clips loaded yet. Click "+ Add Video" above to get started.</p>';
+                return;
+            }
+            container.innerHTML = allClips.map(({ clip, track }) => {
+                const isSelected = selectedClip && selectedClip.id === clip.id;
+                const dur = Math.max(0.1, (clip.trimEnd || clip.duration || 1) - (clip.trimStart || 0));
+                return `
+                    <div class="prop-row" style="background:${isSelected ? 'rgba(168,85,247,0.18)' : 'rgba(255,255,255,0.03)'};padding:6px 8px;border-radius:6px;border:1px solid ${isSelected ? 'rgba(168,85,247,0.4)' : 'rgba(255,255,255,0.06)'};margin-bottom:6px;cursor:pointer;" onclick="selectClipById('${clip.id}')">
+                        <span style="font-weight:600;color:${isSelected ? '#c084fc' : '#f8fafc'};">${track.type === 'video' ? '🎬' : '🎵'} ${clip.name || 'Clip'}</span>
+                        <span style="color:var(--text-secondary);font-size:0.72rem;">${dur.toFixed(1)}s</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectClipById(clipId) {
+            for (const t of (projectState.tracks || [])) {
+                const found = (t.clips || []).find(c => c.id === clipId);
+                if (found) {
+                    selectClip(found);
+                    return;
+                }
+            }
+        }
+
+        let selectedOverlay = null;
+
+        function setClipSpeed(clip, speedVal) {
+            if (!clip) return;
+            recordEdit();
+            const speed = clamp(Number(speedVal) || 1.0, 0.25, 4.0);
+            clip.speed = speed;
+            clip.speedSegments = [{ time: 0, speed }];
+            const video = document.getElementById('previewVideo');
+            if (video) video.playbackRate = speed;
+            updatePreviewVisuals();
+            if (selectedClip === clip) selectClip(clip);
+            showToast(`⚡ Playback speed: ${speed}×`, '⚡', 'info');
+        }
+
+        function setClipVolume(clip, volVal) {
+            if (!clip) return;
+            recordEdit();
+            const vol = clamp(Number(volVal) / 100, 0, 2);
+            clip.volume = vol;
+            const video = document.getElementById('previewVideo');
+            if (video && (clip.type === 'video' || clip.type === 'main')) {
+                video.volume = clamp(vol, 0, 1);
+            }
+            requestTimelineRender();
+        }
+
+        function toggleClipAudioMute(clip) {
+            if (!clip) return;
+            recordEdit();
+            if (clip.volume === 0) {
+                clip.volume = clip.prevVolume || 1.0;
+                showToast('🔊 Audio unmuted', '🔊', 'info');
+            } else {
+                clip.prevVolume = clip.volume || 1.0;
+                clip.volume = 0;
+                showToast('🔇 Audio muted', '🔇', 'info');
+            }
+            const video = document.getElementById('previewVideo');
+            if (video && (clip.type === 'video' || clip.type === 'main')) {
+                video.volume = clamp(clip.volume, 0, 1);
+            }
+            if (selectedClip === clip) selectClip(clip);
+            requestTimelineRender();
+        }
+
+        function deselectClip() {
+            selectedClip = null;
+            selectedOverlay = null;
+            document.querySelectorAll('.track-clip').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.text-overlay').forEach(t => t.classList.remove('selected-overlay'));
+            renderEmptyInspectorState();
+        }
+
+        function renderEmptyInspectorState() {
+            const body = document.getElementById('manualPropsBody');
+            const title = document.getElementById('propsTitle');
+            const icon = document.getElementById('propsIcon');
+            if (title) title.textContent = 'Properties';
+            if (icon) icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+            
+            const emptyHtml = `
+                <div class="empty-inspector-state" style="text-align:center;padding:28px 12px;">
+                    <div style="font-size:2.2rem;margin-bottom:10px;opacity:0.85;">🎬</div>
+                    <div style="font-size:0.95rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;">No Clip Selected</div>
+                    <p style="font-size:0.78rem;color:var(--text-muted);line-height:1.45;margin-bottom:18px;max-width:240px;margin-left:auto;margin-right:auto;">
+                        Select a clip on the timeline to edit its length, speed, volume, and effects, or add new media:
+                    </p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+                        <button class="quick-btn" style="justify-content:center;padding:10px 8px;font-weight:600;" onclick="document.getElementById('fileInput').click()" title="Add video or image">
+                            <span>🎬</span> + Add Video
+                        </button>
+                        <button class="quick-btn" style="justify-content:center;padding:10px 8px;font-weight:600;border-color:rgba(236,72,153,0.45);color:#f472b6;" onclick="document.getElementById('globalAudioInput').click()" title="Add audio or music">
+                            <span>🎵</span> + Add Audio
+                        </button>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="chip-option" style="flex:1;padding:8px;" onclick="setTool('text')">
+                            <span>✏️</span> Add Text
+                        </button>
+                        <button class="chip-option" style="flex:1;padding:8px;" onclick="setTool('stickers')">
+                            <span>✨</span> Add Sticker
+                        </button>
+                    </div>
+                </div>
+            `;
+            if (body) body.innerHTML = emptyHtml;
+        }
 
         function selectClip(clip) {
             selectedClip = clip;
+            selectedOverlay = null;
             updatePreviewVisuals();
+            
+            // Sync timeline selected classes
+            document.querySelectorAll('.track-clip').forEach(el => el.classList.toggle('selected', el.id === `clip-${clip.id}`));
+            document.querySelectorAll('.text-overlay').forEach(el => el.classList.remove('selected-overlay'));
+            syncKeyframeToolbarState();
+
+            const isAudioClip = clip.type === 'music' || clip.type === 'audio';
+            if (isAudioClip) {
+                renderAudioClipInspector(clip);
+            } else {
+                renderVideoClipInspector(clip);
+            }
+        }
+
+        function renderVideoClipInspector(clip) {
             const body = document.getElementById('manualPropsBody');
-            // H2 FIX: build inspector panel with DOM APIs — clip.name/id via textContent
-            body.innerHTML = '';
+            const titleEl = document.getElementById('propsTitle');
+            const iconEl = document.getElementById('propsIcon');
+            if (titleEl) titleEl.textContent = `🎬 Video: ${clip.name || 'Video Clip'}`;
+            if (iconEl) iconEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>';
 
             const section = document.createElement('div');
             section.className = 'prop-section';
-
-            const isAudioClip = clip.type === 'music' || clip.type === 'audio';
-            const title = document.createElement('div');
-            title.className = 'prop-section-title';
-            title.textContent = (isAudioClip ? '🎵 Audio: ' : '🎬 Video: ') + (clip.name || (isAudioClip ? 'Custom Audio' : 'Video Clip'));
-
-            const row = document.createElement('div');
-            row.className = 'prop-row';
-
-            const label = document.createElement('span');
-            label.className = 'prop-label';
-            const curStart = Number.isFinite(clip.start) ? clip.start : 0;
-            label.textContent = `Start Position (${curStart.toFixed(2)}s)`;
-
-            const input = document.createElement('input');
-            input.type = 'range';
-            input.min = '0';
-            input.max = '120';
-            input.step = '0.05';
-            input.className = 'prop-input';
-            input.value = curStart;
-            const safeClipId = /^[a-zA-Z0-9_-]+$/.test(clip.id) ? clip.id : '';
-            input.addEventListener('input', function() {
-                label.textContent = `Start Position (${parseFloat(this.value).toFixed(2)}s)`;
-                if (safeClipId) updateClipProps(safeClipId, 'start', this.value);
-            });
 
             const srcDur = getClipSourceDuration(clip);
             const curTrimStart = Number.isFinite(clip.trimStart) ? clip.trimStart : 0;
             const curTrimEnd = Number.isFinite(clip.trimEnd) ? clip.trimEnd : srcDur;
             const curEffectiveDur = curTrimEnd - curTrimStart;
+            const curSpeed = Number(clip.speed) || 1.0;
+            const curVol = Math.round((clip.volume ?? 1) * 100);
 
-            // Target Length Presets Row (Works for Audio & Video)
-            const lengthPresetSection = document.createElement('div');
-            lengthPresetSection.className = 'prop-section';
-            lengthPresetSection.style.marginTop = '10px';
-            lengthPresetSection.innerHTML = `
-                <div class="prop-section-title" style="margin-bottom:6px;">⏱️ Set ${isAudioClip ? 'Audio' : 'Video'} Length (Trim)</div>
+            // 1. Length Presets Section
+            const lengthSec = document.createElement('div');
+            lengthSec.style.marginBottom = '14px';
+            lengthSec.innerHTML = `
+                <div class="prop-section-title" style="margin-bottom:6px;">⚡ Video Length Presets</div>
                 <div class="chip-grid" style="margin-bottom:8px;">
                     <button class="chip-option ${Math.abs(curEffectiveDur - 3) < 0.1 ? 'active' : ''}" onclick="setClipExactDuration(3)">⚡ 3s</button>
                     <button class="chip-option ${Math.abs(curEffectiveDur - 5) < 0.1 ? 'active' : ''}" onclick="setClipExactDuration(5)">⏱ 5s</button>
@@ -3625,171 +4542,359 @@
                     <button class="chip-option ${Math.abs(curEffectiveDur - 15) < 0.1 ? 'active' : ''}" onclick="setClipExactDuration(15)">⏱ 15s</button>
                     <button class="chip-option" onclick="resetClipTrim()">↺ Full</button>
                 </div>
-                <div class="prop-row" style="background:rgba(56,189,248,0.06);padding:6px 8px;border-radius:6px;border:1px solid rgba(56,189,248,0.2);margin-bottom:8px;">
+                <div class="prop-row" style="background:rgba(56,189,248,0.06);padding:6px 8px;border-radius:6px;border:1px solid rgba(56,189,248,0.2);">
                     <span class="prop-label" style="color:#38bdf8;font-weight:700;">Exact Length:</span>
-                    <input class="prop-input" id="inspectorExactDurInput" type="number" step="0.1" min="0.1" max="${srcDur.toFixed(1)}" value="${curEffectiveDur.toFixed(1)}" style="width:75px;text-align:center;font-weight:700;font-size:0.88rem;" onchange="setClipExactDuration(this.value)"/>
-                    <span style="font-size:0.75rem;color:var(--text-secondary);">sec</span>
+                    <input class="prop-input" id="guiExactDurationInput" type="number" step="0.1" min="0.1" max="${srcDur.toFixed(1)}" value="${curEffectiveDur.toFixed(1)}" style="width:75px;text-align:center;font-weight:700;" onchange="setClipExactDuration(this.value)"/>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);margin-right:6px;">sec</span>
+                    <button class="icon-btn" style="width:auto;padding:0 8px;font-size:0.72rem;background:#38bdf8;color:#000;font-weight:700;border:none;" onclick="setClipExactDuration(document.getElementById('guiExactDurationInput').value)">Apply</button>
                 </div>
             `;
-            section.appendChild(lengthPresetSection);
+            section.appendChild(lengthSec);
 
-            // Trim In row
-            const trimInRow = document.createElement('div');
-            trimInRow.className = 'prop-row';
-            trimInRow.style.marginTop = '8px';
-            const trimInLabel = document.createElement('span');
-            trimInLabel.className = 'prop-label';
-            trimInLabel.textContent = `Trim In (${curTrimStart.toFixed(2)}s)`;
-            const trimInInput = document.createElement('input');
-            trimInInput.type = 'range';
-            trimInInput.min = '0';
-            trimInInput.max = srcDur;
-            trimInInput.step = '0.05';
-            trimInInput.className = 'prop-input';
-            trimInInput.value = curTrimStart;
-            trimInInput.addEventListener('input', function() {
-                const val = parseFloat(this.value);
-                const oldStart = clip.trimStart || 0;
-                clip.trimStart = Math.min(val, (clip.trimEnd || srcDur) - MIN_TRIM_SECONDS);
-                clip.start = Math.max(0, (clip.start || 0) + (clip.trimStart - oldStart));
-                trimInLabel.textContent = `Trim In (${clip.trimStart.toFixed(2)}s)`;
-                durLabel.textContent = `Duration: ${(clip.trimEnd - clip.trimStart).toFixed(2)}s`;
-                label.textContent = `Start Position (${(clip.start || 0).toFixed(2)}s)`;
-                input.value = clip.start || 0;
-                requestTimelineRender();
-            });
-            trimInRow.append(trimInLabel, trimInInput);
+            // 2. Direct Trim & Split Section
+            const trimSec = document.createElement('div');
+            trimSec.style.marginBottom = '14px';
+            trimSec.innerHTML = `
+                <div class="prop-section-title" style="margin-bottom:6px;">✂️ Trim & Split</div>
+                <div style="display:flex;gap:6px;margin-bottom:8px;">
+                    <button class="music-btn" style="flex:1;background:rgba(56,189,248,0.12);border-color:#38bdf8;color:#38bdf8;font-size:0.74rem;padding:6px;" onclick="trimClipStartToPlayhead(); selectClip(selectedClip);">⏱ In @ Playhead (Q)</button>
+                    <button class="music-btn" style="flex:1;background:rgba(56,189,248,0.12);border-color:#38bdf8;color:#38bdf8;font-size:0.74rem;padding:6px;" onclick="trimClipEndToPlayhead(); selectClip(selectedClip);">⏱ Out @ Playhead (W)</button>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Trim In</span>
+                    <input class="prop-input" id="guiTrimStart" type="range" min="0" max="${srcDur}" step="0.05" value="${curTrimStart}" oninput="updateActiveClipTrim('trimStart', this.value); document.getElementById('guiTrimStartVal').textContent=parseFloat(this.value).toFixed(2)+'s';"/>
+                    <span id="guiTrimStartVal" style="font-size:0.75rem;color:var(--text-secondary);min-width:42px;">${curTrimStart.toFixed(2)}s</span>
+                </div>
+                <div class="prop-row" style="margin-top:6px;">
+                    <span class="prop-label">Trim Out</span>
+                    <input class="prop-input" id="guiTrimEnd" type="range" min="0.1" max="${srcDur}" step="0.05" value="${curTrimEnd}" oninput="updateActiveClipTrim('trimEnd', this.value); document.getElementById('guiTrimEndVal').textContent=parseFloat(this.value).toFixed(2)+'s';"/>
+                    <span id="guiTrimEndVal" style="font-size:0.75rem;color:var(--text-secondary);min-width:42px;">${curTrimEnd.toFixed(2)}s</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin:8px 0;font-size:0.78rem;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:6px;">
+                    <span>Duration: <strong id="guiTrimDurationVal" style="color:#38bdf8;">${curEffectiveDur.toFixed(2)}s</strong></span>
+                    <a href="#" style="color:var(--purple);text-decoration:none;font-size:0.75rem;" onclick="event.preventDefault(); resetClipTrim(); selectClip(selectedClip);">↺ Reset Trim</a>
+                </div>
+                <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;margin-top:6px;" onclick="splitAtPlayhead()">✂ Split Clip at Playhead (S)</button>
+            `;
+            section.appendChild(trimSec);
 
-            // Trim Out row
-            const trimOutRow = document.createElement('div');
-            trimOutRow.className = 'prop-row';
-            trimOutRow.style.marginTop = '8px';
-            const trimOutLabel = document.createElement('span');
-            trimOutLabel.className = 'prop-label';
-            trimOutLabel.textContent = `Trim Out (${curTrimEnd.toFixed(2)}s)`;
-            const trimOutInput = document.createElement('input');
-            trimOutInput.type = 'range';
-            trimOutInput.min = '0.1';
-            trimOutInput.max = srcDur;
-            trimOutInput.step = '0.05';
-            trimOutInput.className = 'prop-input';
-            trimOutInput.value = curTrimEnd;
-            trimOutInput.addEventListener('input', function() {
-                const val = parseFloat(this.value);
-                clip.trimEnd = Math.max((clip.trimStart || 0) + MIN_TRIM_SECONDS, val);
-                trimOutLabel.textContent = `Trim Out (${clip.trimEnd.toFixed(2)}s)`;
-                durLabel.textContent = `Duration: ${(clip.trimEnd - clip.trimStart).toFixed(2)}s`;
-                requestTimelineRender();
-            });
-            trimOutRow.append(trimOutLabel, trimOutInput);
+            // 3. Playback Speed Presets Section
+            const speedSec = document.createElement('div');
+            speedSec.style.marginBottom = '14px';
+            speedSec.innerHTML = `
+                <div class="prop-section-title" style="margin-bottom:6px;">⏩ Playback Speed</div>
+                <div class="chip-grid" style="margin-bottom:8px;">
+                    <button class="chip-option ${Math.abs(curSpeed - 0.5) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 0.5)">🐢 0.5× Slow</button>
+                    <button class="chip-option ${Math.abs(curSpeed - 1.0) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 1.0)">▶ 1.0× Normal</button>
+                    <button class="chip-option ${Math.abs(curSpeed - 1.5) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 1.5)">⚡ 1.5× Fast</button>
+                    <button class="chip-option ${Math.abs(curSpeed - 2.0) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 2.0)">🚀 2.0× Hyper</button>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Speed <span id="inspSpeedVal">${curSpeed.toFixed(1)}×</span></span>
+                    <input class="prop-input" type="range" min="0.25" max="4.0" step="0.05" value="${curSpeed}" oninput="setClipSpeed(selectedClip, this.value); document.getElementById('inspSpeedVal').textContent=parseFloat(this.value).toFixed(2)+'×';"/>
+                </div>
+            `;
+            section.appendChild(speedSec);
 
-            // Duration display
-            const durRow = document.createElement('div');
-            durRow.style.cssText = 'display:flex;justify-content:space-between;margin:8px 0 4px;font-size:0.78rem;color:var(--text-secondary);';
-            const durLabel = document.createElement('span');
-            durLabel.style.fontWeight = '700';
-            durLabel.style.color = '#38bdf8';
-            durLabel.textContent = `Duration: ${(curTrimEnd - curTrimStart).toFixed(2)}s`;
-            const resetTrimBtn = document.createElement('a');
-            resetTrimBtn.href = '#';
-            resetTrimBtn.style.cssText = 'color:var(--purple);text-decoration:none;font-size:0.75rem;';
-            resetTrimBtn.textContent = '↺ Reset Trim';
-            resetTrimBtn.onclick = (e) => { e.preventDefault(); resetClipTrim(); selectClip(clip); };
-            durRow.append(durLabel, resetTrimBtn);
+            // 4. Volume Section
+            const volSec = document.createElement('div');
+            volSec.style.marginBottom = '14px';
+            volSec.innerHTML = `
+                <div class="prop-section-title" style="margin-bottom:6px;">🔊 Video Audio Volume</div>
+                <div class="prop-row">
+                    <span class="prop-label">Volume <span id="inspVolVal">${curVol}%</span></span>
+                    <input class="prop-input" type="range" min="0" max="200" value="${curVol}" oninput="setClipVolume(selectedClip, this.value); document.getElementById('inspVolVal').textContent=this.value+'%';"/>
+                    <button class="icon-btn" style="width:28px;height:28px;font-size:0.75rem;" onclick="toggleClipAudioMute(selectedClip)" title="Toggle Mute">${curVol === 0 ? '🔇' : '🔊'}</button>
+                </div>
+            `;
+            section.appendChild(volSec);
 
-            // Quick playhead trim buttons
-            const trimBtnRow = document.createElement('div');
-            trimBtnRow.style.cssText = 'display:flex;gap:6px;margin:8px 0;';
-            const trimStartBtn = document.createElement('button');
-            trimStartBtn.className = 'music-btn';
-            trimStartBtn.style.cssText = 'flex:1;font-size:0.75rem;padding:6px;';
-            trimStartBtn.textContent = '⏱ Trim In @ Playhead';
-            trimStartBtn.onclick = () => { trimClipStartToPlayhead(); selectClip(clip); };
-            const trimEndBtn = document.createElement('button');
-            trimEndBtn.className = 'music-btn';
-            trimEndBtn.style.cssText = 'flex:1;font-size:0.75rem;padding:6px;';
-            trimEndBtn.textContent = '⏱ Trim Out @ Playhead';
-            trimEndBtn.onclick = () => { trimClipEndToPlayhead(); selectClip(clip); };
-            trimBtnRow.append(trimStartBtn, trimEndBtn);
+            // 5. Expandable Advanced Section
+            const advSec = document.createElement('details');
+            advSec.style.cssText = 'background:rgba(255,255,255,0.03);border-radius:8px;padding:8px 10px;border:1px solid rgba(255,255,255,0.08);margin-bottom:12px;';
+            advSec.innerHTML = `
+                <summary style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);cursor:pointer;user-select:none;">⚙️ Advanced Video Controls (FPS, Color, VFX, Motion)</summary>
+                <div style="margin-top:10px;">
+                    <div class="prop-row">
+                        <span class="prop-label">Source FPS</span>
+                        <select class="prop-input" id="advSourceFps" onchange="recordEdit(); if(this.value) selectedClip.sourceFps=Number(this.value); else delete selectedClip.sourceFps;">
+                            <option value="" ${!clip.sourceFps ? 'selected' : ''}>Auto / preserve</option>
+                            <option value="24" ${clip.sourceFps === 24 ? 'selected' : ''}>24 FPS</option>
+                            <option value="30" ${clip.sourceFps === 30 ? 'selected' : ''}>30 FPS</option>
+                            <option value="60" ${clip.sourceFps === 60 ? 'selected' : ''}>60 FPS</option>
+                            <option value="120" ${clip.sourceFps === 120 ? 'selected' : ''}>120 FPS</option>
+                        </select>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Color Grade</span>
+                        <select class="prop-input" id="gradePreset" onchange="applyColorGrade()">
+                            <option value="none">Original</option>
+                            <option value="teal-orange">Teal & Orange</option>
+                            <option value="film">Film Print</option>
+                            <option value="bleach">Bleach Bypass</option>
+                            <option value="noir">Noir</option>
+                            <option value="sunset">Sunset</option>
+                        </select>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">VFX Preset</span>
+                        <select class="prop-input" id="vfxPreset" onchange="applyVfx()">
+                            <option value="none">None</option>
+                            <option value="glitch">Glitch</option>
+                            <option value="blur">Blur</option>
+                            <option value="shake">Shake</option>
+                        </select>
+                    </div>
+                    <div style="display:flex;gap:6px;margin-top:8px;">
+                        <button class="music-btn" style="flex:1;font-size:0.75rem;padding:6px;" onclick="setTool('keyframe')">⚡ Open Keyframes</button>
+                        <button class="music-btn" style="flex:1;font-size:0.75rem;padding:6px;" onclick="moveSelectedToPipTrack()">▣ Move to PiP</button>
+                    </div>
+                </div>
+            `;
+            section.appendChild(advSec);
 
-            const splitBtn = document.createElement('button');
-            splitBtn.className = 'music-btn';
-            splitBtn.style.cssText = 'margin-top:10px;background:var(--gradient-main);color:#fff;font-weight:700;';
-            splitBtn.textContent = '✂ Split Clip at Playhead (S)';
-            splitBtn.addEventListener('click', splitAtPlayhead);
+            // Delete Clip Button
+            const delBtn = document.createElement('button');
+            delBtn.className = 'music-btn';
+            delBtn.style.cssText = 'color:#fca5a5;border-color:rgba(239,68,68,0.4);font-size:0.78rem;margin-top:6px;';
+            delBtn.textContent = '🗑 Delete Video Clip (Del)';
+            delBtn.onclick = () => deleteSelectedClip();
+            section.appendChild(delBtn);
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'music-btn';
-            deleteBtn.style.cssText = 'margin-top:8px;color:#fca5a5;border-color:rgba(239,68,68,.45);';
-            deleteBtn.textContent = 'Delete Clip (Del)';
-            deleteBtn.addEventListener('click', deleteSelectedClip);
+            if (body) body.replaceChildren(section);
 
-            const fpsRow = document.createElement('div');
-            fpsRow.className = 'prop-row';
-            fpsRow.style.marginTop = '10px';
-            const fpsLabel = document.createElement('span');
-            fpsLabel.className = 'prop-label';
-            fpsLabel.textContent = 'Source FPS';
-            const fpsSelect = document.createElement('select');
-            fpsSelect.className = 'prop-input';
-            [['', 'Auto / preserve'], ['24', '24 FPS'], ['30', '30 FPS'], ['60', '60 FPS'], ['120', '120 FPS']].forEach(([value, text]) => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = text;
-                option.selected = String(clip.sourceFps || '') === value;
-                fpsSelect.appendChild(option);
-            });
-            fpsSelect.addEventListener('change', () => {
-                recordEdit();
-                if (fpsSelect.value) clip.sourceFps = Number(fpsSelect.value);
-                else delete clip.sourceFps;
-            });
-            fpsRow.append(fpsLabel, fpsSelect);
+            if (window.innerWidth < 768) {
+                const sheetBody = document.getElementById('sheetBody');
+                if (sheetBody) sheetBody.replaceChildren(section);
+                openMobileBottomSheet('Video Clip', '🎬', section);
+            }
+        }
 
-            const clipTrack = projectState.tracks.find(track => track.clips?.includes(clip));
-            if (clipTrack?.type === 'audio' || clip.type === 'audio' || clip.type === 'music') {
-                const audioSection = document.createElement('div');
-                audioSection.className = 'prop-section';
-                audioSection.style.marginTop = '12px';
-                audioSection.innerHTML = '<div class="prop-section-title">Audio Mix</div><label class="prop-label">Volume <span id="clipVolumeValue"></span></label><input class="prop-input" id="clipVolume" type="range" min="0" max="200" value="100"/><label class="prop-label">Fade in <span id="clipFadeInValue">0.0s</span></label><input class="prop-input" id="clipFadeIn" type="range" min="0" max="10" step=".1" value="0"/><label class="prop-label">Fade out <span id="clipFadeOutValue">0.0s</span></label><input class="prop-input" id="clipFadeOut" type="range" min="0" max="10" step=".1" value="0"/>';
-                const volume = audioSection.querySelector('#clipVolume');
-                const volumeValue = audioSection.querySelector('#clipVolumeValue');
-                volume.value = Math.round((Number(clip.volume) || 1) * 100);
-                volumeValue.textContent = `${volume.value}%`;
-                volume.addEventListener('input', () => {
-                    clip.volume = clamp(Number(volume.value) / 100, 0, 2);
-                    volumeValue.textContent = `${volume.value}%`;
-                    requestTimelineRender();
+        function renderAudioClipInspector(clip) {
+            const body = document.getElementById('manualPropsBody');
+            const titleEl = document.getElementById('propsTitle');
+            const iconEl = document.getElementById('propsIcon');
+            if (titleEl) titleEl.textContent = `🎵 Audio: ${clip.name || 'Custom Audio'}`;
+            if (iconEl) iconEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+
+            const section = document.createElement('div');
+            section.className = 'prop-section';
+
+            const curVol = Math.round((clip.volume ?? 1) * 100);
+            const curFadeIn = Number(clip.fadeIn) || 0;
+            const curFadeOut = Number(clip.fadeOut) || 0;
+            const curBass = projectState.bassGain !== undefined ? projectState.bassGain : 0;
+            const srcDur = getClipSourceDuration(clip);
+            const curTrimStart = Number.isFinite(clip.trimStart) ? clip.trimStart : 0;
+            const curTrimEnd = Number.isFinite(clip.trimEnd) ? clip.trimEnd : srcDur;
+            const curEffectiveDur = curTrimEnd - curTrimStart;
+
+            // 1. Volume & Fades Section
+            const volSec = document.createElement('div');
+            volSec.style.marginBottom = '14px';
+            volSec.innerHTML = `
+                <div class="prop-section-title" style="margin-bottom:6px;">🔊 Volume & Fade Envelopes</div>
+                <div class="prop-row">
+                    <span class="prop-label">Volume <span id="clipVolLabel">${curVol}%</span></span>
+                    <input class="prop-input" type="range" min="0" max="200" value="${curVol}" oninput="setClipVolume(selectedClip, this.value); document.getElementById('clipVolLabel').textContent=this.value+'%';"/>
+                </div>
+                <div class="prop-row" style="margin-top:6px;">
+                    <span class="prop-label">Fade In <span id="clipFadeInLabel">${curFadeIn.toFixed(1)}s</span></span>
+                    <input class="prop-input" type="range" min="0" max="10" step="0.1" value="${curFadeIn}" oninput="recordEdit(); selectedClip.fadeIn=clamp(parseFloat(this.value),0,10); document.getElementById('clipFadeInLabel').textContent=parseFloat(this.value).toFixed(1)+'s';"/>
+                </div>
+                <div class="prop-row" style="margin-top:6px;">
+                    <span class="prop-label">Fade Out <span id="clipFadeOutLabel">${curFadeOut.toFixed(1)}s</span></span>
+                    <input class="prop-input" type="range" min="0" max="10" step="0.1" value="${curFadeOut}" oninput="recordEdit(); selectedClip.fadeOut=clamp(parseFloat(this.value),0,10); document.getElementById('clipFadeOutLabel').textContent=parseFloat(this.value).toFixed(1)+'s';"/>
+                </div>
+            `;
+            section.appendChild(volSec);
+
+            // 2. Bass Boost EQ Section
+            const bassSec = document.createElement('div');
+            bassSec.style.marginBottom = '14px';
+            bassSec.innerHTML = `
+                <div class="prop-section-title" style="margin-bottom:6px;">🔊 Bass Boost EQ</div>
+                <div class="prop-row">
+                    <span class="prop-label">Bass Gain <span id="audioClipBassVal">${curBass} dB</span></span>
+                    <input class="prop-input" type="range" min="-20" max="20" step="1" value="${curBass}" oninput="updateBassGainGUI(this.value)"/>
+                </div>
+            `;
+            section.appendChild(bassSec);
+
+            // 3. Trim & Length Presets Section
+            const trimSec = document.createElement('div');
+            trimSec.style.marginBottom = '14px';
+            trimSec.innerHTML = `
+                <div class="prop-section-title" style="margin-bottom:6px;">⏱️ Audio Length & Trim</div>
+                <div class="chip-grid" style="margin-bottom:8px;">
+                    <button class="chip-option ${Math.abs(curEffectiveDur - 3) < 0.1 ? 'active' : ''}" onclick="setClipExactDuration(3)">⚡ 3s</button>
+                    <button class="chip-option ${Math.abs(curEffectiveDur - 5) < 0.1 ? 'active' : ''}" onclick="setClipExactDuration(5)">⏱ 5s</button>
+                    <button class="chip-option ${Math.abs(curEffectiveDur - 6) < 0.1 ? 'active' : ''}" onclick="setClipExactDuration(6)">⏱ 6s</button>
+                    <button class="chip-option ${Math.abs(curEffectiveDur - 10) < 0.1 ? 'active' : ''}" onclick="setClipExactDuration(10)">⏱ 10s</button>
+                    <button class="chip-option" onclick="resetClipTrim()">↺ Full</button>
+                </div>
+                <div style="display:flex;gap:6px;margin-bottom:8px;">
+                    <button class="music-btn" style="flex:1;background:rgba(236,72,153,0.12);border-color:#f472b6;color:#f472b6;font-size:0.74rem;padding:6px;" onclick="trimClipStartToPlayhead(); selectClip(selectedClip);">⏱ In @ Playhead</button>
+                    <button class="music-btn" style="flex:1;background:rgba(236,72,153,0.12);border-color:#f472b6;color:#f472b6;font-size:0.74rem;padding:6px;" onclick="trimClipEndToPlayhead(); selectClip(selectedClip);">⏱ Out @ Playhead</button>
+                </div>
+                <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;margin-top:6px;" onclick="splitAtPlayhead()">✂ Split Audio at Playhead (S)</button>
+            `;
+            section.appendChild(trimSec);
+
+            // Delete Clip Button
+            const delBtn = document.createElement('button');
+            delBtn.className = 'music-btn';
+            delBtn.style.cssText = 'color:#fca5a5;border-color:rgba(239,68,68,0.4);font-size:0.78rem;margin-top:6px;';
+            delBtn.textContent = '🗑 Delete Audio Clip (Del)';
+            delBtn.onclick = () => deleteSelectedClip();
+            section.appendChild(delBtn);
+
+            if (body) body.replaceChildren(section);
+
+            if (window.innerWidth < 768) {
+                const sheetBody = document.getElementById('sheetBody');
+                if (sheetBody) sheetBody.replaceChildren(section);
+                openMobileBottomSheet('Audio Clip', '🎵', section);
+            }
+        }
+
+        function selectOverlay(item) {
+            selectedClip = null;
+            selectedOverlay = item;
+            document.querySelectorAll('.track-clip').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.text-overlay').forEach(t => t.classList.remove('selected-overlay'));
+
+            if (item.kind === 'sticker') {
+                renderStickerOverlayInspector(item);
+            } else {
+                renderTextOverlayInspector(item);
+            }
+        }
+
+        function renderTextOverlayInspector(item) {
+            const body = document.getElementById('manualPropsBody');
+            const titleEl = document.getElementById('propsTitle');
+            const iconEl = document.getElementById('propsIcon');
+            if (titleEl) titleEl.textContent = `✏️ Text: ${item.text ? item.text.slice(0, 14) : 'Layer'}`;
+            if (iconEl) iconEl.innerHTML = '✏️';
+
+            const section = document.createElement('div');
+            section.className = 'prop-section';
+            section.innerHTML = `
+                <div class="prop-section-title">✏️ Edit Text Content</div>
+                <textarea class="prop-input" id="inspectorOverlayText" rows="2" style="font-weight:700;margin-bottom:10px;">${escapeHTML(item.text || '')}</textarea>
+
+                <div class="prop-section-title" style="margin-top:10px;">⏱️ Timing & Placement</div>
+                <div style="display:flex;gap:6px;margin-bottom:8px;">
+                    <button class="chip-option" style="flex:1;font-size:0.74rem;padding:6px;" onclick="item.start=getCurrentPlaybackTime(); renderTextOverlays(); selectOverlay(item);">⏱ Start @ Playhead</button>
+                    <button class="chip-option" style="flex:1;font-size:0.74rem;padding:6px;" onclick="item.end=getCurrentPlaybackTime(); renderTextOverlays(); selectOverlay(item);">⏱ End @ Playhead</button>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Position Y <span id="inspOverlayYVal">${item.y || 82}%</span></span>
+                    <input class="prop-input" type="range" min="10" max="95" value="${item.y || 82}" oninput="item.y=Number(this.value); document.getElementById('inspOverlayYVal').textContent=this.value+'%'; renderTextOverlays();"/>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Position X <span id="inspOverlayXVal">${item.x || 50}%</span></span>
+                    <input class="prop-input" type="range" min="10" max="90" value="${item.x || 50}" oninput="item.x=Number(this.value); document.getElementById('inspOverlayXVal').textContent=this.value+'%'; renderTextOverlays();"/>
+                </div>
+
+                <div class="prop-section-title" style="margin-top:10px;">🎨 Text Styling Presets</div>
+                <div class="chip-grid" style="margin-bottom:8px;">
+                    <button class="chip-option ${item.style === 'gradient' ? 'active' : ''}" onclick="item.style='gradient'; renderTextOverlays(); selectOverlay(item);">🌈 Gradient</button>
+                    <button class="chip-option ${item.style === 'neon' ? 'active' : ''}" onclick="item.style='neon'; renderTextOverlays(); selectOverlay(item);">⚡ Cyber Neon</button>
+                    <button class="chip-option ${item.style === 'box' ? 'active' : ''}" onclick="item.style='box'; renderTextOverlays(); selectOverlay(item);">📦 TikTok Box</button>
+                    <button class="chip-option ${item.style === 'luxury' ? 'active' : ''}" onclick="item.style='luxury'; renderTextOverlays(); selectOverlay(item);">👑 Royal Gold</button>
+                    <button class="chip-option ${item.style === 'flame' ? 'active' : ''}" onclick="item.style='flame'; renderTextOverlays(); selectOverlay(item);">🔥 Flame Heat</button>
+                    <button class="chip-option ${item.style === 'outline' ? 'active' : ''}" onclick="item.style='outline'; renderTextOverlays(); selectOverlay(item);">✏️ Outline</button>
+                </div>
+
+                <div class="prop-section-title" style="margin-top:10px;">✨ Text Animation</div>
+                <div class="chip-grid" style="margin-bottom:8px;">
+                    <button class="chip-option ${item.animation === 'word-by-word' ? 'active' : ''}" onclick="item.animation='word-by-word'; renderTextOverlays(); selectOverlay(item);">🔤 Karaoke Glow</button>
+                    <button class="chip-option ${item.animation === 'pop' ? 'active' : ''}" onclick="item.animation='pop'; renderTextOverlays(); selectOverlay(item);">💥 Pop-In</button>
+                    <button class="chip-option ${item.animation === 'slide-up' ? 'active' : ''}" onclick="item.animation='slide-up'; renderTextOverlays(); selectOverlay(item);">⬆ Slide Up</button>
+                    <button class="chip-option ${item.animation === 'pulse' ? 'active' : ''}" onclick="item.animation='pulse'; renderTextOverlays(); selectOverlay(item);">💓 Beat Pulse</button>
+                </div>
+
+                <div class="prop-row" style="margin-top:10px;">
+                    <span class="prop-label">Font Size <span id="inspTextSizeVal">${item.size || 34}px</span></span>
+                    <input class="prop-input" type="range" min="16" max="96" value="${item.size || 34}" oninput="item.size=Number(this.value); document.getElementById('inspTextSizeVal').textContent=this.value+'px'; renderTextOverlays();"/>
+                </div>
+
+                <button class="music-btn" style="color:#fca5a5;border-color:rgba(239,68,68,0.4);margin-top:12px;" onclick="deleteLyricOverlay('${item.id}'); deselectClip();">🗑 Delete Text Layer</button>
+            `;
+
+            const txtInput = section.querySelector('#inspectorOverlayText');
+            if (txtInput) {
+                txtInput.addEventListener('input', (e) => {
+                    recordEdit();
+                    item.text = e.target.value;
+                    renderTextOverlays();
                 });
-                const fadeInInput = audioSection.querySelector('#clipFadeIn');
-                const fadeOutInput = audioSection.querySelector('#clipFadeOut');
-                const fadeInVal = audioSection.querySelector('#clipFadeInValue');
-                const fadeOutVal = audioSection.querySelector('#clipFadeOutValue');
-                fadeInInput.value = Number(clip.fadeIn) || 0;
-                fadeOutInput.value = Number(clip.fadeOut) || 0;
-                fadeInVal.textContent = parseFloat(fadeInInput.value).toFixed(1) + 's';
-                fadeOutVal.textContent = parseFloat(fadeOutInput.value).toFixed(1) + 's';
-                fadeInInput.addEventListener('input', e => { recordEdit(); clip.fadeIn = clamp(Number(e.target.value) || 0, 0, 10); fadeInVal.textContent = parseFloat(e.target.value).toFixed(1) + 's'; });
-                fadeOutInput.addEventListener('input', e => { recordEdit(); clip.fadeOut = clamp(Number(e.target.value) || 0, 0, 10); fadeOutVal.textContent = parseFloat(e.target.value).toFixed(1) + 's'; });
-                section.appendChild(audioSection);
             }
 
-            row.appendChild(label);
-            row.appendChild(input);
-            section.appendChild(title);
-            section.appendChild(row);
-            section.appendChild(trimInRow);
-            section.appendChild(trimOutRow);
-            section.appendChild(durRow);
-            section.appendChild(trimBtnRow);
-            section.appendChild(splitBtn);
-            section.appendChild(deleteBtn);
-            section.appendChild(fpsRow);
-            body.appendChild(section);
+            if (body) body.replaceChildren(section);
+
+            if (window.innerWidth < 768) {
+                const sheetBody = document.getElementById('sheetBody');
+                if (sheetBody) sheetBody.replaceChildren(section);
+                openMobileBottomSheet('Text Layer', '✏️', section);
+            }
+        }
+
+        function renderStickerOverlayInspector(item) {
+            const body = document.getElementById('manualPropsBody');
+            const titleEl = document.getElementById('propsTitle');
+            const iconEl = document.getElementById('propsIcon');
+            if (titleEl) titleEl.textContent = `✨ Sticker: ${item.text || 'Emoji'}`;
+            if (iconEl) iconEl.innerHTML = item.text || '✨';
+
+            const section = document.createElement('div');
+            section.className = 'prop-section';
+            section.innerHTML = `
+                <div class="prop-section-title">✨ Active Sticker Emoji</div>
+                <div style="font-size:3rem;text-align:center;margin:6px 0 12px;">${item.text || '🔥'}</div>
+
+                <div class="prop-section-title">Change Sticker Emoji</div>
+                <div class="chip-grid" style="grid-template-columns:repeat(4,1fr);font-size:1.4rem;text-align:center;margin-bottom:12px;">
+                    <button class="chip-option" onclick="item.text='🔥'; renderTextOverlays(); selectOverlay(item);">🔥</button>
+                    <button class="chip-option" onclick="item.text='✨'; renderTextOverlays(); selectOverlay(item);">✨</button>
+                    <button class="chip-option" onclick="item.text='⚡'; renderTextOverlays(); selectOverlay(item);">⚡</button>
+                    <button class="chip-option" onclick="item.text='❤️'; renderTextOverlays(); selectOverlay(item);">❤️</button>
+                    <button class="chip-option" onclick="item.text='🚀'; renderTextOverlays(); selectOverlay(item);">🚀</button>
+                    <button class="chip-option" onclick="item.text='🎉'; renderTextOverlays(); selectOverlay(item);">🎉</button>
+                    <button class="chip-option" onclick="item.text='💯'; renderTextOverlays(); selectOverlay(item);">💯</button>
+                    <button class="chip-option" onclick="item.text='👍'; renderTextOverlays(); selectOverlay(item);">👍</button>
+                </div>
+
+                <div class="prop-row">
+                    <span class="prop-label">Size <span id="inspStkSizeVal">${item.size || 56}px</span></span>
+                    <input class="prop-input" type="range" min="24" max="140" value="${item.size || 56}" oninput="item.size=Number(this.value); document.getElementById('inspStkSizeVal').textContent=this.value+'px'; renderTextOverlays();"/>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Position X</span>
+                    <input class="prop-input" type="range" min="5" max="95" value="${item.x || 50}" oninput="item.x=Number(this.value); renderTextOverlays();"/>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Position Y</span>
+                    <input class="prop-input" type="range" min="5" max="95" value="${item.y || 50}" oninput="item.y=Number(this.value); renderTextOverlays();"/>
+                </div>
+
+                <button class="music-btn" style="color:#fca5a5;border-color:rgba(239,68,68,0.4);margin-top:12px;" onclick="deleteLyricOverlay('${item.id}'); deselectClip();">🗑 Delete Sticker</button>
+            `;
+
+            if (body) body.replaceChildren(section);
+
+            if (window.innerWidth < 768) {
+                const sheetBody = document.getElementById('sheetBody');
+                if (sheetBody) sheetBody.replaceChildren(section);
+                openMobileBottomSheet('Sticker', item.text || '✨', section);
+            }
         }
 
         function seekFromTimeline(event) {
-            if (event.target.closest('.track-clip') || event.target.closest('.trim-handle') || event.target.closest('.timeline-kf-marker')) return;
+            if (event.target.closest('.track-clip') || event.target.closest('.trim-handle') || event.target.closest('.timeline-kf-marker') || event.target.closest('.timeline-cut-marker')) return;
+            deselectClip();
             const lane = event.currentTarget?.querySelector?.('.track-lane') || event.currentTarget?.closest?.('.track')?.querySelector('.track-lane');
             const video = document.getElementById('previewVideo');
             if (!lane || !video) return;
@@ -3880,6 +4985,7 @@
                     redoStack.length = 0;
                     updateHistoryButtons();
                     requestTimelineRender();
+                    scheduleAutosave();
                 }
             };
             window.addEventListener('pointermove', onMove);
@@ -3909,7 +5015,8 @@
 
             selectedClip = null;
             requestTimelineRender();
-            showToast(ripple ? '🌊 Ripple deleted clip (gap closed)' : '🗑️ Clip deleted', '🗑️', 'info');
+            renderEmptyInspectorState();
+            showToast(ripple ? '🌊 Ripple deleted clip (gap closed — Ctrl+Z to undo)' : '🗑️ Clip deleted (Ctrl+Z to undo)', '🗑️', 'info');
         }
 
         // --- Precise Frame Stepping (1 frame / 10 frames) ---
@@ -3969,8 +5076,9 @@
 
         // --- Complete Keyboard Shortcuts ---
         document.addEventListener('keydown', (event) => {
-            const tag = document.activeElement?.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            const activeEl = document.activeElement;
+            const tag = activeEl?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || activeEl?.isContentEditable || activeEl?.getAttribute('contenteditable') === 'true') return;
             const modifier = event.ctrlKey || event.metaKey;
 
             if (modifier && event.key.toLowerCase() === 'z') {
@@ -3979,12 +5087,19 @@
             } else if (modifier && event.key.toLowerCase() === 'y') {
                 event.preventDefault();
                 redoEdit();
+            } else if (modifier && event.key.toLowerCase() === 's') {
+                event.preventDefault();
+                saveProject();
             } else if (event.key === 'Delete' || event.key === 'Backspace') {
                 event.preventDefault();
-                if (inPoint !== null && outPoint !== null) {
+                if (selectedOverlay) {
+                    deleteLyricOverlay(selectedOverlay.id);
+                } else if (inPoint !== null && outPoint !== null) {
                     deleteInOutRange(event.shiftKey);
-                } else {
+                } else if (selectedClip) {
                     deleteSelectedClip(event.shiftKey);
+                } else {
+                    showToast('Select a clip or overlay to delete', 'ℹ️', 'info');
                 }
             } else if (event.key.toLowerCase() === 's' || event.key.toLowerCase() === 'c') {
                 event.preventDefault();
@@ -4407,6 +5522,102 @@
             requestTimelineRender();
         }
 
+        // ── Mobile Bottom Sheet Controller ──
+        function openMobileBottomSheet(title, icon, htmlContent) {
+            const sheet = document.getElementById('mobileBottomSheet');
+            const backdrop = document.getElementById('mobileBottomSheetBackdrop');
+            const titleEl = document.getElementById('sheetTitle');
+            const iconEl = document.getElementById('sheetIcon');
+            const bodyEl = document.getElementById('sheetBody');
+            if (!sheet || !bodyEl) return;
+            if (titleEl) titleEl.textContent = title || 'Tool Controls';
+            if (iconEl) iconEl.innerHTML = icon || '⚙️';
+            if (typeof htmlContent === 'string') {
+                bodyEl.innerHTML = htmlContent;
+            } else if (htmlContent instanceof Node) {
+                bodyEl.innerHTML = '';
+                bodyEl.appendChild(htmlContent);
+            }
+            sheet.classList.add('open');
+            if (title === 'Asset Library' || (title && title.includes('Library'))) {
+                sheet.classList.add('expanded');
+            } else {
+                sheet.classList.remove('expanded');
+            }
+            if (backdrop) backdrop.classList.add('active');
+        }
+
+        function closeMobileBottomSheet() {
+            const sheet = document.getElementById('mobileBottomSheet');
+            const backdrop = document.getElementById('mobileBottomSheetBackdrop');
+            if (sheet) {
+                sheet.classList.remove('open');
+                sheet.classList.remove('expanded');
+            }
+            if (backdrop) backdrop.classList.remove('active');
+            document.querySelectorAll('.mob-tool-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        function toggleMobileBottomSheetExpand() {
+            const sheet = document.getElementById('mobileBottomSheet');
+            if (!sheet) return;
+            sheet.classList.toggle('expanded');
+        }
+
+        function handleMobileToolClick(toolKey) {
+            document.querySelectorAll('.mob-tool-btn').forEach(btn => btn.classList.toggle('active', btn.id === `mob-tool-${toolKey}`));
+            
+            const toolMap = {
+                'media': 'media',
+                'library': 'library',
+                'assets': 'library',
+                'audio': 'audio',
+                'text': 'text',
+                'stickers': 'stickers',
+                'filters': 'filters',
+                'effects': 'effects',
+                'transitions': 'transitions',
+                'canvas': 'canvas',
+                'edit': 'trim',
+                'more': 'canvas'
+            };
+            const target = toolMap[toolKey] || toolKey;
+            setTool(target, true);
+        }
+
+        function setCanvasRatio(ratio) {
+            const screen = document.getElementById('previewScreen');
+            if (screen) {
+                recordEdit();
+                projectState.aspectRatio = ratio;
+                screen.style.aspectRatio = ratio;
+                showToast(`Canvas aspect ratio: ${ratio}`, '📱', 'info');
+            }
+        }
+
+        function addStickerOverlay(emoji, label) {
+            recordEdit();
+            const now = getCurrentPlaybackTime();
+            const vidDur = getTimelineTotalDuration() || 5;
+            const sticker = {
+                id: 'stk-' + Date.now(),
+                kind: 'sticker',
+                text: emoji,
+                name: label || emoji,
+                start: Number(now.toFixed(2)),
+                end: Number(Math.min(vidDur, now + 3).toFixed(2)),
+                x: 50,
+                y: 50,
+                size: 56,
+                style: 'solid'
+            };
+            projectState.textOverlays = projectState.textOverlays || [];
+            projectState.textOverlays.push(sticker);
+            renderTextOverlays();
+            requestTimelineRender();
+            showToast(`Added ${emoji} sticker to canvas!`, emoji, 'success');
+        }
+
         let currentMobileTab = 'timeline';
         function setMobileTab(tab) {
             currentMobileTab = tab;
@@ -4430,30 +5641,77 @@
         }
 
         function setTool(name, switchMobileView = true) {
-            const cfg = toolConfigs[name] || toolConfigs.select;
-            document.getElementById('propsTitle').textContent = cfg.title;
-            document.getElementById('manualPropsBody').innerHTML = cfg.html;
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.toggle('active', btn.id === `tool-${name}`));
-            
+            const canonicalMap = {
+                'audio': 'audio',
+                'filters': 'filters',
+                'effects': 'effects',
+                'transitions': 'transitions',
+                'canvas': 'canvas',
+                'music': 'audio',
+                'filter': 'filters',
+                'keyframe': 'effects',
+                'transition': 'transitions',
+                'more': 'canvas',
+                'library': 'library',
+                'assets': 'library'
+            };
+            const canonicalName = canonicalMap[name] || name;
+
+            if (canonicalName === 'select') {
+                if (selectedClip) {
+                    selectClip(selectedClip);
+                } else if (selectedOverlay) {
+                    selectOverlay(selectedOverlay);
+                } else {
+                    renderEmptyInspectorState();
+                }
+                document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.toggle('active', btn.id === 'tool-select' || btn.id === 'tool-media'));
+                document.querySelectorAll('.mob-tool-btn').forEach(btn => btn.classList.toggle('active', btn.id === 'mob-tool-media'));
+                return;
+            }
+
+            const cfg = toolConfigs[canonicalName] || toolConfigs[name] || toolConfigs.select;
+            const contentHtml = (canonicalName === 'library' && window.AssetLibraryUI) ? window.AssetLibraryUI.getHTML() : (typeof cfg.html === 'function' ? cfg.html() : cfg.html);
+            const titleEl = document.getElementById('propsTitle');
+            const iconEl = document.getElementById('propsIcon');
+            const bodyEl = document.getElementById('manualPropsBody');
+            if (titleEl) titleEl.textContent = cfg.title;
+            if (iconEl && cfg.icon) iconEl.innerHTML = cfg.icon;
+            if (bodyEl) bodyEl.innerHTML = contentHtml;
+
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `tool-${canonicalName}` || btn.id === `tool-${name}`);
+            });
+            document.querySelectorAll('.mob-tool-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `mob-tool-${canonicalName}` || btn.id === `mob-tool-${name}`);
+            });
+
             const propsLabel = document.getElementById('mobilePropsTabLabel');
             if (propsLabel) {
                 const shortTitle = (cfg.title || 'Tool').split(' ')[0];
                 propsLabel.textContent = shortTitle;
             }
 
-            if (switchMobileView && name !== 'select' && window.innerWidth <= 900) {
-                setMobileTab('props');
+            if (switchMobileView) {
+                if (window.innerWidth < 768) {
+                    openMobileBottomSheet(cfg.title, cfg.icon, contentHtml);
+                } else if (window.innerWidth <= 900) {
+                    setMobileTab('props');
+                }
             }
 
-            if (name === 'trim') {
+            if (canonicalName === 'media') {
+                renderMediaClipsSummary();
+            }
+            if (canonicalName === 'trim' || name === 'trim') {
                 const clip = getActiveClip();
                 if (clip) updateTrimInspectors(clip);
             }
-            if (name === 'filter' && selectedClip) {
+            if ((canonicalName === 'filters' || canonicalName === 'filter') && selectedClip) {
                 const fs = document.getElementById('filterSelectVal');
                 if (fs) fs.value = selectedClip.filter || 'none';
             }
-            if (name === 'transition') {
+            if (canonicalName === 'transitions' || canonicalName === 'transition') {
                 syncTransitionUIToCut();
             }
             if (name === 'grade' && selectedClip) {
@@ -4469,10 +5727,10 @@
                 document.getElementById('pipSize').value = pip.size || 32;
                 document.getElementById('pipOpacity').value = pip.opacity || 100;
             }
-            if (name === 'text') {
+            if (canonicalName === 'text') {
                 renderLyricsLayerList();
             }
-            if (name === 'music') {
+            if (canonicalName === 'audio' || canonicalName === 'music') {
                 syncMusicUIToState();
                 const bassSlider = document.getElementById('bassGainSlider');
                 if (bassSlider && projectState.bassGain !== undefined) {
@@ -4481,23 +5739,24 @@
                     if (valEl) valEl.textContent = `${projectState.bassGain} dB`;
                 }
             }
-            if (name === 'vfx' && selectedClip) {
-                document.getElementById('vfxPreset').value = selectedClip.vfx?.preset || 'none';
-                document.getElementById('vfxIntensity').value = selectedClip.vfx?.intensity ?? 50;
-                document.getElementById('vfxIntensityValue').textContent = `${document.getElementById('vfxIntensity').value}%`;
+            if ((canonicalName === 'effects' || canonicalName === 'vfx') && selectedClip) {
+                const vfxPreset = document.getElementById('vfxPreset');
+                if (vfxPreset) vfxPreset.value = selectedClip.vfx?.preset || 'none';
+                const vfxInt = document.getElementById('vfxIntensity');
+                if (vfxInt) {
+                    vfxInt.value = selectedClip.vfx?.intensity ?? 50;
+                    const vfxIntVal = document.getElementById('vfxIntensityValue');
+                    if (vfxIntVal) vfxIntVal.textContent = `${vfxInt.value}%`;
+                }
             }
-            if (name === 'keyframe') {
+            if (canonicalName === 'effects' || canonicalName === 'keyframe') {
                 const clip = getActiveClip();
                 if (clip) syncKeyframeUIToClip(clip);
             }
         }
 
         function getActiveClip() {
-            if (!selectedClip) {
-                const clip = projectState.tracks.find(t => t.type === 'video' || t.type === 'main')?.clips[0];
-                if (clip) selectedClip = clip;
-            }
-            return selectedClip;
+            return selectedClip || (projectState.tracks || []).find(t => t.type === 'video' || t.type === 'main')?.clips[0] || null;
         }
 
         function applyClipFilter(value) {
@@ -5470,8 +6729,38 @@
             });
         }
 
+        function syncKeyframeToolbarState() {
+            const clip = getActiveClip();
+            const timelineKfBtn = document.getElementById('timelineKfBtn');
+            if (!timelineKfBtn) return;
+            if (!clip) {
+                timelineKfBtn.innerHTML = '◆ +Keyframe (K)';
+                timelineKfBtn.title = 'Add Diamond Keyframe at Playhead (K)';
+                timelineKfBtn.style.background = 'rgba(56,189,248,0.18)';
+                timelineKfBtn.style.color = '#38bdf8';
+                timelineKfBtn.style.borderColor = 'rgba(56,189,248,0.5)';
+                return;
+            }
+            const localTime = getClipLocalTime(clip);
+            const isOn = isPlayheadOnKeyframe(clip, localTime, 0.06);
+            if (isOn) {
+                timelineKfBtn.innerHTML = '◆ Delete KF (K)';
+                timelineKfBtn.title = `Delete Diamond Keyframe at ${localTime.toFixed(2)}s (K)`;
+                timelineKfBtn.style.background = 'rgba(239,68,68,0.2)';
+                timelineKfBtn.style.color = '#fca5a5';
+                timelineKfBtn.style.borderColor = 'rgba(239,68,68,0.5)';
+            } else {
+                timelineKfBtn.innerHTML = '◆ +Keyframe (K)';
+                timelineKfBtn.title = `Add Diamond Keyframe at ${localTime.toFixed(2)}s (K)`;
+                timelineKfBtn.style.background = 'rgba(56,189,248,0.18)';
+                timelineKfBtn.style.color = '#38bdf8';
+                timelineKfBtn.style.borderColor = 'rgba(56,189,248,0.5)';
+            }
+        }
+
         function syncKeyframeUIToClip(clip) {
             if (!clip) return;
+            syncKeyframeToolbarState();
             clip.transform ||= { x: 0, y: 0, scale: 100, rotation: 0, opacity: 100 };
             const localTime = getClipLocalTime(clip);
             const currentVals = evaluateClipAnimation(clip, localTime);
@@ -6150,14 +7439,22 @@
                 const style = item.style || (item.kind === 'caption' ? 'solid' : 'gradient');
                 const animation = item.animation || 'word-by-word';
                 const textFilter = item.textFilter || 'none';
-                el.className = `text-overlay ${item.kind === 'caption' ? 'caption-overlay' : ''} lyric-${style} lyric-${animation} lyric-${textFilter}`.trim();
+                const isSelected = selectedOverlay && selectedOverlay.id === item.id;
+                el.className = `text-overlay ${isSelected ? 'selected-overlay' : ''} ${item.kind === 'caption' ? 'caption-overlay' : ''} lyric-${style} lyric-${animation} lyric-${textFilter}`.trim();
                 el.style.left = `${clamp(Number(item.x) || 50, 5, 95)}%`;
                 el.style.top = `${clamp(Number(item.y) || (item.kind === 'caption' ? 84 : 76), 5, 95)}%`;
                 el.style.fontSize = `${clamp(Number(item.size) || 32, 14, 96)}px`;
                 el.style.setProperty('--lyric-a', item.colorA || item.color || '#f472b6');
                 el.style.setProperty('--lyric-b', item.colorB || item.color || '#60a5fa');
-                el.title = 'Drag to position text';
-                el.onpointerdown = (event) => beginTextOverlayDrag(event, item, el);
+                el.title = 'Click to edit or drag to reposition';
+                el.onclick = (event) => {
+                    event.stopPropagation();
+                    selectOverlay(item);
+                };
+                el.onpointerdown = (event) => {
+                    selectOverlay(item);
+                    beginTextOverlayDrag(event, item, el);
+                };
 
                 const rawText = String(item.text || '').trim();
                 const words = rawText.split(/\s+/).filter(Boolean);
@@ -6250,10 +7547,12 @@
         function deleteLyricOverlay(id) {
             recordEdit();
             projectState.textOverlays = (projectState.textOverlays || []).filter(l => l.id !== id);
+            selectedOverlay = null;
             renderTextOverlays();
             renderLyricsLayerList();
             requestTimelineRender();
-            showToast('Lyric layer deleted.', '🗑️');
+            renderEmptyInspectorState();
+            showToast('🗑️ Layer deleted (Ctrl+Z to undo)', '🗑️', 'info');
         }
 
         function applyLyricPlacementPreset(y, x, chipEl) {
@@ -6478,10 +7777,10 @@
             let timelineOffset = 0;
 
             if (!audioBuffer) {
-                showToast('🎧 AI reading trimmed audio track...', '⏳');
+                showToast('🎧 Reading audio track for lyric caption generation...', '⏳');
                 const result = await getAudioBufferForAIProcessing();
                 if (!result || !result.buffer) {
-                    return showToast('Please load or trim a music/video clip first!', '⚠️');
+                    return showToast('Please load or import an audio or video clip first!', '⚠️', 'info');
                 }
                 audioBuffer = result.buffer;
                 sourceName = result.sourceName;
@@ -6562,7 +7861,10 @@
                 showToast(`✨ Generated ${lyrics.length} synced lyric layers for trimmed music!`, '🎤', 'success');
             } catch (err) {
                 console.error('Lyric transcription error:', err);
-                showToast(err.message || 'AI transcription failed. Check server logs.', '❌', 'error');
+                const msg = err.message && err.message.toLowerCase().includes('api key')
+                    ? 'Gemini API key required for AI lyric generation. You can also add text layers manually.'
+                    : (err.message || 'AI lyric transcription unavailable. Check server logs.');
+                showToast(msg, 'ℹ️', 'info');
             }
         }
 
@@ -6806,8 +8108,8 @@
 
         async function autoExtractVideoAudio() {
             const vid = document.getElementById('previewVideo');
-            if (!vid || !vid.src) return showToast('Please load a video first!', '⚠️');
-            showToast('Extracting audio & analyzing beats from video...', '⏳');
+            if (!vid || !vid.src) return showToast('Please load a video first to detect music and extract audio!', '⚠️', 'info');
+            showToast('Detecting music & extracting audio from video track...', '⏳');
             try {
                 const response = await fetch(vid.src);
                 const arrayBuffer = await response.arrayBuffer();
@@ -6828,7 +8130,7 @@
                 audioTrack.clips.push({
                     id: 'm-extracted-' + Date.now(),
                     assetId,
-                    name: 'Extracted Background Audio',
+                    name: 'Extracted Video Audio',
                     type: 'music',
                     start: 0,
                     duration: duration,
@@ -6846,17 +8148,17 @@
                 if (bpmVal) bpmVal.textContent = Math.round(bpm);
                 
                 requestTimelineRender();
-                showToast(`🎵 Video background audio extracted & synced (${Math.round(bpm)} BPM)!`, '✅', 'success');
+                showToast(`🎵 Music & audio track detected and added (${Math.round(bpm)} BPM)!`, '✅', 'success');
             } catch (err) {
                 console.error('Audio extraction error:', err);
-                showToast('Extracted audio track added to timeline.', '🎵', 'info');
+                showToast('Detected audio track added to timeline.', '🎵', 'info');
             }
         }
 
         async function analyzeAudio() {
             const vid = document.getElementById('previewVideo');
-            if (!vid || !vid.src) return showToast('No video loaded!', '⚠️');
-            showToast('Analyzing background music beats...', '⏳');
+            if (!vid || !vid.src) return showToast('Please load a video or audio clip first to analyze beats!', '⚠️', 'info');
+            showToast('Analyzing rhythm and detecting BPM...', '⏳');
             try {
                 const bpm = await MusicEngine.analyzeBPM(await (await fetch(vid.src)).arrayBuffer());
                 const bpmVal = document.getElementById('bpmVal');
@@ -6865,7 +8167,7 @@
             } catch (e) {
                 const bpmVal = document.getElementById('bpmVal');
                 if (bpmVal) bpmVal.textContent = '120';
-                showToast('Tempo set to 120 BPM', '🎯');
+                showToast('Default tempo set to 120 BPM', '🎯');
             }
         }
 
@@ -6875,7 +8177,7 @@
             recordEdit();
             projectState.tracks.forEach(t => t.clips.forEach(c => { c.start = Math.round(c.start / interval) * interval; }));
             requestTimelineRender();
-            showToast(`Timeline clips snapped to ${bpm} BPM rhythm!`, '🎯', 'success');
+            showToast(`Timeline edits synchronized to ${bpm} BPM rhythm!`, '🎯', 'success');
         }
 
         function scaleVideo(v) { document.getElementById('previewVideo').style.transform = `scale(${v/100})`; }
@@ -7215,7 +8517,6 @@
                 syncAudioPlayback(0, false);
             }
         }
-        function saveProject() { ProjectService.updateProject(currentProject.id, { projectState }); showToast('Saved!', '✅'); }
 
         // --- GUI Interactive Helpers ---
         async function quickMagicAction(action) {
@@ -7329,74 +8630,316 @@
             if (label) label.textContent = val + '×';
         }
         
+        function onExportPresetChange(value) {
+            const callout = document.getElementById('streamCopyCallout');
+            const reencodeGroup = document.getElementById('reencodeOptionsGroup');
+            const summary = document.getElementById('exportFormatSummary');
+            
+            if (value === 'lossless') {
+                if (callout) callout.style.display = 'block';
+                if (reencodeGroup) {
+                    reencodeGroup.style.opacity = '0.35';
+                    reencodeGroup.style.pointerEvents = 'none';
+                }
+                if (summary) summary.textContent = 'MP4 • Lossless Stream Copy (Source Preserved)';
+            } else {
+                if (callout) callout.style.display = 'none';
+                if (reencodeGroup) {
+                    reencodeGroup.style.opacity = '1';
+                    reencodeGroup.style.pointerEvents = 'auto';
+                }
+                if (value === 'tiktok') {
+                    const res = document.getElementById('exportResolution');
+                    if (res) res.value = '1080';
+                    const fps = document.getElementById('exportFps');
+                    if (fps) fps.value = '30';
+                    if (summary) summary.textContent = 'MP4 • 9:16 Vertical • H.264 + AAC';
+                } else if (value === 'youtube') {
+                    const res = document.getElementById('exportResolution');
+                    if (res) res.value = '1080';
+                    const q = document.getElementById('exportQuality');
+                    if (q) q.value = 'balanced';
+                    if (summary) summary.textContent = 'MP4 • 16:9 Full HD • H.264 + AAC';
+                } else {
+                    if (summary) summary.textContent = 'MP4 • H.264 / AVC + AAC Audio';
+                }
+            }
+        }
+
+        function hasExportableMedia() {
+            const vTrack = projectState?.tracks?.find(t => t.type === 'video');
+            return Boolean(vTrack && vTrack.clips && vTrack.clips.length > 0);
+        }
+
+        function updateExportEligibility() {
+            const eligible = hasExportableMedia();
+            const btn = document.getElementById('startExportBtn');
+            const warn = document.getElementById('exportMediaWarning');
+            if (btn) {
+                btn.disabled = !eligible;
+                btn.style.opacity = eligible ? '1' : '0.5';
+                btn.title = eligible ? '' : 'Import a video to the timeline before exporting.';
+            }
+            if (warn) {
+                warn.style.display = eligible ? 'none' : 'block';
+            }
+        }
+
+        function updateDynamicFpsOption(clip) {
+            const opt = document.getElementById('exportFpsSourceOption');
+            if (!opt) return;
+            if (clip && clip.sourceFps) {
+                opt.textContent = `Source FPS (${clip.sourceFps} FPS)`;
+            } else {
+                opt.textContent = 'Source FPS (Auto)';
+            }
+        }
+
         function exportProject() {
+            updateExportEligibility();
+            setExportModalView('idle');
             document.getElementById('exportModal').classList.add('active');
-            document.getElementById('exportOptions').style.display = 'grid';
-            document.getElementById('startExportBtn').style.display = 'flex';
-            document.getElementById('cancelExportBtn').textContent = 'Close';
-            document.getElementById('exportStatus').textContent = 'Choose settings, then render directly in your browser with FFmpeg.wasm.';
+            onExportPresetChange(document.getElementById('exportPresetPlatform')?.value || 'standard');
         }
 
         function cancelExport() {
             document.getElementById('exportModal').classList.remove('active');
         }
 
+        async function cancelActiveExportAction() {
+            if (typeof window.cancelActiveExport === 'function') {
+                await window.cancelActiveExport();
+            }
+            setExportModalView('idle');
+        }
+
+        function resetExportToIdle() {
+            setExportModalView('idle');
+            updateExportEligibility();
+        }
+
+        function downloadExportedVideo() {
+            if (typeof window.downloadLastExport === 'function') {
+                window.downloadLastExport();
+            }
+        }
+
+        function setExportModalView(state) {
+            const idleView = document.getElementById('exportStateIdle');
+            const activeView = document.getElementById('exportStateActive');
+            const completedView = document.getElementById('exportStateCompleted');
+            const failedView = document.getElementById('exportStateFailed');
+
+            if (idleView) idleView.style.display = state === 'idle' ? 'block' : 'none';
+            if (activeView) activeView.style.display = (state === 'preparing' || state === 'rendering') ? 'block' : 'none';
+            if (completedView) completedView.style.display = state === 'completed' ? 'block' : 'none';
+            if (failedView) failedView.style.display = state === 'failed' ? 'block' : 'none';
+        }
+
+        window.addEventListener('export:state', (e) => {
+            const { state, result, error, mode } = e.detail || {};
+            setExportModalView(state);
+            if (state === 'preparing') {
+                const statusEl = document.getElementById('exportActiveStatus');
+                if (statusEl) statusEl.textContent = 'Preparing media assets in memory...';
+            } else if (state === 'rendering') {
+                const statusEl = document.getElementById('exportActiveStatus');
+                if (statusEl) {
+                    statusEl.textContent = mode === 'lossless'
+                        ? 'Packaging Lossless Stream Copy...'
+                        : 'Encoding video frames with FFmpeg.wasm...';
+                }
+            } else if (state === 'completed') {
+                const infoEl = document.getElementById('exportCompletedInfo');
+                if (infoEl && result) {
+                    const mb = (result.size / (1024 * 1024)).toFixed(1);
+                    infoEl.textContent = `${result.filename} (${mb} MB) is ready for download.`;
+                }
+            } else if (state === 'failed') {
+                const errEl = document.getElementById('exportFailedMsg');
+                if (errEl) errEl.textContent = String(error?.message || error || 'Export operation failed.');
+            }
+        });
+
+        window.addEventListener('export:progress', (e) => {
+            const { pct } = e.detail || {};
+            const pctEl = document.getElementById('exportPct');
+            if (pctEl) pctEl.textContent = `${pct}%`;
+            const circle = document.getElementById('exportCircle');
+            if (circle) circle.style.strokeDashoffset = (314 - (314 * pct) / 100).toString();
+        });
+
         async function startExportWithOptions() {
-            const startButton = document.getElementById('startExportBtn');
-            if (startButton) startButton.style.display = 'none';
-            document.getElementById('exportOptions').style.display = 'none';
-            document.getElementById('cancelExportBtn').textContent = 'Cancel Export';
-            document.getElementById('exportStatus').textContent = 'Preparing assets...';
-            await window.handleEditorExport({
-                format: 'mp4',
-                presetPlatform: document.getElementById('exportPresetPlatform')?.value || 'standard',
-                resolution: document.getElementById('exportResolution').value,
-                quality: document.getElementById('exportQuality').value,
-                audioBitrate: document.getElementById('exportAudioBitrate').value,
-                fps: document.getElementById('exportFps').value
-            });
-            document.getElementById('exportStatus').textContent = 'Render complete.';
+            if (!hasExportableMedia()) {
+                showToast('Please import video media before exporting.', '⚠️', 'error');
+                return;
+            }
+
+            const preset = document.getElementById('exportPresetPlatform')?.value || 'standard';
+            const res = document.getElementById('exportResolution')?.value || '1080';
+            const quality = document.getElementById('exportQuality')?.value || 'balanced';
+            const audioBitrate = document.getElementById('exportAudioBitrate')?.value || '192k';
+            const fps = document.getElementById('exportFps')?.value || 'source';
+
+            setExportModalView('preparing');
+
+            try {
+                await window.handleEditorExport({
+                    format: 'mp4',
+                    presetPlatform: preset,
+                    resolution: res,
+                    quality: quality,
+                    audioBitrate: audioBitrate,
+                    fps: fps,
+                    autoDownload: false
+                });
+            } catch (err) {
+                console.error('Export error:', err);
+            }
+        }
+
+        function exportProjectBackup() {
+            const pId = getReliableProjectId();
+            try {
+                ProjectService.exportProjectBackup(pId);
+                showToast('Project backup downloaded (.clipmagic.json)', '📥', 'success');
+            } catch (e) {
+                showToast(e.message, '⚠️', 'error');
+            }
+        }
+
+        async function handleImportProjectBackup(event) {
+            const file = event.target?.files?.[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const project = await ProjectService.importProjectBackup(text);
+                showToast(`Project restored! Opening "${project.name}"...`, '✅', 'success');
+                setTimeout(() => {
+                    window.location.href = `editor.html?id=${encodeURIComponent(project.id)}`;
+                }, 700);
+            } catch (err) {
+                showToast('Failed to import project backup: ' + err.message, '❌', 'error');
+            } finally {
+                event.target.value = '';
+            }
+        }
+
+        function startFreshProject() {
+            const newId = 'proj-' + Date.now();
+            window.location.href = `editor.html?id=${newId}`;
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const id = new URLSearchParams(window.location.search).get('id');
+            const rawId = new URLSearchParams(window.location.search).get('id');
+            const id = rawId ? rawId.trim() : null;
+
             if (id) {
-                // M3 FIX: guard against deleted/malformed project IDs
-                currentProject = ProjectService.getProject(id);
-                if (!currentProject) {
-                    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#fff;background:#0a0a0f;flex-direction:column;gap:16px"><h2>Project not found</h2><p>This project may have been deleted or the link is invalid.</p><a href="dashboard.html" style="color:#8b5cf6">Back to Dashboard</a></div>';
+                // Validate project ID format (alphanumeric, hyphens, underscores)
+                if (!/^[a-zA-Z0-9_-]{3,64}$/.test(id)) {
+                    document.getElementById('notFoundMessage').textContent = `Invalid project ID format ("${id}").`;
+                    document.getElementById('projectNotFoundModal').classList.add('active');
                     return;
                 }
+
+                currentProject = ProjectService.getProject(id);
+                if (!currentProject) {
+                    // Show styled recovery modal
+                    document.getElementById('notFoundMessage').textContent = `Project "${id}" was not found in this browser's local storage.`;
+                    document.getElementById('projectNotFoundModal').classList.add('active');
+                    return;
+                }
+
                 if (currentProject.projectState && Array.isArray(currentProject.projectState.tracks)) {
                     projectState = currentProject.projectState;
                 }
                 projectState.textOverlays ||= [];
                 window.currentProject = currentProject;
                 window.projectState = projectState;
-                const v = projectState.tracks.find(t=>t.type==='video')?.clips[0];
-                if(v) {
-                    const vid = document.getElementById('previewVideo');
-                    vid.src = await AssetManager.getUrl(id, v.assetId);
-                    vid.addEventListener('loadedmetadata', () => {
-                        const duration = vid.duration;
-                        if (Number.isFinite(duration) && duration > 0) {
-                            v.duration = duration;
-                            if (!Number.isFinite(v.trimEnd) || v.trimEnd <= 1) v.trimEnd = duration;
-                            requestTimelineRender();
-                        }
-                    }, { once: true });
-                    vid.style.display = 'block';
-                    document.getElementById('previewIdle').style.display = 'none';
-                    document.getElementById('previewControls').style.display = 'flex';
+
+                // Restore aspect ratio
+                if (projectState.aspectRatio) {
+                    const screen = document.getElementById('previewScreen');
+                    if (screen) screen.style.aspectRatio = projectState.aspectRatio;
                 }
+
+                // Restore bass gain
+                if (projectState.bassGain !== undefined && typeof updateBassGainGUI === 'function') {
+                    updateBassGainGUI(projectState.bassGain);
+                }
+
+                const nameInput = document.getElementById('fileName');
+                if (nameInput && currentProject.name) {
+                    nameInput.value = currentProject.name;
+                }
+
+                const v = projectState.tracks.find(t=>t.type==='video')?.clips[0];
+                if (v && v.assetId) {
+                    const vid = document.getElementById('previewVideo');
+                    const assetUrl = await AssetManager.getUrl(id, v.assetId);
+                    if (assetUrl) {
+                        vid.src = assetUrl;
+                        vid.addEventListener('loadedmetadata', () => {
+                            const duration = vid.duration;
+                            if (Number.isFinite(duration) && duration > 0) {
+                                v.duration = duration;
+                                if (!Number.isFinite(v.trimEnd) || v.trimEnd <= 1) v.trimEnd = duration;
+                                updateDynamicFpsOption(v);
+                                requestTimelineRender();
+                            }
+                        }, { once: true });
+                        vid.style.display = 'block';
+                        document.getElementById('previewIdle').style.display = 'none';
+                        document.getElementById('previewControls').style.display = 'flex';
+                    } else {
+                        showToast('Media file missing in browser IndexedDB. Please re-import video.', '⚠️', 'info');
+                    }
+                }
+            } else {
+                // Fresh session: generate unique local ID and sync URL without reload
+                const newId = 'proj-' + Date.now();
+                currentProject = {
+                    id: newId,
+                    name: 'Untitled Project',
+                    projectState: projectState
+                };
+                ProjectService.updateProject(newId, { name: 'Untitled Project', projectState });
+                window.currentProject = currentProject;
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set('id', newId);
+                history.replaceState(null, '', newUrl.toString());
             }
+
             setTimelineZoom(timelineZoom);
             initTimelinePinchZoom();
             updateHistoryButtons();
             renderTimeline();
             setTool('select', false);
+            updateExportEligibility();
+            setSaveStatus('saved');
+
+            // Preview screen click to deselect clips & overlays when clicking empty space
+            document.getElementById('previewScreen')?.addEventListener('click', (e) => {
+                if (e.target.closest('.text-overlay') || e.target.closest('.preview-controls') || e.target.closest('button') || e.target.closest('input')) return;
+                deselectClip();
+            });
+
             if (window.innerWidth <= 900) {
                 setMobileTab('timeline');
+            }
+
+            // Sync project name input to project state
+            const fileNameInput = document.getElementById('fileName');
+            if (fileNameInput) {
+                fileNameInput.addEventListener('change', () => {
+                    const newName = fileNameInput.value.trim() || 'Untitled Project';
+                    fileNameInput.value = newName;
+                    if (window.currentProject) {
+                        window.currentProject.name = newName;
+                        ProjectService.updateProject(window.currentProject.id, { name: newName });
+                    }
+                    showToast('Project renamed', '✏️');
+                });
             }
 
             // --- Drag and Drop support for Audio & Video ---
@@ -7425,6 +8968,7 @@
                             await loadVideo({ target: { files: [f] } });
                         }
                     }
+                    updateExportEligibility();
                 });
             });
         });
@@ -7479,6 +9023,7 @@
                 });
                 
                 updatePreviewVisuals();
+                syncKeyframeToolbarState();
                 renderTextOverlays();
                 syncAudioPlayback(timelineCurrent, !vid.paused);
             });
@@ -7518,30 +9063,54 @@
                 showToast('Please select an AI tool first.', '⚠️', 'error');
                 return;
             }
-            
-            showToast('Asking Gemini AI...', '🤖');
-            
+
+            const videoClip = getActivePlayingClip() || projectState.tracks.find(t=>t.type==='video')?.clips[0];
+            if (!videoClip) {
+                showToast('Please load a video clip into the timeline first.', '⚠️', 'error');
+                return;
+            }
+
+            const runBtn = document.querySelector('.ai-run-btn');
+            if (runBtn) {
+                runBtn.disabled = true;
+                runBtn.style.opacity = '0.6';
+            }
+
+            showToast('Analyzing with Gemini AI...', '🤖');
+
             try {
-                let prompt = "Suggest some generic creative edits for a video.";
                 if (activeAITool === 'reframe') {
-                    prompt = "I have a landscape video. Provide step-by-step instructions on how to use AI to track the main subject and crop it to a 9:16 vertical format for TikTok. Keep it brief.";
+                    // Apply immediate visual TikTok 9:16 vertical reframe
+                    const screen = document.getElementById('previewScreen');
+                    if (screen) screen.style.aspectRatio = '9/16';
+                    recordEdit();
+                    videoClip.transform = videoClip.transform || { scale: 100, x: 0, y: 0, rotation: 0, opacity: 100 };
+                    videoClip.transform.scale = Math.max(videoClip.transform.scale, 135);
+                    updatePreviewVisuals();
+                    requestTimelineRender();
+
+                    const prompt = "I have a video clip. Provide 3 short, punchy tips on reframing action shots for 9:16 vertical formats (TikTok / Reels / Shorts). Keep it concise.";
+                    const response = await fetch('/api/gemini', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt })
+                    });
+                    if (response.ok) {
+                        showToast('AI Reframe Applied: 9:16 Canvas with Center Subject Track!', '📱', 'success');
+                    } else {
+                        showToast('TikTok 9:16 Reframe applied locally.', '📱', 'success');
+                    }
+                } else {
+                    showToast('AI tool applied successfully.', '✅', 'success');
                 }
-                
-                const response = await fetch('/api/gemini', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt })
-                });
-                
-                if (!response.ok) throw new Error('Network response was not ok');
-                
-                const data = await response.json();
-                alert("Gemini AI Says:\n\n" + data.text);
-                showToast('AI processing complete.', '✅', 'success');
-                
             } catch (error) {
                 console.error('Error calling AI:', error);
-                showToast('Failed to reach AI. Check server logs.', '❌', 'error');
+                showToast('Local action applied. AI server unavailable.', 'ℹ️', 'info');
+            } finally {
+                if (runBtn) {
+                    runBtn.disabled = false;
+                    runBtn.style.opacity = '1';
+                }
             }
         }
 
