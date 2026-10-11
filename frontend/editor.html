@@ -1884,8 +1884,16 @@
             }
 
             /* View switching classes */
+            .mobile-view-timeline .editor-center {
+                flex: 1 1 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                min-height: 0 !important;
+            }
             .mobile-view-timeline .timeline-area {
                 display: flex !important;
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
             }
             .mobile-view-timeline .editor-props {
                 display: none !important;
@@ -1894,21 +1902,39 @@
                 display: flex !important;
             }
 
+            .mobile-view-props .editor-center {
+                flex: 0 0 auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
             .mobile-view-props .timeline-area {
                 display: none !important;
             }
             .mobile-view-props .editor-props {
                 display: flex !important;
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow-y: auto !important;
             }
             .mobile-view-props .quick-actions-bar {
                 display: flex !important;
             }
 
+            .mobile-view-magic .editor-center {
+                flex: 0 0 auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
             .mobile-view-magic .timeline-area {
                 display: none !important;
             }
             .mobile-view-magic .editor-props {
                 display: flex !important;
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow-y: auto !important;
             }
             .mobile-view-magic .quick-actions-bar {
                 display: flex !important;
@@ -6897,13 +6923,17 @@
         function setEditMode(mode) {
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             if (mode === 'manual') {
-                document.getElementById('modeManual').classList.add('active');
-                document.getElementById('manualPropsBody').style.display = 'block';
-                document.getElementById('aiToolsPanel').style.display = 'none';
+                document.getElementById('modeManual')?.classList.add('active');
+                const manualBody = document.getElementById('manualPropsBody');
+                if (manualBody) manualBody.style.display = 'block';
+                const aiPanel = document.getElementById('aiToolsPanel');
+                if (aiPanel) aiPanel.style.display = 'none';
             } else {
-                document.getElementById('modeAI').classList.add('active');
-                document.getElementById('manualPropsBody').style.display = 'none';
-                document.getElementById('aiToolsPanel').style.display = 'block';
+                document.getElementById('modeAI')?.classList.add('active');
+                const manualBody = document.getElementById('manualPropsBody');
+                if (manualBody) manualBody.style.display = 'none';
+                const aiPanel = document.getElementById('aiToolsPanel');
+                if (aiPanel) aiPanel.style.display = 'block';
             }
         }
 
