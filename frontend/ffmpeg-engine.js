@@ -687,9 +687,13 @@ window.downloadLastExport = function () {
     const a = document.createElement('a');
     a.href = lastExportedResult.url;
     a.download = lastExportedResult.filename || `clip-magic-${Date.now()}.mp4`;
+    a.rel = 'noopener';
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+        a.target = '_blank';
+    }
     document.body.appendChild(a);
     a.click();
-    a.remove();
+    setTimeout(() => a.remove(), 100);
     showToast('Download started!', '⬇️', 'success');
 };
 

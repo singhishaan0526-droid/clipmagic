@@ -1969,6 +1969,18 @@
             background: rgba(239, 68, 68, 0.12);
         }
 
+        .sr-only {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+
         /* ── Focus and reduced motion ── */
         :focus-visible {
             outline: 2px solid #6366f1 !important;
@@ -1977,10 +1989,13 @@
 
         @media (prefers-reduced-motion: reduce) {
             *, ::before, ::after {
-                animation-duration: 0.01ms !important;
+                animation-duration: 0.001ms !important;
                 animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+                transition-duration: 0.001ms !important;
                 scroll-behavior: auto !important;
+            }
+            .ai-spinner, .lyric-glow, .sparkle-anim, .beat-pulse {
+                animation: none !important;
             }
         }
 
@@ -2241,6 +2256,159 @@
             touch-action: none !important;
             -webkit-user-select: none;
             user-select: none;
+        }
+
+        /* ── Touch Coarse Pointer Enhancements ── */
+        @media (pointer: coarse) {
+            .trim-handle {
+                width: 10px !important;
+            }
+            .trim-handle::before {
+                inset: -8px -20px !important;
+            }
+            .scrubber {
+                height: 8px !important;
+            }
+        }
+
+        /* ══════════════════════════════════════════════════════
+           MOBILE LANDSCAPE OPTIMIZATION (max-height: 520px)
+           ══════════════════════════════════════════════════════ */
+        @media (max-height: 520px) and (orientation: landscape) {
+            html, body {
+                height: 100vh !important;
+                height: 100dvh !important;
+                overflow: hidden !important;
+                position: fixed !important;
+                inset: 0 !important;
+            }
+
+            .editor-shell {
+                height: 100vh !important;
+                height: 100dvh !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+            }
+
+            .editor-topbar {
+                height: 36px !important;
+                min-height: 36px !important;
+                padding: 0 8px !important;
+            }
+
+            .topbar-logo-icon {
+                width: 22px !important;
+                height: 22px !important;
+            }
+
+            .file-name-input {
+                font-size: 0.72rem !important;
+                height: 24px !important;
+                max-width: 130px !important;
+            }
+
+            .topbar-actions .icon-btn {
+                width: 28px !important;
+                height: 28px !important;
+                min-width: 28px !important;
+                min-height: 28px !important;
+                padding: 0 !important;
+            }
+
+            .topbar-actions .btn-primary {
+                height: 28px !important;
+                min-height: 28px !important;
+                padding: 0 10px !important;
+                font-size: 0.72rem !important;
+            }
+
+            .editor-tools {
+                width: 44px !important;
+                min-width: 44px !important;
+                padding: 4px 0 !important;
+                gap: 2px !important;
+            }
+
+            .tool-btn {
+                width: 38px !important;
+                height: 34px !important;
+                padding: 2px !important;
+            }
+
+            .tool-btn .tool-label {
+                font-size: 0.55rem !important;
+            }
+
+            .quick-actions-bar {
+                display: none !important;
+            }
+
+            .preview-area {
+                padding: 4px !important;
+                min-height: 0 !important;
+                flex: 1 1 0 !important;
+            }
+
+            .preview-screen {
+                max-height: calc(100vh - 170px) !important;
+                max-height: calc(100dvh - 170px) !important;
+            }
+
+            .preview-controls {
+                padding: 2px 8px !important;
+                gap: 4px !important;
+            }
+
+            .ctrl-btn {
+                width: 24px !important;
+                height: 24px !important;
+            }
+
+            .timeline-area {
+                height: 125px !important;
+                min-height: 125px !important;
+                max-height: 125px !important;
+            }
+
+            .timeline-header {
+                height: 28px !important;
+                min-height: 28px !important;
+                padding: 0 6px !important;
+            }
+
+            .timeline-header .icon-btn {
+                height: 22px !important;
+                font-size: 0.68rem !important;
+                padding: 0 5px !important;
+            }
+
+            .track {
+                height: 32px !important;
+            }
+
+            .track-label {
+                width: 44px !important;
+                font-size: 0.62rem !important;
+            }
+
+            .editor-props {
+                position: fixed !important;
+                top: 36px !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 290px !important;
+                max-width: 80vw !important;
+                z-index: 50 !important;
+                background: #0f172a !important;
+                box-shadow: -4px 0 20px rgba(0,0,0,0.6) !important;
+                transform: translateX(105%) !important;
+                transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            }
+
+            .editor-props.mobile-landscape-open {
+                transform: translateX(0) !important;
+            }
         }
 
         /* ══════════════════════════════════════════════════════
@@ -2683,7 +2851,7 @@
             <div id="exportStateIdle" class="export-state-view">
                 <div id="exportOptions" style="display:grid; gap:12px; text-align:left; margin:16px 0;">
                     <label class="prop-label" for="exportPresetPlatform">Export Preset
-                        <select class="prop-input" id="exportPresetPlatform" onchange="onExportPresetChange(this.value)">
+                        <select class="prop-input" id="exportPresetPlatform" aria-label="Export Preset Platform" onchange="onExportPresetChange(this.value)">
                             <option value="standard" selected>⚙️ Standard Custom (H.264 Re-encoded)</option>
                             <option value="lossless">⚡ Instant Lossless Stream Copy (No Re-encoding)</option>
                             <option value="tiktok">📱 TikTok / Reels / Shorts (9:16 Vertical)</option>
@@ -2700,9 +2868,9 @@
 
                     <!-- Re-encoding options (hidden/disabled when lossless is active) -->
                     <div id="reencodeOptionsGroup" style="display:grid; gap:10px;">
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div style="grid-template-columns: 1fr 1fr; gap:10px; display:grid;">
                             <label class="prop-label" for="exportResolution">Resolution
-                                <select class="prop-input" id="exportResolution">
+                                <select class="prop-input" id="exportResolution" aria-label="Export Video Resolution">
                                     <option value="source">Source resolution</option>
                                     <option value="1080" selected>1080p (FHD)</option>
                                     <option value="720">720p (HD)</option>
@@ -2710,7 +2878,7 @@
                                 </select>
                             </label>
                             <label class="prop-label" for="exportQuality">Quality Profile
-                                <select class="prop-input" id="exportQuality">
+                                <select class="prop-input" id="exportQuality" aria-label="Export Video Quality Profile">
                                     <option value="fast">Fast render (CRF 28)</option>
                                     <option value="balanced" selected>Balanced (CRF 23)</option>
                                     <option value="quality">High quality (CRF 18)</option>
@@ -2718,9 +2886,9 @@
                             </label>
                         </div>
 
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div style="grid-template-columns: 1fr 1fr; gap:10px; display:grid;">
                             <label class="prop-label" for="exportFps">Frame Rate
-                                <select class="prop-input" id="exportFps">
+                                <select class="prop-input" id="exportFps" aria-label="Export Video Frame Rate">
                                     <option value="source" id="exportFpsSourceOption" selected>Source FPS (Auto)</option>
                                     <option value="24">24 FPS (Cinematic)</option>
                                     <option value="30">30 FPS (Standard)</option>
@@ -2728,7 +2896,7 @@
                                 </select>
                             </label>
                             <label class="prop-label" for="exportAudioBitrate">Audio Bitrate
-                                <select class="prop-input" id="exportAudioBitrate">
+                                <select class="prop-input" id="exportAudioBitrate" aria-label="Export Audio Bitrate">
                                     <option value="128k">128 kbps</option>
                                     <option value="192k" selected>192 kbps (High)</option>
                                     <option value="256k">256 kbps (Studio)</option>
@@ -2834,7 +3002,8 @@
     </div>
 
     <!-- Hidden file inputs for project backup import -->
-    <input type="file" id="projectBackupInput" hidden accept=".json,.clipmagic,application/json" onchange="handleImportProjectBackup(event)" />
+    <label for="projectBackupInput" class="sr-only">Project JSON backup file selector</label>
+    <input type="file" id="projectBackupInput" hidden aria-label="Project JSON backup file selector" accept=".json,.clipmagic,application/json" onchange="handleImportProjectBackup(event)" />
 
     <div class="page-wrapper">
         <div class="editor-shell mobile-view-timeline">
@@ -2845,6 +3014,7 @@
                     <span class="topbar-logo-text">Clip Magic</span>
                 </a>
                 <div class="topbar-divider"></div>
+                <label for="fileName" class="sr-only">Project name</label>
                 <input class="file-name-input" id="fileName" value="Untitled Project" title="Click to rename project" aria-label="Project name" />
                 <div class="topbar-divider"></div>
                 <div class="storage-badge" id="storageBadge" title="Edits and media are saved locally in your browser storage">
@@ -2958,8 +3128,10 @@
                                 <button class="btn btn-ghost" onclick="document.getElementById('fileInput').click()">🎬 Import Video or Image</button>
                                 <button class="btn btn-ghost" style="border-color:rgba(236,72,153,0.45); color:#f472b6;" onclick="document.getElementById('globalAudioInput').click()" title="Import audio file (MP3, WAV, AAC) into timeline" aria-label="Import Audio">🎵 Import Audio (MP3, WAV)</button>
                             </div>
-                            <input type="file" id="fileInput" hidden accept="video/*,image/*,audio/*,.mp4,.mov,.avi,.mkv,.webm,.mpeg,.mpg,.mpe,.ts,.m2ts,.m4v,.mp3,.wav,.m4a,.aac,.ogg,.flac" onchange="loadVideo(event)" />
-                            <input type="file" id="globalAudioInput" hidden accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mpa,.mpeg,.mpg" onchange="handleMusicUpload(event)" />
+                            <label for="fileInput" class="sr-only">Media file picker for video, image or audio</label>
+                            <input type="file" id="fileInput" hidden aria-label="Media file picker for video, image or audio" accept="video/*,image/*,audio/*,.mp4,.mov,.avi,.mkv,.webm,.mpeg,.mpg,.mpe,.ts,.m2ts,.m4v,.mp3,.wav,.m4a,.aac,.ogg,.flac" onchange="loadVideo(event)" />
+                            <label for="globalAudioInput" class="sr-only">Audio file picker</label>
+                            <input type="file" id="globalAudioInput" hidden aria-label="Audio file picker" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mpa,.mpeg,.mpg" onchange="handleMusicUpload(event)" />
                         </div>
                     </div>
                     <div class="preview-controls" id="previewControls" style="display:none;">
@@ -2969,7 +3141,8 @@
                         <button class="ctrl-btn" onclick="stepFrame(1)" title="Step +1 frame (Right Arrow)"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
                         <button class="ctrl-btn" onclick="stepFrame(10)" title="Step +10 frames (Shift+Right)"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></svg></button>
                         <div class="scrubber-wrap">
-                            <input type="range" class="scrubber" id="scrubber" value="0" min="0" max="100" oninput="seekVideo(this.value)" />
+                            <label for="scrubber" class="sr-only">Timeline playhead scrubber</label>
+                            <input type="range" class="scrubber" id="scrubber" aria-label="Timeline playhead scrubber" value="0" min="0" max="100" oninput="seekVideo(this.value)" />
                         </div>
                         <div class="time-display" id="timeDisplay">0:00 / 0:00</div>
                         <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()" title="Mute / Unmute"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></button>
@@ -2996,25 +3169,26 @@
                     <div class="timeline-header" style="flex-wrap:wrap;gap:6px;">
                         <div style="display:flex;align-items:center;gap:8px;">
                             <div class="timeline-title">Timeline</div>
-                            <button class="icon-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;padding:0 10px;width:auto;gap:4px;height:28px;" onclick="splitAtPlayhead()" title="Split / Cut at Playhead (S)"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8V5c0-1 1-2 2-2h10c1 0 2 1 2 2v3"/><path d="M19 16v3c0 1-1 2-2 2H7c-1 0-2-1-2-2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg> Split (S)</button>
-                            <button class="icon-btn" id="timelineKfBtn" style="background:rgba(56,189,248,0.18);color:#38bdf8;border-color:rgba(56,189,248,0.5);font-weight:700;padding:0 10px;width:auto;gap:4px;height:28px;" onclick="toggleKeyframeAtPlayhead()" title="Add / Delete Diamond Keyframe at Playhead (K)">◆ +Keyframe (K)</button>
-                            <button class="icon-btn" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;border-color:rgba(56,189,248,0.4);color:#38bdf8;" onclick="setInPoint()" title="Mark In Point (I)">[ In (I)</button>
-                            <button class="icon-btn" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;border-color:rgba(56,189,248,0.4);color:#38bdf8;" onclick="setOutPoint()" title="Mark Out Point (O)">Out (O) ]</button>
-                            <button class="icon-btn" style="padding:0 6px;width:auto;height:28px;font-size:0.75rem;color:var(--text-muted);" onclick="clearInOutPoints()" title="Clear In/Out range (Alt+X)">✕</button>
-                            <button class="icon-btn" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;color:#fca5a5;border-color:rgba(239,68,68,0.3);" onclick="deleteInOutRange(true)" title="Ripple Delete In/Out Range (Shift+Del)">✂ Cut Range</button>
-                            <button class="icon-btn" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;color:#fca5a5;border-color:rgba(239,68,68,0.3);" onclick="deleteSelectedClip(true)" title="Ripple Delete Clip (Shift+Delete)">🌊 Ripple Del</button>
+                            <button class="icon-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;padding:0 10px;width:auto;gap:4px;height:28px;" onclick="splitAtPlayhead()" title="Split / Cut at Playhead (S)" aria-label="Split clip at playhead"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8V5c0-1 1-2 2-2h10c1 0 2 1 2 2v3"/><path d="M19 16v3c0 1-1 2-2 2H7c-1 0-2-1-2-2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg> Split (S)</button>
+                            <button class="icon-btn" id="timelineKfBtn" style="background:rgba(56,189,248,0.18);color:#38bdf8;border-color:rgba(56,189,248,0.5);font-weight:700;padding:0 10px;width:auto;gap:4px;height:28px;" onclick="toggleKeyframeAtPlayhead()" title="Add / Delete Diamond Keyframe at Playhead (K)" aria-label="Add or delete keyframe at playhead">◆ +Keyframe (K)</button>
+                            <button class="icon-btn" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;border-color:rgba(56,189,248,0.4);color:#38bdf8;" onclick="setInPoint()" title="Mark In Point (I)" aria-label="Mark in point">[ In (I)</button>
+                            <button class="icon-btn" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;border-color:rgba(56,189,248,0.4);color:#38bdf8;" onclick="setOutPoint()" title="Mark Out Point (O)" aria-label="Mark out point">Out (O) ]</button>
+                            <button class="icon-btn" style="padding:0 6px;width:auto;height:28px;font-size:0.75rem;color:var(--text-muted);" onclick="clearInOutPoints()" title="Clear In/Out range (Alt+X)" aria-label="Clear in and out points">✕</button>
+                            <button class="icon-btn" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;color:#fca5a5;border-color:rgba(239,68,68,0.3);" onclick="deleteInOutRange(true)" title="Ripple Delete In/Out Range (Shift+Del)" aria-label="Ripple delete in out range">✂ Cut Range</button>
+                            <button class="icon-btn" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;color:#fca5a5;border-color:rgba(239,68,68,0.3);" onclick="deleteSelectedClip(true)" title="Ripple Delete Clip (Shift+Delete)" aria-label="Ripple delete selected clip">🌊 Ripple Del</button>
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
-                            <button class="icon-btn" id="snapToggle" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;" onclick="toggleSnap()" title="Toggle magnetic snapping (N)">🧲 Snap: On</button>
+                            <button class="icon-btn" id="snapToggle" style="padding:0 8px;width:auto;height:28px;font-size:0.75rem;" onclick="toggleSnap()" title="Toggle magnetic snapping (N)" aria-label="Toggle magnetic timeline snapping">🧲 Snap: On</button>
                             <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
-                                <button class="icon-btn" onclick="adjustTimelineZoom(-0.25)" style="height:22px;width:20px;font-size:0.75rem;padding:0;line-height:1;" title="Zoom Out">−</button>
+                                <button class="icon-btn" onclick="adjustTimelineZoom(-0.25)" style="height:22px;width:20px;font-size:0.75rem;padding:0;line-height:1;" title="Zoom Out" aria-label="Zoom out timeline">−</button>
                                 <span style="font-size:0.7rem;color:var(--text-muted);">🔍</span>
-                                <input type="range" id="timelineZoomSlider" min="0.5" max="6.0" step="0.1" value="1.0" style="width:58px;cursor:pointer;" oninput="setTimelineZoom(this.value)" title="Zoom timeline"/>
+                                <label for="timelineZoomSlider" class="sr-only">Timeline zoom scale</label>
+                                <input type="range" id="timelineZoomSlider" min="0.5" max="6.0" step="0.1" value="1.0" style="width:58px;cursor:pointer;" oninput="setTimelineZoom(this.value)" title="Zoom timeline" aria-label="Timeline zoom scale"/>
                                 <span id="timelineZoomLabel" style="font-size:0.7rem;color:var(--text-secondary);min-width:32px;">100%</span>
-                                <button class="icon-btn" onclick="adjustTimelineZoom(0.25)" style="height:22px;width:20px;font-size:0.75rem;padding:0;line-height:1;" title="Zoom In">+</button>
+                                <button class="icon-btn" onclick="adjustTimelineZoom(0.25)" style="height:22px;width:20px;font-size:0.75rem;padding:0;line-height:1;" title="Zoom In" aria-label="Zoom in timeline">+</button>
                             </div>
-                            <button class="icon-btn" onclick="addTrack('video')" style="height:28px;width:28px;" title="Add Video Track"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-                            <button class="icon-btn" onclick="addTrack('audio')" style="height:28px;width:28px;" title="Add Audio Track"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
+                            <button class="icon-btn" onclick="addTrack('video')" style="height:28px;width:28px;" title="Add Video Track" aria-label="Add video track"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+                            <button class="icon-btn" onclick="addTrack('audio')" style="height:28px;width:28px;" title="Add Audio Track" aria-label="Add audio track"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
                         </div>
                     </div>
                     <div style="position:relative; flex:1; overflow-y:auto; overflow-x:auto;" id="timelineScrollArea" onwheel="handleTimelineWheel(event)">
@@ -3777,7 +3951,7 @@
             select: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 4 7.07 17 2.51-7.39L21 11.07z"/></svg>',
                 title: 'Select Tool',
-                html: `<div class="prop-section"><div class="prop-section-title">Clip Info</div><div class="prop-row"><span class="prop-label">Name</span><input class="prop-input" value="Main Clip"/></div></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Clip Info</div><div class="prop-row"><span class="prop-label">Name</span><input class="prop-input" value="Main Clip" aria-label="Clip title name"/></div></div>`
             },
             trim: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>',
@@ -3798,7 +3972,7 @@
 
                     <div class="prop-row" style="margin-bottom:12px;background:rgba(56,189,248,0.06);padding:8px 10px;border-radius:8px;border:1px solid rgba(56,189,248,0.25);">
                         <span class="prop-label" style="color:#38bdf8;font-weight:700;">Exact Length (sec):</span>
-                        <input class="prop-input" id="guiExactDurationInput" type="number" step="0.1" min="0.1" max="600" value="3.0" style="width:80px;text-align:center;font-weight:700;font-size:0.9rem;" onchange="setClipExactDuration(this.value)"/>
+                        <input class="prop-input" id="guiExactDurationInput" type="number" step="0.1" min="0.1" max="600" value="3.0" aria-label="Clip exact duration seconds" style="width:80px;text-align:center;font-weight:700;font-size:0.9rem;" onchange="setClipExactDuration(this.value)"/>
                         <button class="icon-btn" style="width:auto;padding:0 8px;font-size:0.75rem;background:#38bdf8;color:#000;font-weight:700;border:none;" onclick="setClipExactDuration(document.getElementById('guiExactDurationInput').value)">Apply</button>
                     </div>
 
@@ -3809,13 +3983,13 @@
 
                     <div class="prop-row">
                         <span class="prop-label">Trim Start (In)</span>
-                        <input class="prop-input" id="guiTrimStart" type="range" min="0" max="60" step="0.1" value="0" oninput="updateActiveClipTrim('trimStart', this.value)"/>
+                        <input class="prop-input" id="guiTrimStart" type="range" min="0" max="60" step="0.1" value="0" aria-label="Clip trim in point" oninput="updateActiveClipTrim('trimStart', this.value)"/>
                         <span id="guiTrimStartVal" style="font-size:0.75rem;color:var(--text-secondary);min-width:38px;">0.0s</span>
                     </div>
 
                     <div class="prop-row" style="margin-top:8px;">
                         <span class="prop-label">Trim End (Out)</span>
-                        <input class="prop-input" id="guiTrimEnd" type="range" min="0.1" max="120" step="0.1" value="10" oninput="updateActiveClipTrim('trimEnd', this.value)"/>
+                        <input class="prop-input" id="guiTrimEnd" type="range" min="0.1" max="120" step="0.1" value="10" aria-label="Clip trim out point" oninput="updateActiveClipTrim('trimEnd', this.value)"/>
                         <span id="guiTrimEndVal" style="font-size:0.75rem;color:var(--text-secondary);min-width:38px;">10.0s</span>
                     </div>
 
@@ -3858,7 +4032,7 @@
                 title: 'Song Lyrics & Karaoke',
                 html: `<div class="prop-section">
                     <div class="prop-section-title">🎤 Animated Song Lyric Layer</div>
-                    <textarea class="prop-input" id="overlayText" rows="2" placeholder="Type or paste lyric line (or click Auto-Generate below)"></textarea>
+                    <textarea class="prop-input" id="overlayText" rows="2" aria-label="Lyric line text content" placeholder="Type or paste lyric line (or click Auto-Generate below)"></textarea>
                     
                     <div style="display:flex;gap:6px;margin:8px 0;">
                         <button class="chip-option" style="flex:1;font-size:0.75rem;padding:7px;font-weight:600;" onclick="setLyricStartToPlayhead()">⏱ Start @ Playhead</button>
@@ -3868,11 +4042,11 @@
                     <div style="display:flex;gap:10px;">
                         <div style="flex:1;">
                             <label class="prop-label">Start Time <span id="overlayStartLabel">0.0s</span></label>
-                            <input class="prop-input" id="overlayStart" type="range" min="0" max="120" step="0.1" value="0" oninput="document.getElementById('overlayStartLabel').textContent=parseFloat(this.value).toFixed(1)+'s'"/>
+                            <input class="prop-input" id="overlayStart" type="range" min="0" max="120" step="0.1" value="0" aria-label="Lyric overlay start time in seconds" oninput="document.getElementById('overlayStartLabel').textContent=parseFloat(this.value).toFixed(1)+'s'"/>
                         </div>
                         <div style="flex:1;">
                             <label class="prop-label">End Time <span id="overlayEndLabel">3.5s</span></label>
-                            <input class="prop-input" id="overlayEnd" type="range" min="0.5" max="120" step="0.1" value="3.5" oninput="document.getElementById('overlayEndLabel').textContent=parseFloat(this.value).toFixed(1)+'s'"/>
+                            <input class="prop-input" id="overlayEnd" type="range" min="0.5" max="120" step="0.1" value="3.5" aria-label="Lyric overlay end time in seconds" oninput="document.getElementById('overlayEndLabel').textContent=parseFloat(this.value).toFixed(1)+'s'"/>
                         </div>
                     </div>
 
@@ -3906,11 +4080,11 @@
                     <div style="display:flex;gap:10px;">
                         <div style="flex:1;">
                             <label class="prop-label">Position Y <span id="overlayYValue">82%</span></label>
-                            <input class="prop-input" id="overlayY" type="range" min="10" max="95" value="82" oninput="document.getElementById('overlayYValue').textContent=this.value+'%'; renderTextOverlays();"/>
+                            <input class="prop-input" id="overlayY" type="range" min="10" max="95" value="82" aria-label="Overlay vertical position percentage" oninput="document.getElementById('overlayYValue').textContent=this.value+'%'; renderTextOverlays();"/>
                         </div>
                         <div style="flex:1;">
                             <label class="prop-label">Position X <span id="overlayXValue">50%</span></label>
-                            <input class="prop-input" id="overlayX" type="range" min="10" max="90" value="50" oninput="document.getElementById('overlayXValue').textContent=this.value+'%'; renderTextOverlays();"/>
+                            <input class="prop-input" id="overlayX" type="range" min="10" max="90" value="50" aria-label="Overlay horizontal position percentage" oninput="document.getElementById('overlayXValue').textContent=this.value+'%'; renderTextOverlays();"/>
                         </div>
                     </div>
 
@@ -3941,11 +4115,11 @@
                     <div style="display:flex;gap:10px;margin-bottom:8px;">
                         <div style="flex:1;">
                             <span class="prop-label">Color A</span>
-                            <input class="prop-input" id="overlayColorA" type="color" value="#f472b6" style="height:32px;padding:2px;cursor:pointer" oninput="renderTextOverlays()"/>
+                            <input class="prop-input" id="overlayColorA" type="color" value="#f472b6" aria-label="Overlay primary gradient color" style="height:32px;padding:2px;cursor:pointer" oninput="renderTextOverlays()"/>
                         </div>
                         <div style="flex:1;">
                             <span class="prop-label">Color B</span>
-                            <input class="prop-input" id="overlayColorB" type="color" value="#38bdf8" style="height:32px;padding:2px;cursor:pointer" oninput="renderTextOverlays()"/>
+                            <input class="prop-input" id="overlayColorB" type="color" value="#38bdf8" aria-label="Overlay secondary gradient color" style="height:32px;padding:2px;cursor:pointer" oninput="renderTextOverlays()"/>
                         </div>
                     </div>
 
@@ -3960,7 +4134,7 @@
                     <input type="hidden" id="overlayAnimation" value="word-by-word"/>
 
                     <label class="prop-label">Text Size <span id="overlaySizeValue">34px</span></label>
-                    <input class="prop-input" id="overlaySize" type="range" min="16" max="96" value="34" oninput="document.getElementById('overlaySizeValue').textContent=this.value+'px'; renderTextOverlays();"/>
+                    <input class="prop-input" id="overlaySize" type="range" min="16" max="96" value="34" aria-label="Overlay text font size" oninput="document.getElementById('overlaySizeValue').textContent=this.value+'px'; renderTextOverlays();"/>
 
                     <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;margin-top:10px;" onclick="addTextOverlay()">＋ Add Custom Lyric Layer</button>
                     <button class="music-btn" style="margin-top:6px;border-color:rgba(236,72,153,0.5);color:#f472b6;font-weight:700;" onclick="autoGenerateSongLyrics()">✨ AI Auto-Generate Song Lyrics (Trimmed Music)</button>
@@ -4077,7 +4251,7 @@
                         <button class="chip-option" id="transPill-10" onclick="setTransitionDurGUI(1.0)">1.0s</button>
                         <button class="chip-option" id="transPill-15" onclick="setTransitionDurGUI(1.5)">1.5s</button>
                     </div>
-                    <input class="prop-input" id="transitionDuration" type="range" min="0.1" max="2.0" step="0.05" value="0.5" oninput="onTransitionSliderInput(this.value)"/>
+                    <input class="prop-input" id="transitionDuration" type="range" min="0.1" max="2.0" step="0.05" value="0.5" aria-label="Transition duration seconds" oninput="onTransitionSliderInput(this.value)"/>
 
                     <!-- Action Controls -->
                     <div class="trans-action-row">
@@ -4199,7 +4373,7 @@
                                 <button class="chip-option" onclick="setQuickAnimDur(1.5)">1.5s</button>
                                 <button class="chip-option" onclick="setQuickAnimDur(2.0)">2.0s</button>
                             </div>
-                            <input class="prop-input" id="quickAnimDuration" type="range" min="0.1" max="4.0" step="0.05" value="0.6" oninput="onQuickAnimParamChange()"/>
+                            <input class="prop-input" id="quickAnimDuration" type="range" min="0.1" max="4.0" step="0.05" value="0.6" aria-label="Animation duration seconds" oninput="onQuickAnimParamChange()"/>
 
                             <!-- Direction (Shown for Slide) -->
                             <div id="quickAnimDirectionWrap" style="margin-top:8px;">
@@ -4214,11 +4388,11 @@
 
                             <!-- Intensity -->
                             <label class="prop-label" style="margin-top:8px;">Motion Intensity / Scale <span id="quickAnimIntensityVal">100%</span></label>
-                            <input class="prop-input" id="quickAnimIntensity" type="range" min="25" max="200" step="5" value="100" oninput="onQuickAnimParamChange()"/>
+                            <input class="prop-input" id="quickAnimIntensity" type="range" min="25" max="200" step="5" value="100" aria-label="Animation intensity percentage" oninput="onQuickAnimParamChange()"/>
 
                             <!-- Easing -->
                             <label class="prop-label" style="margin-top:8px;">Easing Curve</label>
-                            <select class="prop-input" id="quickAnimEasing" onchange="onQuickAnimParamChange()">
+                            <select class="prop-input" id="quickAnimEasing" aria-label="Animation easing curve" onchange="onQuickAnimParamChange()">
                                 <option value="easeOut" selected>Ease Out (Decelerate)</option>
                                 <option value="easeInOut">Ease In-Out (Smooth)</option>
                                 <option value="easeIn">Ease In (Accelerate)</option>
@@ -4265,7 +4439,7 @@
                                 <label class="prop-label" style="margin:0;">Scale / Zoom <span id="kfScaleVal">100%</span></label>
                                 <button class="chip-option" style="padding:1px 6px;font-size:0.68rem;" onclick="setPropPreset('scale', 100)">100%</button>
                             </div>
-                            <input class="prop-input" id="keyframeScale" type="range" min="10" max="300" value="100" oninput="onKeyframeSliderInput('scale')"/>
+                            <input class="prop-input" id="keyframeScale" type="range" min="10" max="300" value="100" aria-label="Keyframe scale percentage" oninput="onKeyframeSliderInput('scale')"/>
                         </div>
 
                         <!-- Position X -->
@@ -4274,7 +4448,7 @@
                                 <label class="prop-label" style="margin:0;">Position X <span id="kfXVal">0%</span></label>
                                 <button class="chip-option" style="padding:1px 6px;font-size:0.68rem;" onclick="setPropPreset('x', 0)">Center</button>
                             </div>
-                            <input class="prop-input" id="keyframeX" type="range" min="-100" max="100" value="0" oninput="onKeyframeSliderInput('x')"/>
+                            <input class="prop-input" id="keyframeX" type="range" min="-100" max="100" value="0" aria-label="Keyframe horizontal offset" oninput="onKeyframeSliderInput('x')"/>
                         </div>
 
                         <!-- Position Y -->
@@ -4283,7 +4457,7 @@
                                 <label class="prop-label" style="margin:0;">Position Y <span id="kfYVal">0%</span></label>
                                 <button class="chip-option" style="padding:1px 6px;font-size:0.68rem;" onclick="setPropPreset('y', 0)">Center</button>
                             </div>
-                            <input class="prop-input" id="keyframeY" type="range" min="-100" max="100" value="0" oninput="onKeyframeSliderInput('y')"/>
+                            <input class="prop-input" id="keyframeY" type="range" min="-100" max="100" value="0" aria-label="Keyframe vertical offset" oninput="onKeyframeSliderInput('y')"/>
                         </div>
 
                         <!-- Rotation -->
@@ -4292,7 +4466,7 @@
                                 <label class="prop-label" style="margin:0;">Rotation Angle <span id="kfRotVal">0°</span></label>
                                 <button class="chip-option" style="padding:1px 6px;font-size:0.68rem;" onclick="setPropPreset('rotation', 0)">0°</button>
                             </div>
-                            <input class="prop-input" id="keyframeRotation" type="range" min="-360" max="360" value="0" oninput="onKeyframeSliderInput('rotation')"/>
+                            <input class="prop-input" id="keyframeRotation" type="range" min="-360" max="360" value="0" aria-label="Keyframe rotation angle degrees" oninput="onKeyframeSliderInput('rotation')"/>
                         </div>
 
                         <!-- Opacity -->
@@ -4301,7 +4475,7 @@
                                 <label class="prop-label" style="margin:0;">Opacity / Fade <span id="kfOpacVal">100%</span></label>
                                 <button class="chip-option" style="padding:1px 6px;font-size:0.68rem;" onclick="setPropPreset('opacity', 100)">100%</button>
                             </div>
-                            <input class="prop-input" id="keyframeOpacity" type="range" min="0" max="100" value="100" oninput="onKeyframeSliderInput('opacity')"/>
+                            <input class="prop-input" id="keyframeOpacity" type="range" min="0" max="100" value="100" aria-label="Keyframe opacity percentage" oninput="onKeyframeSliderInput('opacity')"/>
                         </div>
 
                         <!-- Audio Volume -->
@@ -4310,13 +4484,13 @@
                                 <label class="prop-label" style="margin:0;">Audio Volume <span id="kfVolVal">100%</span></label>
                                 <button class="chip-option" style="padding:1px 6px;font-size:0.68rem;" onclick="setPropPreset('volume', 100)">100%</button>
                             </div>
-                            <input class="prop-input" id="keyframeVolume" type="range" min="0" max="200" value="100" oninput="onKeyframeSliderInput('volume')"/>
+                            <input class="prop-input" id="keyframeVolume" type="range" min="0" max="200" value="100" aria-label="Keyframe audio volume percentage" oninput="onKeyframeSliderInput('volume')"/>
                         </div>
 
                         <!-- Easing for this Keyframe -->
                         <div style="margin-top:10px;">
                             <label class="prop-label">Keyframe Easing</label>
-                            <select class="prop-input" id="keyframeEasingSelect" onchange="onKeyframeEasingChange(this.value)">
+                            <select class="prop-input" id="keyframeEasingSelect" aria-label="Keyframe interpolation easing" onchange="onKeyframeEasingChange(this.value)">
                                 <option value="linear">Linear (Default)</option>
                                 <option value="easeIn">Ease In</option>
                                 <option value="easeOut">Ease Out</option>
@@ -4340,21 +4514,21 @@
             },
             speed: {
                 title: 'Speed Ramping',
-                html: `<div class="prop-section"><div class="prop-section-title">Add Speed Point</div><p style="color:var(--text-secondary);font-size:.78rem;margin-bottom:8px">Click a visual speed chip or drag the slider.</p><label class="prop-label">Speed Preset</label><div class="chip-grid" style="margin-bottom:10px"><button class="chip-option" onclick="setSpeedGUI(0.25)">🐢 0.25× Slow</button><button class="chip-option" onclick="setSpeedGUI(0.5)">0.5×</button><button class="chip-option active" onclick="setSpeedGUI(1.0)">▶ 1.0× Normal</button><button class="chip-option" onclick="setSpeedGUI(2.0)">2.0× Fast</button><button class="chip-option" onclick="setSpeedGUI(4.0)">⚡ 4.0× Hyper</button></div><label class="prop-label">Speed Multiplier <span id="speedValLabel">1.0×</span></label><input class="prop-input" id="speedValueRange" type="range" min="0.1" max="8.0" step="0.05" value="1.0" oninput="updateSpeedValLabel(this.value)"/><input type="hidden" id="speedValue" value="1"/><button class="music-btn" style="margin-top:10px" onclick="addSpeedPoint()">⏩ Add Speed Point</button></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Add Speed Point</div><p style="color:var(--text-secondary);font-size:.78rem;margin-bottom:8px">Click a visual speed chip or drag the slider.</p><label class="prop-label">Speed Preset</label><div class="chip-grid" style="margin-bottom:10px"><button class="chip-option" onclick="setSpeedGUI(0.25)">🐢 0.25× Slow</button><button class="chip-option" onclick="setSpeedGUI(0.5)">0.5×</button><button class="chip-option active" onclick="setSpeedGUI(1.0)">▶ 1.0× Normal</button><button class="chip-option" onclick="setSpeedGUI(2.0)">2.0× Fast</button><button class="chip-option" onclick="setSpeedGUI(4.0)">⚡ 4.0× Hyper</button></div><label class="prop-label">Speed Multiplier <span id="speedValLabel">1.0×</span></label><input class="prop-input" id="speedValueRange" type="range" min="0.1" max="8.0" step="0.05" value="1.0" aria-label="Custom speed slider multiplier" oninput="updateSpeedValLabel(this.value)"/><input type="hidden" id="speedValue" value="1"/><button class="music-btn" style="margin-top:10px" onclick="addSpeedPoint()">⏩ Add Speed Point</button></div>`
             },
             pip: {
                 title: 'Picture in Picture',
-                html: `<div class="prop-section"><div class="prop-section-title">PiP Overlay</div><p style="color:var(--text-secondary);font-size:.78rem">Move a video clip to a second video track, then set its overlay position and size.</p><button class="music-btn" onclick="moveSelectedToPipTrack()">▣ Move Selected Clip to PiP Track</button><label class="prop-label">Position</label><select class="prop-input" id="pipPosition" onchange="applyPipSettings()"><option value="top-right">Top right</option><option value="top-left">Top left</option><option value="bottom-right" selected>Bottom right</option><option value="bottom-left">Bottom left</option></select><label class="prop-label">Size</label><input class="prop-input" id="pipSize" type="range" min="15" max="60" value="32" oninput="applyPipSettings()"/><label class="prop-label">Opacity</label><input class="prop-input" id="pipOpacity" type="range" min="20" max="100" value="100" oninput="applyPipSettings()"/></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">PiP Overlay</div><p style="color:var(--text-secondary);font-size:.78rem">Move a video clip to a second video track, then set its overlay position and size.</p><button class="music-btn" onclick="moveSelectedToPipTrack()">▣ Move Selected Clip to PiP Track</button><label class="prop-label">Position</label><select class="prop-input" id="pipPosition" aria-label="Picture-in-picture screen position" onchange="applyPipSettings()"><option value="top-right">Top right</option><option value="top-left">Top left</option><option value="bottom-right" selected>Bottom right</option><option value="bottom-left">Bottom left</option></select><label class="prop-label">Size</label><input class="prop-input" id="pipSize" type="range" min="15" max="60" value="32" aria-label="Picture-in-picture size percentage" oninput="applyPipSettings()"/><label class="prop-label">Opacity</label><input class="prop-input" id="pipOpacity" type="range" min="20" max="100" value="100" aria-label="Picture-in-picture opacity percentage" oninput="applyPipSettings()"/></div>`
             },
             grade: {
                 title: 'Color Grading',
-                html: `<div class="prop-section"><div class="prop-section-title">Professional Grade</div><select class="prop-input" id="gradePreset" onchange="applyColorGrade()"><option value="none">Original</option><option value="teal-orange">Teal & Orange</option><option value="film">Film Print</option><option value="bleach">Bleach Bypass</option><option value="noir">Noir</option><option value="sunset">Sunset</option></select><label class="prop-label">Exposure</label><input class="prop-input" id="gradeExposure" type="range" min="-1" max="1" step=".05" value="0" oninput="applyColorGrade()"/><label class="prop-label">Contrast</label><input class="prop-input" id="gradeContrast" type="range" min=".5" max="1.8" step=".05" value="1" oninput="applyColorGrade()"/><label class="prop-label">Saturation</label><input class="prop-input" id="gradeSaturation" type="range" min="0" max="2" step=".05" value="1" oninput="applyColorGrade()"/></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Professional Grade</div><select class="prop-input" id="gradePreset" aria-label="Color grade preset" onchange="applyColorGrade()"><option value="none">Original</option><option value="teal-orange">Teal & Orange</option><option value="film">Film Print</option><option value="bleach">Bleach Bypass</option><option value="noir">Noir</option><option value="sunset">Sunset</option></select><label class="prop-label">Exposure</label><input class="prop-input" id="gradeExposure" type="range" min="-1" max="1" step=".05" value="0" aria-label="Color exposure adjustment" oninput="applyColorGrade()"/><label class="prop-label">Contrast</label><input class="prop-input" id="gradeContrast" type="range" min=".5" max="1.8" step=".05" value="1" aria-label="Color contrast multiplier" oninput="applyColorGrade()"/><label class="prop-label">Saturation</label><input class="prop-input" id="gradeSaturation" type="range" min="0" max="2" step=".05" value="1" aria-label="Color saturation multiplier" oninput="applyColorGrade()"/></div>`
             },
             caption: {
                 title: 'Auto Captions',
                 html: `<div class="prop-section">
                     <div class="prop-section-title">✨ AI Subtitles & Captions</div>
-                    <textarea class="prop-input" id="captionTranscript" rows="4" placeholder="Optional: Paste a transcript or description (Leave empty to auto-listen from audio)..."></textarea>
+                    <textarea class="prop-input" id="captionTranscript" rows="4" aria-label="Caption speech transcript text" placeholder="Optional: Paste a transcript or description (Leave empty to auto-listen from audio)..."></textarea>
                     
                     <label class="prop-label">Caption Language & Script</label>
                     <div class="chip-grid" style="margin-bottom:10px">
@@ -4376,7 +4550,7 @@
                     <div class="prop-section-title">🎵 Audio & Background Music</div>
                     
                     <!-- Audio Import Actions -->
-                    <input id="musicFileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mpa,.mpeg,.mpg" hidden onchange="handleMusicUpload(event)"/>
+                    <input id="musicFileInput" type="file" aria-label="Audio and music file selector" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mpa,.mpeg,.mpg" hidden onchange="handleMusicUpload(event)"/>
                     <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;padding:10px;" onclick="document.getElementById('musicFileInput').click()" title="Import custom audio file (MP3, WAV, AAC, MPEG) to timeline" aria-label="Import Audio">＋ Import Audio (MP3, WAV, AAC)</button>
                     <button class="music-btn" style="margin-top:6px;background:rgba(236,72,153,0.15);border-color:rgba(236,72,153,0.4);color:#f472b6;font-weight:700;" onclick="autoGenerateSongLyrics()" title="Generate animated word-by-word lyric captions synchronized to audio (AI Experimental)" aria-label="Generate Lyric Captions">🎤 Generate Lyric Captions from Audio</button>
                     <button class="music-btn" style="margin-top:6px;background:rgba(56,189,248,0.12);border-color:rgba(56,189,248,0.35);color:#38bdf8;" onclick="autoExtractVideoAudio()" title="Detect and extract music/speech from the video track into a new audio clip" aria-label="Detect Music in Video">🎙️ Detect Music in Video Track</button>
@@ -4395,10 +4569,10 @@
 
                     <!-- Volume Balance Sliders -->
                     <label class="prop-label">Original Video Volume <span id="videoVolVal">100%</span></label>
-                    <input class="prop-input" id="videoVolumeSlider" type="range" min="0" max="100" value="100" oninput="updateVideoVolumeGUI(this.value)"/>
+                    <input class="prop-input" id="videoVolumeSlider" type="range" min="0" max="100" value="100" aria-label="Video clip volume percentage" oninput="updateVideoVolumeGUI(this.value)"/>
 
                     <label class="prop-label" style="margin-top:8px;">Custom Music Volume <span id="musicVolVal">100%</span></label>
-                    <input class="prop-input" id="musicVolumeSlider" type="range" min="0" max="150" value="100" oninput="updateMusicVolumeGUI(this.value)"/>
+                    <input class="prop-input" id="musicVolumeSlider" type="range" min="0" max="150" value="100" aria-label="Music track volume percentage" oninput="updateMusicVolumeGUI(this.value)"/>
 
                     <!-- Beat Detection & Snapping -->
                     <div class="prop-section-title" style="margin-top:16px">🎯 Beat & BPM Analysis</div>
@@ -4414,17 +4588,17 @@
                     <!-- Bass Enhancement -->
                     <div class="prop-section-title" style="margin-top:16px">🔊 Bass Enhancement</div>
                     <label class="prop-label">Bass Gain <span id="bassGainVal">0 dB</span></label>
-                    <input class="prop-input" id="bassGainSlider" type="range" min="-20" max="20" step="1" value="0" oninput="updateBassGainGUI(this.value)"/>
+                    <input class="prop-input" id="bassGainSlider" type="range" min="-20" max="20" step="1" value="0" aria-label="Bass gain boost decibels" oninput="updateBassGainGUI(this.value)"/>
                 </div>`
             },
             vfx: {
                 title: 'Visual Effects',
-                html: `<div class="prop-section"><div class="prop-section-title">VFX Preset</div><select class="prop-input" id="vfxPreset" onchange="applyVfx()"><option value="none">None</option><option value="glitch">Glitch</option><option value="blur">Blur</option><option value="shake">Shake</option></select><label class="prop-label">Intensity <span id="vfxIntensityValue">50%</span></label><input class="prop-input" id="vfxIntensity" type="range" min="0" max="100" value="50" oninput="applyVfx()"/><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">VFX is applied non-destructively to the selected video clip and included in export.</p></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">VFX Preset</div><select class="prop-input" id="vfxPreset" aria-label="Visual effect style preset" onchange="applyVfx()"><option value="none">None</option><option value="glitch">Glitch</option><option value="blur">Blur</option><option value="shake">Shake</option></select><label class="prop-label">Intensity <span id="vfxIntensityValue">50%</span></label><input class="prop-input" id="vfxIntensity" type="range" min="0" max="100" value="50" aria-label="Visual effect intensity percentage" oninput="applyVfx()"/><p style="color:var(--text-secondary);font-size:.78rem;margin-top:8px">VFX is applied non-destructively to the selected video clip and included in export.</p></div>`
             },
             transform: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/><path d="M3 15h18"/></svg>',
                 title: 'Transform',
-                html: `<div class="prop-section"><div class="prop-section-title">Scale</div><input type="range" class="prop-slider" min="10" max="200" value="100" oninput="scaleVideo(this.value)"/><div class="prop-section-title" style="margin-top:12px">Aspect Ratio</div><div class="chip-grid"><div class="chip-option active" onclick="setAR(this,'16/9')">16:9</div><div class="chip-option" onclick="setAR(this,'9/16')">9:16</div></div></div>`
+                html: `<div class="prop-section"><div class="prop-section-title">Scale</div><input type="range" class="prop-slider" min="10" max="200" value="100" aria-label="Video zoom scale percentage" oninput="scaleVideo(this.value)"/><div class="prop-section-title" style="margin-top:12px">Aspect Ratio</div><div class="chip-grid"><div class="chip-option active" onclick="setAR(this,'16/9')">16:9</div><div class="chip-option" onclick="setAR(this,'9/16')">9:16</div></div></div>`
             },
             stickers: {
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
@@ -4662,7 +4836,7 @@
                 </div>
                 <div class="prop-row" style="background:rgba(56,189,248,0.06);padding:6px 8px;border-radius:6px;border:1px solid rgba(56,189,248,0.2);">
                     <span class="prop-label" style="color:#38bdf8;font-weight:700;">Exact Length:</span>
-                    <input class="prop-input" id="guiExactDurationInput" type="number" step="0.1" min="0.1" max="${srcDur.toFixed(1)}" value="${curEffectiveDur.toFixed(1)}" style="width:75px;text-align:center;font-weight:700;" onchange="setClipExactDuration(this.value)"/>
+                    <input class="prop-input" id="guiExactDurationInput" type="number" step="0.1" min="0.1" max="${srcDur.toFixed(1)}" value="${curEffectiveDur.toFixed(1)}" aria-label="Clip exact duration seconds" style="width:75px;text-align:center;font-weight:700;" onchange="setClipExactDuration(this.value)"/>
                     <span style="font-size:0.75rem;color:var(--text-secondary);margin-right:6px;">sec</span>
                     <button class="icon-btn" style="width:auto;padding:0 8px;font-size:0.72rem;background:#38bdf8;color:#000;font-weight:700;border:none;" onclick="setClipExactDuration(document.getElementById('guiExactDurationInput').value)">Apply</button>
                 </div>
@@ -4680,12 +4854,12 @@
                 </div>
                 <div class="prop-row">
                     <span class="prop-label">Trim In</span>
-                    <input class="prop-input" id="guiTrimStart" type="range" min="0" max="${srcDur}" step="0.05" value="${curTrimStart}" oninput="updateActiveClipTrim('trimStart', this.value); document.getElementById('guiTrimStartVal').textContent=parseFloat(this.value).toFixed(2)+'s';"/>
+                    <input class="prop-input" id="guiTrimStart" type="range" min="0" max="${srcDur}" step="0.05" value="${curTrimStart}" aria-label="Clip trim in point" oninput="updateActiveClipTrim('trimStart', this.value); document.getElementById('guiTrimStartVal').textContent=parseFloat(this.value).toFixed(2)+'s';"/>
                     <span id="guiTrimStartVal" style="font-size:0.75rem;color:var(--text-secondary);min-width:42px;">${curTrimStart.toFixed(2)}s</span>
                 </div>
                 <div class="prop-row" style="margin-top:6px;">
                     <span class="prop-label">Trim Out</span>
-                    <input class="prop-input" id="guiTrimEnd" type="range" min="0.1" max="${srcDur}" step="0.05" value="${curTrimEnd}" oninput="updateActiveClipTrim('trimEnd', this.value); document.getElementById('guiTrimEndVal').textContent=parseFloat(this.value).toFixed(2)+'s';"/>
+                    <input class="prop-input" id="guiTrimEnd" type="range" min="0.1" max="${srcDur}" step="0.05" value="${curTrimEnd}" aria-label="Clip trim out point" oninput="updateActiveClipTrim('trimEnd', this.value); document.getElementById('guiTrimEndVal').textContent=parseFloat(this.value).toFixed(2)+'s';"/>
                     <span id="guiTrimEndVal" style="font-size:0.75rem;color:var(--text-secondary);min-width:42px;">${curTrimEnd.toFixed(2)}s</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin:8px 0;font-size:0.78rem;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:6px;">
@@ -4709,7 +4883,7 @@
                 </div>
                 <div class="prop-row">
                     <span class="prop-label">Speed <span id="inspSpeedVal">${curSpeed.toFixed(1)}×</span></span>
-                    <input class="prop-input" type="range" min="0.25" max="4.0" step="0.05" value="${curSpeed}" oninput="setClipSpeed(selectedClip, this.value); document.getElementById('inspSpeedVal').textContent=parseFloat(this.value).toFixed(2)+'×';"/>
+                    <input class="prop-input" type="range" min="0.25" max="4.0" step="0.05" value="${curSpeed}" aria-label="Video clip speed multiplier" oninput="setClipSpeed(selectedClip, this.value); document.getElementById('inspSpeedVal').textContent=parseFloat(this.value).toFixed(2)+'×';"/>
                 </div>
             `;
             section.appendChild(speedSec);
@@ -4721,7 +4895,7 @@
                 <div class="prop-section-title" style="margin-bottom:6px;">🔊 Video Audio Volume</div>
                 <div class="prop-row">
                     <span class="prop-label">Volume <span id="inspVolVal">${curVol}%</span></span>
-                    <input class="prop-input" type="range" min="0" max="200" value="${curVol}" oninput="setClipVolume(selectedClip, this.value); document.getElementById('inspVolVal').textContent=this.value+'%';"/>
+                    <input class="prop-input" type="range" min="0" max="200" value="${curVol}" aria-label="Video clip volume percentage" oninput="setClipVolume(selectedClip, this.value); document.getElementById('inspVolVal').textContent=this.value+'%';"/>
                     <button class="icon-btn" style="width:28px;height:28px;font-size:0.75rem;" onclick="toggleClipAudioMute(selectedClip)" title="Toggle Mute">${curVol === 0 ? '🔇' : '🔊'}</button>
                 </div>
             `;
@@ -4735,7 +4909,7 @@
                 <div style="margin-top:10px;">
                     <div class="prop-row">
                         <span class="prop-label">Source FPS</span>
-                        <select class="prop-input" id="advSourceFps" onchange="recordEdit(); if(this.value) selectedClip.sourceFps=Number(this.value); else delete selectedClip.sourceFps;">
+                        <select class="prop-input" id="advSourceFps" aria-label="Advanced source frame rate" onchange="recordEdit(); if(this.value) selectedClip.sourceFps=Number(this.value); else delete selectedClip.sourceFps;">
                             <option value="" ${!clip.sourceFps ? 'selected' : ''}>Auto / preserve</option>
                             <option value="24" ${clip.sourceFps === 24 ? 'selected' : ''}>24 FPS</option>
                             <option value="30" ${clip.sourceFps === 30 ? 'selected' : ''}>30 FPS</option>
@@ -4745,7 +4919,7 @@
                     </div>
                     <div class="prop-row">
                         <span class="prop-label">Color Grade</span>
-                        <select class="prop-input" id="gradePreset" onchange="applyColorGrade()">
+                        <select class="prop-input" id="gradePreset" aria-label="Color grade preset option" onchange="applyColorGrade()">
                             <option value="none">Original</option>
                             <option value="teal-orange">Teal & Orange</option>
                             <option value="film">Film Print</option>
@@ -4756,7 +4930,7 @@
                     </div>
                     <div class="prop-row">
                         <span class="prop-label">VFX Preset</span>
-                        <select class="prop-input" id="vfxPreset" onchange="applyVfx()">
+                        <select class="prop-input" id="vfxPreset" aria-label="Visual effect style preset option" onchange="applyVfx()">
                             <option value="none">None</option>
                             <option value="glitch">Glitch</option>
                             <option value="blur">Blur</option>
@@ -4814,15 +4988,15 @@
                 <div class="prop-section-title" style="margin-bottom:6px;">🔊 Volume & Fade Envelopes</div>
                 <div class="prop-row">
                     <span class="prop-label">Volume <span id="clipVolLabel">${curVol}%</span></span>
-                    <input class="prop-input" type="range" min="0" max="200" value="${curVol}" oninput="setClipVolume(selectedClip, this.value); document.getElementById('clipVolLabel').textContent=this.value+'%';"/>
+                    <input class="prop-input" type="range" min="0" max="200" value="${curVol}" aria-label="Audio track volume percentage" oninput="setClipVolume(selectedClip, this.value); document.getElementById('clipVolLabel').textContent=this.value+'%';"/>
                 </div>
                 <div class="prop-row" style="margin-top:6px;">
                     <span class="prop-label">Fade In <span id="clipFadeInLabel">${curFadeIn.toFixed(1)}s</span></span>
-                    <input class="prop-input" type="range" min="0" max="10" step="0.1" value="${curFadeIn}" oninput="recordEdit(); selectedClip.fadeIn=clamp(parseFloat(this.value),0,10); document.getElementById('clipFadeInLabel').textContent=parseFloat(this.value).toFixed(1)+'s';"/>
+                    <input class="prop-input" type="range" min="0" max="10" step="0.1" value="${curFadeIn}" aria-label="Audio fade in duration seconds" oninput="recordEdit(); selectedClip.fadeIn=clamp(parseFloat(this.value),0,10); document.getElementById('clipFadeInLabel').textContent=parseFloat(this.value).toFixed(1)+'s';"/>
                 </div>
                 <div class="prop-row" style="margin-top:6px;">
                     <span class="prop-label">Fade Out <span id="clipFadeOutLabel">${curFadeOut.toFixed(1)}s</span></span>
-                    <input class="prop-input" type="range" min="0" max="10" step="0.1" value="${curFadeOut}" oninput="recordEdit(); selectedClip.fadeOut=clamp(parseFloat(this.value),0,10); document.getElementById('clipFadeOutLabel').textContent=parseFloat(this.value).toFixed(1)+'s';"/>
+                    <input class="prop-input" type="range" min="0" max="10" step="0.1" value="${curFadeOut}" aria-label="Audio fade out duration seconds" oninput="recordEdit(); selectedClip.fadeOut=clamp(parseFloat(this.value),0,10); document.getElementById('clipFadeOutLabel').textContent=parseFloat(this.value).toFixed(1)+'s';"/>
                 </div>
             `;
             section.appendChild(volSec);
@@ -4834,7 +5008,7 @@
                 <div class="prop-section-title" style="margin-bottom:6px;">🔊 Bass Boost EQ</div>
                 <div class="prop-row">
                     <span class="prop-label">Bass Gain <span id="audioClipBassVal">${curBass} dB</span></span>
-                    <input class="prop-input" type="range" min="-20" max="20" step="1" value="${curBass}" oninput="updateBassGainGUI(this.value)"/>
+                    <input class="prop-input" type="range" min="-20" max="20" step="1" value="${curBass}" aria-label="Bass boost gain decibels" oninput="updateBassGainGUI(this.value)"/>
                 </div>
             `;
             section.appendChild(bassSec);
@@ -4900,7 +5074,7 @@
             section.className = 'prop-section';
             section.innerHTML = `
                 <div class="prop-section-title">✏️ Edit Text Content</div>
-                <textarea class="prop-input" id="inspectorOverlayText" rows="2" style="font-weight:700;margin-bottom:10px;">${escapeHTML(item.text || '')}</textarea>
+                <textarea class="prop-input" id="inspectorOverlayText" rows="2" aria-label="Text overlay string content" style="font-weight:700;margin-bottom:10px;">${escapeHTML(item.text || '')}</textarea>
 
                 <div class="prop-section-title" style="margin-top:10px;">⏱️ Timing & Placement</div>
                 <div style="display:flex;gap:6px;margin-bottom:8px;">
@@ -4909,11 +5083,11 @@
                 </div>
                 <div class="prop-row">
                     <span class="prop-label">Position Y <span id="inspOverlayYVal">${item.y || 82}%</span></span>
-                    <input class="prop-input" type="range" min="10" max="95" value="${item.y || 82}" oninput="item.y=Number(this.value); document.getElementById('inspOverlayYVal').textContent=this.value+'%'; renderTextOverlays();"/>
+                    <input class="prop-input" type="range" min="10" max="95" value="${item.y || 82}" aria-label="Text overlay vertical position percentage" oninput="item.y=Number(this.value); document.getElementById('inspOverlayYVal').textContent=this.value+'%'; renderTextOverlays();"/>
                 </div>
                 <div class="prop-row">
                     <span class="prop-label">Position X <span id="inspOverlayXVal">${item.x || 50}%</span></span>
-                    <input class="prop-input" type="range" min="10" max="90" value="${item.x || 50}" oninput="item.x=Number(this.value); document.getElementById('inspOverlayXVal').textContent=this.value+'%'; renderTextOverlays();"/>
+                    <input class="prop-input" type="range" min="10" max="90" value="${item.x || 50}" aria-label="Text overlay horizontal position percentage" oninput="item.x=Number(this.value); document.getElementById('inspOverlayXVal').textContent=this.value+'%'; renderTextOverlays();"/>
                 </div>
 
                 <div class="prop-section-title" style="margin-top:10px;">🎨 Text Styling Presets</div>
@@ -4936,7 +5110,7 @@
 
                 <div class="prop-row" style="margin-top:10px;">
                     <span class="prop-label">Font Size <span id="inspTextSizeVal">${item.size || 34}px</span></span>
-                    <input class="prop-input" type="range" min="16" max="96" value="${item.size || 34}" oninput="item.size=Number(this.value); document.getElementById('inspTextSizeVal').textContent=this.value+'px'; renderTextOverlays();"/>
+                    <input class="prop-input" type="range" min="16" max="96" value="${item.size || 34}" aria-label="Text overlay font size pixels" oninput="item.size=Number(this.value); document.getElementById('inspTextSizeVal').textContent=this.value+'px'; renderTextOverlays();"/>
                 </div>
 
                 <button class="music-btn" style="color:#fca5a5;border-color:rgba(239,68,68,0.4);margin-top:12px;" onclick="deleteLyricOverlay('${item.id}'); deselectClip();">🗑 Delete Text Layer</button>
@@ -4987,15 +5161,15 @@
 
                 <div class="prop-row">
                     <span class="prop-label">Size <span id="inspStkSizeVal">${item.size || 56}px</span></span>
-                    <input class="prop-input" type="range" min="24" max="140" value="${item.size || 56}" oninput="item.size=Number(this.value); document.getElementById('inspStkSizeVal').textContent=this.value+'px'; renderTextOverlays();"/>
+                    <input class="prop-input" type="range" min="24" max="140" value="${item.size || 56}" aria-label="Sticker icon size pixels" oninput="item.size=Number(this.value); document.getElementById('inspStkSizeVal').textContent=this.value+'px'; renderTextOverlays();"/>
                 </div>
                 <div class="prop-row">
                     <span class="prop-label">Position X</span>
-                    <input class="prop-input" type="range" min="5" max="95" value="${item.x || 50}" oninput="item.x=Number(this.value); renderTextOverlays();"/>
+                    <input class="prop-input" type="range" min="5" max="95" value="${item.x || 50}" aria-label="Sticker horizontal position percentage" oninput="item.x=Number(this.value); renderTextOverlays();"/>
                 </div>
                 <div class="prop-row">
                     <span class="prop-label">Position Y</span>
-                    <input class="prop-input" type="range" min="5" max="95" value="${item.y || 50}" oninput="item.y=Number(this.value); renderTextOverlays();"/>
+                    <input class="prop-input" type="range" min="5" max="95" value="${item.y || 50}" aria-label="Sticker vertical position percentage" oninput="item.y=Number(this.value); renderTextOverlays();"/>
                 </div>
 
                 <button class="music-btn" style="color:#fca5a5;border-color:rgba(239,68,68,0.4);margin-top:12px;" onclick="deleteLyricOverlay('${item.id}'); deselectClip();">🗑 Delete Sticker</button>
@@ -5810,9 +5984,16 @@
                 propsLabel.textContent = shortTitle;
             }
 
+            if (canonicalName !== 'library' && window.AssetLibraryUI && typeof window.AssetLibraryUI.stopAudio === 'function') {
+                window.AssetLibraryUI.stopAudio();
+            }
+
             if (switchMobileView) {
-                if (window.innerWidth < 768) {
+                if (window.innerWidth < 768 && window.innerHeight >= 520) {
                     openMobileBottomSheet(cfg.title, cfg.icon, contentHtml);
+                } else if (window.innerHeight < 520 && window.matchMedia('(orientation: landscape)').matches) {
+                    const props = document.querySelector('.editor-props');
+                    if (props) props.classList.add('mobile-landscape-open');
                 } else if (window.innerWidth <= 900) {
                     setMobileTab('props');
                 }
@@ -9413,14 +9594,14 @@
                 activeControlsHtml = `
                     <div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.08);">
                         <label class="prop-label">Caption Language</label>
-                        <select class="prop-input" id="aiCaptionLanguage" style="margin-bottom:8px;">
+                        <select class="prop-input" id="aiCaptionLanguage" aria-label="AI caption speech language" style="margin-bottom:8px;">
                             <option value="hinglish" selected>🌐 Hinglish (Roman English script)</option>
                             <option value="hindi">🇮🇳 Hindi (हिन्दी)</option>
                             <option value="english">🇺🇸 English</option>
                             <option value="auto">✨ Auto-Detect Language</option>
                         </select>
                         <label class="prop-label">Optional Custom Transcript</label>
-                        <textarea class="prop-input" id="aiCaptionTranscriptInput" rows="2" placeholder="Leave empty to auto-listen from audio track..."></textarea>
+                        <textarea class="prop-input" id="aiCaptionTranscriptInput" rows="2" aria-label="Optional custom caption transcript" placeholder="Leave empty to auto-listen from audio track..."></textarea>
                     </div>
                 `;
             } else if (activeAITool === 'reframe') {
@@ -9556,6 +9737,40 @@
             if (isAIProcessingRunning) {
                 cancelCurrentAIOperation('Navigating away');
             }
+        });
+
+        // Global mobile Web Audio unlock on initial user touch (iOS / Android policy)
+        function unlockMobileAudio() {
+            if (typeof MusicEngine !== 'undefined' && MusicEngine.getCtx) {
+                const ctx = MusicEngine.getCtx();
+                if (ctx && ctx.state === 'suspended') {
+                    ctx.resume().catch(() => {});
+                }
+            }
+        }
+        window.addEventListener('pointerdown', unlockMobileAudio, { once: true, passive: true });
+        window.addEventListener('touchstart', unlockMobileAudio, { once: true, passive: true });
+
+        // Storage Quota Protective Check (Warns before device runs out of IndexedDB quota)
+        async function checkDeviceStorageQuota() {
+            if (navigator.storage && navigator.storage.estimate) {
+                try {
+                    const est = await navigator.storage.estimate();
+                    if (est.quota && est.usage) {
+                        const pct = Math.round((est.usage / est.quota) * 100);
+                        if (pct > 90) {
+                            showToast(`⚠️ Storage is ${pct}% full. Export or delete unused projects.`, '💾', 'info');
+                        }
+                    }
+                } catch (_) {}
+            }
+        }
+        setTimeout(checkDeviceStorageQuota, 3000);
+
+        // Mobile orientation change handler
+        window.addEventListener('orientationchange', () => {
+            requestTimelineRender();
+            if (typeof updatePreviewVisuals === 'function') updatePreviewVisuals();
         });
 
 </script>

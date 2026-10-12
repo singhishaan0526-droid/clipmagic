@@ -908,6 +908,10 @@
                     window.showToast(`Selected ${asset.name} transition!`, '✨', 'success');
                 }
             }
+        },
+
+        stopAudioPreview() {
+            stopActiveAudioPreview();
         }
     };
 
@@ -917,6 +921,7 @@
     let activeFilterCategory = 'all';
     let activeSearchQuery = '';
     let showFavoritesOnly = false;
+    let visibleAssetLimit = 24;
 
     function renderAssetLibraryHTML() {
         return `
@@ -924,9 +929,12 @@
                 <!-- Search Bar -->
                 <div class="asset-search-row" style="position:relative;display:flex;align-items:center;">
                     <span style="position:absolute;left:10px;font-size:0.85rem;color:var(--text-muted);pointer-events:none;">🔍</span>
+                    <label for="assetLibrarySearchInput" class="sr-only">Search assets</label>
                     <input 
                         type="text" 
+                        id="assetLibrarySearchInput"
                         class="prop-input asset-library-search-input" 
+                        aria-label="Search stickers, music, sfx, filters, styles"
                         placeholder="Search stickers, music, sfx, filters, styles..." 
                         value="${escapeAttr(activeSearchQuery)}"
                         style="padding-left:32px;padding-right:28px;width:100%;border-radius:8px;"
@@ -937,6 +945,7 @@
                         style="position:absolute;right:4px;width:24px;height:24px;font-size:0.75rem;display:${activeSearchQuery ? 'flex' : 'none'};" 
                         onclick="AssetLibraryUI.clearSearch()"
                         title="Clear search"
+                        aria-label="Clear asset search"
                     >✕</button>
                 </div>
 
@@ -968,13 +977,13 @@
     }
 
     function renderAssetCardsHTML() {
-        const assets = AssetLibrary.search({
+        const allMatching = AssetLibrary.search({
             query: activeSearchQuery,
             category: activeFilterCategory,
             onlyFavorites: showFavoritesOnly
         });
 
-        if (!assets.length) {
+        if (!allMatching.length) {
             return `
                 <div style="grid-column:1/-1;text-align:center;padding:32px 12px;color:var(--text-muted);">
                     <div style="font-size:2rem;margin-bottom:8px;opacity:0.6;">🔍</div>
@@ -985,13 +994,21 @@
             `;
         }
 
-        return assets.map(asset => {
+        const assets = allMatching.slice(0, visibleAssetLimit);
+        const hasMore = allMatching.length > visibleAssetLimit;
+        const remainingCount = allMatching.length - visibleAssetLimit;
+
+        let cardsHtml = assets.map(asset => {
             const isFav = asset.isFavorite;
             const hasAudioPreview = Boolean(asset.previewType);
 
             let thumbContent = '';
             if (asset.type === 'sticker') {
-                thumbContent = `<div style="font-size:2rem;line-height:1;">${asset.preview}</div>`;
+                if (typeof asset.preview === 'string' && asset.preview.startsWith('http')) {
+                    thumbContent = `<img src="${asset.preview}" loading="lazy" decoding="async" alt="${escapeAttr(asset.name)}" style="max-height:48px;max-width:48px;object-fit:contain;"/>`;
+                } else {
+                    thumbContent = `<div style="font-size:2rem;line-height:1;">${asset.preview}</div>`;
+                }
             } else if (asset.type === 'filter') {
                 thumbContent = `<div style="width:36px;height:36px;border-radius:6px;background:${asset.previewColor || '#a855f7'};display:flex;align-items:center;justify-content:center;font-size:1.1rem;">${asset.preview || '🎨'}</div>`;
             } else if (asset.type === 'text-style') {
@@ -1014,6 +1031,7 @@
                             style="width:20px;height:20px;font-size:0.75rem;color:${isFav ? '#eab308' : 'rgba(255,255,255,0.3)'};border:none;background:transparent;" 
                             onclick="event.stopPropagation(); AssetLibraryUI.toggleFav('${asset.id}')"
                             title="${isFav ? 'Remove from favorites' : 'Add to favorites'}"
+                            aria-label="${isFav ? 'Remove ' + escapeAttr(asset.name) + ' from favorites' : 'Add ' + escapeAttr(asset.name) + ' to favorites'}"
                         >${isFav ? '★' : '☆'}</button>
                     </div>
 
@@ -1029,17 +1047,30 @@
                     <!-- Actions Row -->
                     <div style="display:flex;gap:4px;margin-top:auto;">
                         ${hasAudioPreview ? `
-                            <button class="chip-option" style="padding:4px 6px;font-size:0.68rem;" onclick="event.stopPropagation(); AssetLibraryUI.previewSound('${asset.id}')" title="Listen to preview">▶</button>
+                            <button class="chip-option" style="padding:4px 6px;font-size:0.68rem;" onclick="event.stopPropagation(); AssetLibraryUI.previewSound('${asset.id}')" title="Listen to preview" aria-label="Listen to preview of ${escapeAttr(asset.name)}">▶</button>
                         ` : ''}
                         <button 
                             class="music-btn" 
                             style="flex:1;padding:5px 6px;font-size:0.7rem;font-weight:700;background:var(--gradient-main);color:#fff;" 
                             onclick="AssetLibraryUI.applyItem('${asset.id}')"
+                            aria-label="Apply ${escapeAttr(asset.name)}"
                         >＋ Apply</button>
                     </div>
                 </div>
             `;
         }).join('');
+
+        if (hasMore) {
+            cardsHtml += `
+                <div style="grid-column:1/-1;text-align:center;padding:12px 0;">
+                    <button class="music-btn" style="padding:8px 18px;font-size:0.75rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#f1f5f9;margin:0 auto;" onclick="AssetLibraryUI.loadMore()" aria-label="Load ${remainingCount} more assets">
+                        ⬇ Load More (${remainingCount} remaining)
+                    </button>
+                </div>
+            `;
+        }
+
+        return cardsHtml;
     }
 
     function escapeHTML(str) {
@@ -1063,6 +1094,7 @@
 
         onSearchInput(val) {
             activeSearchQuery = val;
+            visibleAssetLimit = 24;
             const clearBtns = document.querySelectorAll('#assetLibraryClearBtn, .asset-library-clear-btn');
             clearBtns.forEach(btn => {
                 btn.style.display = val ? 'flex' : 'none';
@@ -1072,6 +1104,7 @@
 
         clearSearch() {
             activeSearchQuery = '';
+            visibleAssetLimit = 24;
             const inputs = document.querySelectorAll('#assetLibrarySearchInput, .asset-library-search-input');
             inputs.forEach(input => {
                 input.value = '';
@@ -1086,12 +1119,23 @@
         setCategory(cat) {
             activeFilterCategory = cat;
             showFavoritesOnly = false;
+            visibleAssetLimit = 24;
             this.refreshUI();
         },
 
         toggleFavoritesOnly() {
             showFavoritesOnly = !showFavoritesOnly;
+            visibleAssetLimit = 24;
             this.refreshUI();
+        },
+
+        loadMore() {
+            visibleAssetLimit += 24;
+            this.refreshGrid();
+        },
+
+        stopAudio() {
+            stopActiveAudioPreview();
         },
 
         refreshUI() {
