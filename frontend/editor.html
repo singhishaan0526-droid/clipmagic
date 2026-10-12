@@ -1642,6 +1642,116 @@
             box-shadow: var(--glow-purple);
         }
 
+        /* ── Phase 6: Media-Aware AI Tools Styling ── */
+        .ai-media-status-box {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            transition: var(--transition);
+        }
+        .ai-media-status-box.ready {
+            border-color: rgba(16, 185, 129, 0.35);
+            background: rgba(16, 185, 129, 0.06);
+        }
+        .ai-media-status-box.empty {
+            border-color: rgba(245, 158, 11, 0.35);
+            background: rgba(245, 158, 11, 0.06);
+        }
+        .ai-status-header {
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .ai-status-desc {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        .ai-tool-card.disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        .ai-tool-card.disabled:hover {
+            border-color: rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.02);
+            transform: none;
+        }
+        .ai-badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 6px 0 8px;
+        }
+        .ai-badge {
+            font-size: 0.68rem;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ai-badge-req {
+            background: rgba(56, 189, 248, 0.12);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+        .ai-badge-privacy-local {
+            background: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .ai-badge-privacy-cloud {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.35);
+        }
+        .ai-tool-missing-msg {
+            font-size: 0.72rem;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .ai-run-btn:disabled {
+            opacity: 0.45 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
+            pointer-events: none !important;
+        }
+        .ai-privacy-footer {
+            margin-top: 18px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+        .ai-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
         .manual-tools-section {
             display: block;
         }
@@ -2926,14 +3036,7 @@
                         </div>
                     </div>
                     <div id="aiToolsPanel" class="ai-tools-panel">
-                        <div class="ai-tool-card" onclick="toggleAITool(this, 'reframe')">
-                            <div class="ai-tool-header">
-                                <span class="ai-tool-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></span>
-                                <span class="ai-tool-name">AI Reframe</span>
-                            </div>
-                            <div class="ai-tool-desc">Automatically track subjects and crop for vertical formats.</div>
-                        </div>
-                        <button class="ai-run-btn" onclick="runAIProcessing()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg> Run AI Processing</button>
+                        <!-- Populated dynamically by renderAIToolsPanel() -->
                     </div>
                 </div>
             </div>
@@ -3587,6 +3690,9 @@
                 fragment.appendChild(trackEl);
             });
             container.replaceChildren(fragment);
+            if (typeof renderAIToolsPanel === 'function' && document.getElementById('aiToolsPanel')?.style.display !== 'none') {
+                renderAIToolsPanel();
+            }
         }
 
         function generateFallbackWaveform(points = 200) {
@@ -4452,11 +4558,17 @@
         }
 
         function deselectClip() {
+            if (isAIProcessingRunning && activeAIOperationClipId) {
+                cancelCurrentAIOperation('Clip deselected: previous AI task was invalidated.');
+            }
             selectedClip = null;
             selectedOverlay = null;
             document.querySelectorAll('.track-clip').forEach(c => c.classList.remove('selected'));
             document.querySelectorAll('.text-overlay').forEach(t => t.classList.remove('selected-overlay'));
             renderEmptyInspectorState();
+            if (typeof renderAIToolsPanel === 'function' && document.getElementById('aiToolsPanel')?.style.display !== 'none') {
+                renderAIToolsPanel();
+            }
         }
 
         function renderEmptyInspectorState() {
@@ -4495,6 +4607,9 @@
         }
 
         function selectClip(clip) {
+            if (isAIProcessingRunning && activeAIOperationClipId && activeAIOperationClipId !== clip?.id) {
+                cancelCurrentAIOperation('Active clip changed: previous AI task was invalidated.');
+            }
             selectedClip = clip;
             selectedOverlay = null;
             updatePreviewVisuals();
@@ -4509,6 +4624,9 @@
                 renderAudioClipInspector(clip);
             } else {
                 renderVideoClipInspector(clip);
+            }
+            if (typeof renderAIToolsPanel === 'function' && document.getElementById('aiToolsPanel')?.style.display !== 'none') {
+                renderAIToolsPanel();
             }
         }
 
@@ -7533,6 +7651,7 @@
         function escapeHTML(str) {
             return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
+        const escapeHtml = escapeHTML;
 
         function jumpToLyric(id) {
             const item = (projectState.textOverlays || []).find(l => l.id === id);
@@ -7804,6 +7923,7 @@
                 const res = await fetch('/api/gemini', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    signal: activeAIOperationController?.signal,
                     body: JSON.stringify({
                         action: 'transcribe_audio',
                         audio: audioBase64,
@@ -7889,6 +8009,7 @@
                     const res = await fetch('/api/gemini', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        signal: activeAIOperationController?.signal,
                         body: JSON.stringify({
                             action: 'transcribe_audio',
                             audio: audioBase64,
@@ -7903,6 +8024,7 @@
                     const response = await fetch('/api/gemini', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        signal: activeAIOperationController?.signal,
                         body: JSON.stringify({ action: 'subtitles', transcript, language: targetLang })
                     });
                     const data = await response.json();
@@ -8108,7 +8230,8 @@
 
         async function autoExtractVideoAudio() {
             const vid = document.getElementById('previewVideo');
-            if (!vid || !vid.src) return showToast('Please load a video first to detect music and extract audio!', '⚠️', 'info');
+            const hasVideoMedia = projectState.tracks.some(t => t.type === 'video' && t.clips.length > 0) || (vid && vid.src && vid.style.display !== 'none');
+            if (!hasVideoMedia || !vid || !vid.src) return showToast('Please load a video first to detect music and extract audio!', '⚠️', 'error');
             showToast('Detecting music & extracting audio from video track...', '⏳');
             try {
                 const response = await fetch(vid.src);
@@ -8518,43 +8641,59 @@
             }
         }
 
-        // --- GUI Interactive Helpers ---
+        // --- GUI Interactive Helpers (Media-Aware & Safe) ---
         async function quickMagicAction(action) {
             const vid = document.getElementById('previewVideo');
+            const hasVideoMedia = projectState.tracks.some(t => t.type === 'video' && t.clips.length > 0) || (vid && vid.src && vid.style.display !== 'none');
+            const hasAudioMedia = projectState.tracks.some(t => (t.type === 'audio' || t.clips.some(c => c.type === 'music' || c.type === 'audio'))) || hasVideoMedia;
+            const targetClip = selectedClip || projectState.tracks.find(t=>t.type==='video')?.clips[0];
+            const hasAnyMedia = projectState.tracks.some(t => t.clips.length > 0) || (vid && vid.src && vid.style.display !== 'none');
             
             if (action === 'auto-extract-music') {
-                if (!vid || !vid.src) return showToast('Please load a video first!', '⚠️');
+                if (!hasVideoMedia) return showToast('Please load a video clip first to detect and extract audio!', '⚠️', 'error');
                 autoExtractVideoAudio();
             } else if (action === 'auto-lyrics') {
+                if (!hasAudioMedia) return showToast('Please load an audio or video clip first to generate lyric captions!', '⚠️', 'error');
                 setTool('text');
                 autoGenerateSongLyrics();
             } else if (action === 'auto-enhance') {
+                if (!targetClip) return showToast('Please select or load a video or image clip first to auto-enhance colors!', '⚠️', 'error');
                 const preset = document.getElementById('gradePreset');
                 if (preset) preset.value = 'teal-orange';
                 if (typeof applyColorGrade === 'function') applyColorGrade();
-                showToast('🪄 Auto-Enhanced! Cinematic Teal & Orange grade applied.', '✨', 'success');
+                showToast('🪄 Auto-Enhanced! Cinematic Teal & Orange grade applied locally.', '✨', 'success');
             } else if (action === 'tiktok-reframe') {
+                if (!targetClip) return showToast('Please select or load a video clip first to reframe for TikTok 9:16.', '⚠️', 'error');
                 const screen = document.getElementById('previewScreen');
                 if (screen) screen.style.aspectRatio = '9/16';
-                showToast('📱 Switched canvas aspect ratio to 9:16 TikTok / Shorts format.', '📱', 'success');
+                recordEdit();
+                targetClip.transform = targetClip.transform || { scale: 100, x: 0, y: 0, rotation: 0, opacity: 100 };
+                targetClip.transform.scale = Math.max(targetClip.transform.scale, 135);
+                updatePreviewVisuals();
+                requestTimelineRender();
+                showToast('📱 Switched canvas aspect ratio to 9:16 TikTok / Shorts format with center focus.', '📱', 'success');
             } else if (action === 'auto-captions') {
                 setTool('caption');
-                showToast('💬 Auto-Caption tool opened! Paste transcript or generate.', '🤖', 'info');
+                if (!hasAnyMedia) {
+                    showToast('💬 Auto-Caption tool opened. Paste a transcript or load video/audio with speech.', '🤖', 'info');
+                } else {
+                    showToast('💬 Auto-Caption tool ready. Speech audio detected on timeline.', '🤖', 'info');
+                }
             } else if (action === 'sync-beats') {
-                if (!vid || !vid.src) return showToast('Please load a video first!', '⚠️');
+                if (!hasAudioMedia) return showToast('Please load an audio track or video first to analyze beats!', '⚠️', 'error');
                 analyzeAudio();
             } else if (action === 'fast-speed') {
-                const clip = selectedClip || projectState.tracks.find(t=>t.type==='video')?.clips[0];
-                if (!clip) return showToast('Please select or load a video clip first!', '⚠️');
+                if (!targetClip) return showToast('Please select or load a video clip first to apply speed boost!', '⚠️', 'error');
                 recordEdit();
-                clip.speed = 1.5;
+                targetClip.speed = 1.5;
                 requestTimelineRender();
                 showToast('⚡ Speed boosted to 1.5×!', '🚀', 'success');
             } else if (action === 'vfx-glitch') {
+                if (!targetClip) return showToast('Please select or load a video clip first to apply glitch VFX!', '⚠️', 'info');
                 const vPreset = document.getElementById('vfxPreset');
                 if (vPreset) vPreset.value = 'glitch';
                 if (typeof applyVfx === 'function') applyVfx();
-                showToast('✦ Glitch VFX applied!', '✨', 'success');
+                showToast('✦ Glitch VFX applied locally to selected clip!', '✨', 'success');
             }
         }
 
@@ -9029,7 +9168,134 @@
             });
         };
 
-        // --- AI Editor Functions ---
+        // ══════════════════════════════════════════════════════════════════════
+        // ── Phase 6: Media-Aware, Safe & Transparent AI Engine ───────────────
+        // ══════════════════════════════════════════════════════════════════════
+
+        let activeAITool = 'reframe';
+        let isAIProcessingRunning = false;
+        let activeAIOperationController = null;
+        let activeAIOperationClipId = null;
+
+        function getAIMediaContext() {
+            const vid = document.getElementById('previewVideo');
+            const videoTracks = (projectState.tracks || []).filter(t => t.type === 'video');
+            const audioTracks = (projectState.tracks || []).filter(t => t.type === 'audio');
+            
+            const allVideoClips = videoTracks.flatMap(t => t.clips || []);
+            const allAudioClips = audioTracks.flatMap(t => t.clips || []);
+            
+            const selClip = selectedClip;
+            const primaryVideoClip = (selClip && selClip.type !== 'audio' && selClip.type !== 'music') 
+                ? selClip 
+                : allVideoClips[0] || null;
+            const primaryAudioClip = (selClip && (selClip.type === 'audio' || selClip.type === 'music'))
+                ? selClip
+                : allAudioClips[0] || null;
+
+            const hasVideo = Boolean(primaryVideoClip || (vid && vid.src && !vid.src.startsWith('blob:null')));
+            const hasAudio = Boolean(primaryAudioClip || (primaryVideoClip && !projectState.muteVideoAudio) || (vid && vid.src && !projectState.muteVideoAudio));
+            const hasTranscript = Boolean(document.getElementById('captionTranscript')?.value?.trim() || document.getElementById('aiCaptionTranscriptInput')?.value?.trim());
+
+            return {
+                selectedClip: selClip,
+                primaryVideoClip,
+                primaryAudioClip,
+                activeTargetClip: primaryVideoClip || primaryAudioClip,
+                hasVideo,
+                hasAudio,
+                hasTranscript,
+                totalClips: allVideoClips.length + allAudioClips.length
+            };
+        }
+
+        const AI_TOOLS_REGISTRY = [
+            {
+                id: 'reframe',
+                name: 'AI Smart Reframe',
+                subname: '9:16 Vertical TikTok / Reels',
+                icon: '📱',
+                privacy: 'local',
+                privacyBadge: '🔒 100% Local In-Browser',
+                privacyTooltip: 'Processed entirely on your device via Canvas scaling. No video frames uploaded.',
+                reqBadge: '🎬 Video Clip Required',
+                desc: 'Auto-crops landscape video to 9:16 vertical orientation with center subject focus.',
+                isAvailable: (ctx) => ctx.hasVideo,
+                missingExplanation: 'Please load or select a video clip on the timeline to reframe.',
+                runButtonLabel: '▶ Apply 9:16 Vertical Reframe'
+            },
+            {
+                id: 'captions',
+                name: 'AI Speech-to-Text Captions',
+                subname: 'Auto Subtitles & Transcripts',
+                icon: '💬',
+                privacy: 'cloud',
+                privacyBadge: '🌐 Cloud AI (Gemini)',
+                privacyTooltip: 'Extracts speech audio snippet and sends to Google Gemini API for speech recognition. No video frames stored.',
+                reqBadge: '💬 Audio/Video with Speech',
+                desc: 'Transcribes spoken speech into animated subtitle layers with word-level synchronization.',
+                isAvailable: (ctx) => ctx.hasAudio || ctx.hasTranscript,
+                missingExplanation: 'Load a clip with spoken audio or paste a transcript in the box below.',
+                runButtonLabel: '✨ Generate AI Subtitles'
+            },
+            {
+                id: 'lyrics',
+                name: 'AI Song Lyrics & Karaoke',
+                subname: 'Animated Word-by-Word',
+                icon: '🎤',
+                privacy: 'cloud',
+                privacyBadge: '🌐 Cloud AI (Gemini)',
+                privacyTooltip: 'Sends audio music snippet to Google Gemini API to detect singing vocals and timing. Audio is not retained.',
+                reqBadge: '🎵 Music / Audio Track',
+                desc: 'Detects singing vocals in music and generates glowing karaoke lyric overlays.',
+                isAvailable: (ctx) => ctx.hasAudio,
+                missingExplanation: 'Import an audio track or load a video with music to generate lyric captions.',
+                runButtonLabel: '🎤 Generate Lyric Captions'
+            },
+            {
+                id: 'extract-music',
+                name: 'Detect & Extract Video Music',
+                subname: 'Separate Audio Track',
+                icon: '🎙️',
+                privacy: 'local',
+                privacyBadge: '🔒 100% Local (Private)',
+                privacyTooltip: 'Decodes audio stream in-browser via Web Audio API. Zero server upload.',
+                reqBadge: '🎬 Video Track Required',
+                desc: 'Extracts background audio and vocals from video into an editable timeline music track.',
+                isAvailable: (ctx) => ctx.hasVideo,
+                missingExplanation: 'Load a video first to detect music and extract audio.',
+                runButtonLabel: '🎙️ Detect & Extract Audio'
+            },
+            {
+                id: 'sync-beats',
+                name: 'Sync Edits to Beats',
+                subname: 'BPM Rhythm Snap',
+                icon: '🥁',
+                privacy: 'local',
+                privacyBadge: '🔒 100% Local (Private)',
+                privacyTooltip: 'Calculates rhythmic tempo (BPM) locally in browser. No network traffic.',
+                reqBadge: '🥁 Audio/Music Required',
+                desc: 'Analyzes musical tempo and automatically aligns timeline clip cuts to rhythmic beats.',
+                isAvailable: (ctx) => ctx.hasAudio,
+                missingExplanation: 'Load an audio or video clip first to analyze tempo and sync cuts.',
+                runButtonLabel: '🥁 Sync Edits to Beats'
+            },
+            {
+                id: 'enhance',
+                name: 'Auto Color & Grade Enhance',
+                subname: 'Cinematic Contrast & Tone',
+                icon: '🪄',
+                privacy: 'local',
+                privacyBadge: '🔒 100% Local (Private)',
+                privacyTooltip: 'Applies color grading matrix in preview canvas and export pipeline locally.',
+                reqBadge: '🎬 Video or Image Required',
+                desc: 'Instantly balances exposure, contrast, and applies cinematic Teal & Orange tones.',
+                isAvailable: (ctx) => Boolean(ctx.activeTargetClip),
+                missingExplanation: 'Select or load a video or image clip to enhance colors.',
+                runButtonLabel: '🪄 Apply Auto-Enhance'
+            }
+        ];
+
         function setEditMode(mode) {
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             if (mode === 'manual') {
@@ -9044,75 +9310,253 @@
                 if (manualBody) manualBody.style.display = 'none';
                 const aiPanel = document.getElementById('aiToolsPanel');
                 if (aiPanel) aiPanel.style.display = 'block';
+                renderAIToolsPanel();
             }
         }
 
-        let activeAITool = null;
-        function toggleAITool(el, toolName) {
-            document.querySelectorAll('.ai-tool-card').forEach(card => card.classList.remove('active'));
-            if (activeAITool !== toolName) {
-                el.classList.add('active');
-                activeAITool = toolName;
-            } else {
-                activeAITool = null;
+        function cancelCurrentAIOperation(reason = 'Operation cancelled by user') {
+            if (activeAIOperationController) {
+                try { activeAIOperationController.abort(); } catch (_) {}
+                activeAIOperationController = null;
             }
+            isAIProcessingRunning = false;
+            activeAIOperationClipId = null;
+            showToast(reason, 'ℹ️', 'info');
+            renderAIToolsPanel();
+        }
+
+        function selectAITool(toolId) {
+            activeAITool = toolId;
+            renderAIToolsPanel();
+        }
+
+        function renderAIToolsPanel() {
+            const aiPanel = document.getElementById('aiToolsPanel');
+            if (!aiPanel) return;
+
+            const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            const ctx = getAIMediaContext();
+            const activeTool = AI_TOOLS_REGISTRY.find(t => t.id === activeAITool) || AI_TOOLS_REGISTRY[0];
+            const isToolReady = activeTool.isAvailable(ctx);
+
+            let statusBoxHtml = '';
+            if (ctx.activeTargetClip) {
+                const c = ctx.activeTargetClip;
+                const dur = Number(c.duration || 0).toFixed(1);
+                const isVideo = c.type !== 'audio' && c.type !== 'music';
+                statusBoxHtml = `
+                    <div class="ai-media-status-box ready">
+                        <div class="ai-status-header">
+                            <span>${isVideo ? '🎬 Video Selected' : '🎵 Audio Selected'}: <strong>${esc(c.name || 'Clip')}</strong></span>
+                            <span style="font-size:0.7rem;color:#10b981;font-weight:700;">● Ready</span>
+                        </div>
+                        <div class="ai-status-desc">Duration: ${dur}s • Timeline Start: ${Number(c.start || 0).toFixed(1)}s</div>
+                    </div>
+                `;
+            } else if (ctx.hasVideo || ctx.hasAudio) {
+                statusBoxHtml = `
+                    <div class="ai-media-status-box ready">
+                        <div class="ai-status-header">
+                            <span>🎬 Loaded Media Detected</span>
+                            <span style="font-size:0.7rem;color:#10b981;font-weight:700;">● Active</span>
+                        </div>
+                        <div class="ai-status-desc">Media loaded in video preview player. Ready for AI processing.</div>
+                    </div>
+                `;
+            } else {
+                statusBoxHtml = `
+                    <div class="ai-media-status-box empty">
+                        <div class="ai-status-header">
+                            <span>⚠️ No Media on Timeline</span>
+                            <span style="font-size:0.7rem;color:#f59e0b;font-weight:600;">Media Required</span>
+                        </div>
+                        <div class="ai-status-desc">AI tools analyze your video and audio clips to auto-reframe, caption, or sync. Import media to enable all tools:</div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button class="music-btn" style="flex:1;font-size:0.75rem;padding:6px;background:var(--gradient-main);color:#fff;" onclick="document.getElementById('fileInput').click()">🎬 Import Video / Image</button>
+                            <button class="music-btn" style="flex:1;font-size:0.75rem;padding:6px;" onclick="document.getElementById('globalAudioInput').click()">🎵 Import Audio</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const toolCardsHtml = AI_TOOLS_REGISTRY.map(tool => {
+                const isReady = tool.isAvailable(ctx);
+                const isActive = activeAITool === tool.id;
+                const privClass = tool.privacy === 'local' ? 'ai-badge-privacy-local' : 'ai-badge-privacy-cloud';
+
+                return `
+                    <div class="ai-tool-card ${isActive ? 'active' : ''} ${!isReady ? 'disabled' : ''}" 
+                         onclick="selectAITool('${tool.id}')"
+                         role="button" 
+                         tabindex="0"
+                         title="${isReady ? tool.name : tool.missingExplanation}">
+                        <div class="ai-tool-header">
+                            <span class="ai-tool-icon">${tool.icon}</span>
+                            <div>
+                                <div class="ai-tool-name">${tool.name}</div>
+                                <div style="font-size:0.7rem;color:var(--text-secondary);">${tool.subname}</div>
+                            </div>
+                            <span style="margin-left:auto;font-size:0.75rem;">${isReady ? '✅' : '🔒'}</span>
+                        </div>
+                        <div class="ai-badge-row">
+                            <span class="ai-badge ai-badge-req">${tool.reqBadge}</span>
+                            <span class="ai-badge ${privClass}" title="${tool.privacyTooltip}">${tool.privacyBadge}</span>
+                        </div>
+                        <div class="ai-tool-desc">${tool.desc}</div>
+                        ${!isReady ? `<div class="ai-tool-missing-msg">⚠️ ${tool.missingExplanation}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            let activeControlsHtml = '';
+            if (activeAITool === 'captions') {
+                activeControlsHtml = `
+                    <div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.08);">
+                        <label class="prop-label">Caption Language</label>
+                        <select class="prop-input" id="aiCaptionLanguage" style="margin-bottom:8px;">
+                            <option value="hinglish" selected>🌐 Hinglish (Roman English script)</option>
+                            <option value="hindi">🇮🇳 Hindi (हिन्दी)</option>
+                            <option value="english">🇺🇸 English</option>
+                            <option value="auto">✨ Auto-Detect Language</option>
+                        </select>
+                        <label class="prop-label">Optional Custom Transcript</label>
+                        <textarea class="prop-input" id="aiCaptionTranscriptInput" rows="2" placeholder="Leave empty to auto-listen from audio track..."></textarea>
+                    </div>
+                `;
+            } else if (activeAITool === 'reframe') {
+                activeControlsHtml = `
+                    <div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.08);">
+                        <label class="prop-label">Target Format</label>
+                        <div class="chip-grid" style="margin-bottom:6px;">
+                            <button class="chip-option active" onclick="setCanvasRatio('9/16')">9:16 (TikTok / Reels)</button>
+                            <button class="chip-option" onclick="setCanvasRatio('1/1')">1:1 (Square)</button>
+                            <button class="chip-option" onclick="setCanvasRatio('4/5')">4:5 (Portrait)</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            let buttonHtml = '';
+            if (isAIProcessingRunning) {
+                buttonHtml = `
+                    <div style="display:flex;gap:6px;margin-top:14px;">
+                        <button class="ai-run-btn" disabled style="flex:1;">
+                            <span class="ai-spinner"></span> Processing ${activeTool.name}…
+                        </button>
+                        <button class="music-btn" style="width:auto;padding:0 12px;color:#fca5a5;border-color:rgba(239,68,68,0.4);" onclick="cancelCurrentAIOperation()">✕ Cancel</button>
+                    </div>
+                `;
+            } else if (isToolReady) {
+                buttonHtml = `
+                    <button class="ai-run-btn" onclick="runAIProcessing()" title="${activeTool.runButtonLabel}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        ${activeTool.runButtonLabel}
+                    </button>
+                `;
+            } else {
+                buttonHtml = `
+                    <button class="ai-run-btn" disabled title="${activeTool.missingExplanation}">
+                        🚫 ${activeTool.missingExplanation}
+                    </button>
+                `;
+            }
+
+            aiPanel.innerHTML = `
+                <div style="padding:4px 0 10px;">
+                    <div style="font-size:0.95rem;font-weight:700;margin-bottom:4px;color:#fff;">✨ AI & Smart Tools</div>
+                    <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:12px;">Intelligent features to reframe, caption, and sync your media with full privacy control.</div>
+                    ${statusBoxHtml}
+                    <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px;">Select an AI Tool:</div>
+                    ${toolCardsHtml}
+                    ${activeControlsHtml}
+                    ${buttonHtml}
+                    <div class="ai-privacy-footer">
+                        <strong>🛡️ Privacy & Security Transparency:</strong><br/>
+                        • <strong>Local Tools</strong> (Reframe, Color Enhance, Audio Detect, Beat Sync) execute 100% inside your browser using Web Audio & Canvas shaders. No media leaves your device.<br/>
+                        • <strong>Cloud AI Tools</strong> (Captions & Lyrics) send an audio sample via SSL to the Google Gemini API for speech-to-text. Full video files and personal data are never uploaded or retained.
+                    </div>
+                </div>
+            `;
         }
 
         async function runAIProcessing() {
-            if (!activeAITool) {
-                showToast('Please select an AI tool first.', '⚠️', 'error');
+            if (isAIProcessingRunning) {
+                return showToast('An AI processing task is already running. Please wait or cancel.', '⏳', 'info');
+            }
+
+            const tool = AI_TOOLS_REGISTRY.find(t => t.id === activeAITool) || AI_TOOLS_REGISTRY[0];
+            const ctx = getAIMediaContext();
+
+            if (!tool.isAvailable(ctx)) {
+                showToast(tool.missingExplanation, '⚠️', 'error');
                 return;
             }
 
-            const videoClip = getActivePlayingClip() || projectState.tracks.find(t=>t.type==='video')?.clips[0];
-            if (!videoClip) {
-                showToast('Please load a video clip into the timeline first.', '⚠️', 'error');
-                return;
-            }
+            isAIProcessingRunning = true;
+            activeAIOperationController = new AbortController();
+            activeAIOperationClipId = ctx.activeTargetClip?.id || null;
+            renderAIToolsPanel();
 
-            const runBtn = document.querySelector('.ai-run-btn');
-            if (runBtn) {
-                runBtn.disabled = true;
-                runBtn.style.opacity = '0.6';
-            }
-
-            showToast('Analyzing with Gemini AI...', '🤖');
+            const timeoutTimer = setTimeout(() => {
+                if (isAIProcessingRunning) {
+                    cancelCurrentAIOperation('AI processing timed out after 30 seconds. Local operations remain available.');
+                }
+            }, 30000);
 
             try {
-                if (activeAITool === 'reframe') {
-                    // Apply immediate visual TikTok 9:16 vertical reframe
+                if (tool.id === 'reframe') {
+                    const vidClip = ctx.primaryVideoClip;
                     const screen = document.getElementById('previewScreen');
                     if (screen) screen.style.aspectRatio = '9/16';
-                    recordEdit();
-                    videoClip.transform = videoClip.transform || { scale: 100, x: 0, y: 0, rotation: 0, opacity: 100 };
-                    videoClip.transform.scale = Math.max(videoClip.transform.scale, 135);
-                    updatePreviewVisuals();
-                    requestTimelineRender();
-
-                    const prompt = "I have a video clip. Provide 3 short, punchy tips on reframing action shots for 9:16 vertical formats (TikTok / Reels / Shorts). Keep it concise.";
-                    const response = await fetch('/api/gemini', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt })
-                    });
-                    if (response.ok) {
-                        showToast('AI Reframe Applied: 9:16 Canvas with Center Subject Track!', '📱', 'success');
-                    } else {
-                        showToast('TikTok 9:16 Reframe applied locally.', '📱', 'success');
+                    if (vidClip) {
+                        recordEdit();
+                        vidClip.transform = vidClip.transform || { scale: 100, x: 0, y: 0, rotation: 0, opacity: 100 };
+                        vidClip.transform.scale = Math.max(vidClip.transform.scale, 135);
+                        updatePreviewVisuals();
+                        requestTimelineRender();
                     }
+                    showToast('📱 Switched canvas to 9:16 vertical format with center focus!', '📱', 'success');
+                } else if (tool.id === 'captions') {
+                    const langInput = document.getElementById('aiCaptionLanguage');
+                    const targetLang = langInput ? langInput.value : 'hinglish';
+                    const customText = document.getElementById('aiCaptionTranscriptInput')?.value?.trim();
+                    const mainTranscript = document.getElementById('captionTranscript');
+                    if (mainTranscript && customText) mainTranscript.value = customText;
+                    const mainLang = document.getElementById('captionLanguage');
+                    if (mainLang) mainLang.value = targetLang;
+                    await generateSubtitles();
+                } else if (tool.id === 'lyrics') {
+                    await autoGenerateSongLyrics();
+                } else if (tool.id === 'extract-music') {
+                    await autoExtractVideoAudio();
+                } else if (tool.id === 'sync-beats') {
+                    syncCuts();
+                } else if (tool.id === 'enhance') {
+                    const preset = document.getElementById('gradePreset');
+                    if (preset) preset.value = 'teal-orange';
+                    if (typeof applyColorGrade === 'function') applyColorGrade();
+                    showToast('🪄 Auto-Enhanced! Cinematic Teal & Orange grade applied locally.', '✨', 'success');
+                }
+            } catch (err) {
+                console.error('Error during AI processing:', err);
+                if (err.name === 'AbortError') {
+                    showToast('AI operation was cancelled.', 'ℹ️', 'info');
                 } else {
-                    showToast('AI tool applied successfully.', '✅', 'success');
+                    showToast(err.message || 'AI processing encountered an error.', '❌', 'error');
                 }
-            } catch (error) {
-                console.error('Error calling AI:', error);
-                showToast('Local action applied. AI server unavailable.', 'ℹ️', 'info');
             } finally {
-                if (runBtn) {
-                    runBtn.disabled = false;
-                    runBtn.style.opacity = '1';
-                }
+                clearTimeout(timeoutTimer);
+                isAIProcessingRunning = false;
+                activeAIOperationController = null;
+                renderAIToolsPanel();
             }
         }
+
+        window.addEventListener('beforeunload', () => {
+            if (isAIProcessingRunning) {
+                cancelCurrentAIOperation('Navigating away');
+            }
+        });
 
 </script>
 </body>
