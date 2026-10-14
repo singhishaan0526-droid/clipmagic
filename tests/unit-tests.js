@@ -444,6 +444,80 @@ it('Filter pack provides canvas Renderer and ClipFilters compatibility API', () 
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 7. Typography, Text Animations, Screen Draw & Per-Frame Motion Keyframing
+// ─────────────────────────────────────────────────────────────────────────────
+console.log('\n✍️ Test Suite 7: Typography, Text Animations, Screen Draw & Per-Frame Motion');
+
+it('Google Fonts and font family selectors are loaded for front styling', () => {
+    assert(editorSrc.includes('fonts.googleapis.com/css2?family='), 'Google fonts link must be loaded in head');
+    const expectedFonts = ['Inter', 'Montserrat', 'Bebas Neue', 'Outfit', 'Permanent Marker', 'Playfair Display', 'Righteous', 'Bangers', 'Orbitron', 'Cinzel', 'Dancing Script'];
+    expectedFonts.forEach(font => {
+        assert(editorSrc.includes(`value="${font}"`), `Font family option for ${font} must be available in editor`);
+    });
+});
+
+it('All 14 entrance/motion animations and visual front styles are defined in CSS & UI', () => {
+    const expectedAnimations = ['pop', 'slide-up', 'slide-down', 'slide-left', 'slide-right', 'typewriter', 'fade-zoom', 'glitch', 'bounce-drop', 'blur-in', 'rotate-in', 'wave', 'pulse', 'word-by-word'];
+    expectedAnimations.forEach(anim => {
+        if (anim === 'typewriter') {
+            assert(editorSrc.includes("animation === 'typewriter'"), 'Typewriter animation logic must exist');
+        } else {
+            assert(editorSrc.includes(`.lyric-${anim}`), `CSS class .lyric-${anim} must be defined`);
+        }
+    });
+
+    const expectedStyles = ['gradient', 'neon', 'box', 'luxury', 'flame', 'outline', 'shadow3d', 'solid'];
+    expectedStyles.forEach(style => {
+        assert(editorSrc.includes(`.lyric-${style}`), `Visual style class .lyric-${style} must be defined`);
+    });
+});
+
+it('On-canvas draw mode and interactive handles are wired in the preview screen', () => {
+    assert(editorSrc.includes('function setupTextDrawListener'), 'setupTextDrawListener must be defined');
+    assert(editorSrc.includes('function toggleTextDrawMode'), 'toggleTextDrawMode must be defined');
+    assert(editorSrc.includes('function addTextOverlayAtPosition'), 'addTextOverlayAtPosition must be defined');
+    assert(editorSrc.includes('text-draw-box-preview'), 'text-draw-box-preview CSS class must exist');
+    assert(editorSrc.includes('text-handle-resize'), 'Resize handle must be defined');
+    assert(editorSrc.includes('text-handle-rotate'), 'Rotate handle must be defined');
+});
+
+it('Per-frame keyframe interpolation correctly evaluates position, scale, and rotation across timestamps', () => {
+    assert(editorSrc.includes('function getTextOverlayTransformAt'), 'getTextOverlayTransformAt must exist');
+    assert(editorSrc.includes('function setTextOverlayKeyframeAtCurrentTime'), 'setTextOverlayKeyframeAtCurrentTime must exist');
+    assert(editorSrc.includes('function stepTextOverlayKeyframe'), 'stepTextOverlayKeyframe must exist');
+
+    const match = editorSrc.match(/(function getTextOverlayTransformAt\(item, time\) \{[\s\S]*?\r?\n\s*\})\r?\n\s*function setTextOverlayKeyframeAtCurrentTime/);
+    assert(match, 'getTextOverlayTransformAt function must be extractable');
+    const getTextOverlayTransformAt = eval(`(${match[1]})`);
+
+    const testItem = {
+        x: 50,
+        y: 70,
+        keyframes: [
+            { time: 1.0, x: 20, y: 30, scale: 100, rotation: 0, opacity: 100 },
+            { time: 3.0, x: 80, y: 90, scale: 150, rotation: 45, opacity: 50 }
+        ]
+    };
+
+    // Before first keyframe
+    const before = getTextOverlayTransformAt(testItem, 0.5);
+    assert.strictEqual(before.x, 20);
+    assert.strictEqual(before.y, 30);
+
+    // After last keyframe
+    const after = getTextOverlayTransformAt(testItem, 4.0);
+    assert.strictEqual(after.x, 80);
+    assert.strictEqual(after.y, 90);
+
+    // Midway interpolated values (at t = 2.0s, ratio = 0.5)
+    const mid = getTextOverlayTransformAt(testItem, 2.0);
+    assert(mid.x > 20 && mid.x < 80, `mid.x ${mid.x} should be between 20 and 80`);
+    assert(mid.y > 30 && mid.y < 90, `mid.y ${mid.y} should be between 30 and 90`);
+    assert(mid.scale > 100 && mid.scale < 150, `mid.scale ${mid.scale} should be between 100 and 150`);
+    assert(mid.rotation > 0 && mid.rotation < 45, `mid.rotation ${mid.rotation} should be between 0 and 45`);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Test Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log('\n═══════════════════════════════════════════════════════════════');

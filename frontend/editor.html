@@ -10,7 +10,7 @@
     <meta name="robots" content="noindex, follow" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;700;900&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Bebas+Neue&family=Cinzel:wght@700;900&family=Dancing+Script:wght@700&family=Inter:wght@400;600;700;800;900&family=Montserrat:wght@400;700;900&family=Orbitron:wght@700;900&family=Outfit:wght@400;700;900&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Righteous&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css" />
     <style>
         /* ── Layout ── */
@@ -392,19 +392,158 @@
         }
         .lyric-glow { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.95)); }
         .lyric-shadow { text-shadow: 0 3px 0 #000, 0 6px 14px rgba(0,0,0,.9); }
-        .lyric-pop { animation: lyricPop .38s cubic-bezier(.2,.8,.2,1) both; }
+        .lyric-shadow3d {
+            color: #ffffff;
+            text-shadow: 0 1px 0 #cbd5e1, 0 2px 0 #94a3b8, 0 3px 0 #64748b, 0 4px 0 #475569, 0 5px 0 #334155, 0 6px 1px rgba(0,0,0,.15), 0 0 5px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.3), 0 3px 5px rgba(0,0,0,.2), 0 5px 10px rgba(0,0,0,.25);
+            font-weight: 900;
+        }
+
+        /* ── 14 Entrance & Motion Animations ── */
+        .lyric-pop { animation: lyricPop .42s cubic-bezier(.2,.8,.2,1) both; }
         .lyric-slide-up { animation: lyricSlideUp .45s cubic-bezier(.2,.8,.2,1) both; }
-        .lyric-pulse { animation: lyricPulse 1.2s ease-in-out infinite; }
+        .lyric-slide-down { animation: lyricSlideDown .45s cubic-bezier(.2,.8,.2,1) both; }
+        .lyric-slide-left { animation: lyricSlideLeft .45s cubic-bezier(.2,.8,.2,1) both; }
+        .lyric-slide-right { animation: lyricSlideRight .45s cubic-bezier(.2,.8,.2,1) both; }
+        .lyric-fade-zoom { animation: lyricFadeZoom .5s cubic-bezier(.16,1,.3,1) both; }
+        .lyric-glitch { animation: lyricGlitch .7s ease infinite alternate; }
+        .lyric-bounce-drop { animation: lyricBounceDrop .65s cubic-bezier(.34,1.56,.64,1) both; }
+        .lyric-blur-in { animation: lyricBlurIn .5s cubic-bezier(.2,.8,.2,1) both; }
+        .lyric-rotate-in { animation: lyricRotateIn .55s cubic-bezier(.2,.8,.2,1) both; }
+        .lyric-wave { animation: lyricWave 2.2s ease-in-out infinite; }
+        .lyric-pulse { animation: lyricPulse 1.25s ease-in-out infinite; }
         .lyric-word-by-word .lyric-word { animation: lyricWordIn .3s both; animation-delay: calc(var(--word-index) * 70ms); }
-        @keyframes lyricPop { from { opacity:0; transform:translate(-50%,-50%) scale(.8); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
-        @keyframes lyricSlideUp { from { opacity:0; transform:translate(-50%,5%) scale(.96); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
-        @keyframes lyricPulse { 50% { transform:translate(-50%,-50%) scale(1.04); } }
-        @keyframes lyricWordIn { from { opacity:0; transform:translateY(.25em); } to { opacity:1; transform:translateY(0); } }
-        @keyframes lyricGradient { to { background-position:220% center; } }
-        @keyframes lyricPop { from { opacity:0; transform:translate(-50%,-50%) scale(.65); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
-        @keyframes lyricSlideUp { from { opacity:0; transform:translate(-50%,10%) scale(.96); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
-        @keyframes lyricPulse { 50% { transform:translate(-50%,-50%) scale(1.06); } }
-        @keyframes lyricWordIn { from { opacity:0; transform:translateY(.35em); } to { opacity:1; transform:translateY(0); } }
+
+        @keyframes lyricPop { 
+            from { opacity:0; transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 0.65)); } 
+            to { opacity:var(--text-opacity, 1); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); } 
+        }
+        @keyframes lyricSlideUp { 
+            from { opacity:0; transform:translate(-50%, calc(-50% + 40px)) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 0.95)); } 
+            to { opacity:var(--text-opacity, 1); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); } 
+        }
+        @keyframes lyricSlideDown { 
+            from { opacity:0; transform:translate(-50%, calc(-50% - 40px)) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 0.95)); } 
+            to { opacity:var(--text-opacity, 1); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); } 
+        }
+        @keyframes lyricSlideLeft { 
+            from { opacity:0; transform:translate(calc(-50% + 50px), -50%) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 0.95)); } 
+            to { opacity:var(--text-opacity, 1); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); } 
+        }
+        @keyframes lyricSlideRight { 
+            from { opacity:0; transform:translate(calc(-50% - 50px), -50%) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 0.95)); } 
+            to { opacity:var(--text-opacity, 1); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); } 
+        }
+        @keyframes lyricFadeZoom { 
+            from { opacity:0; filter:blur(6px); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 0.4)); } 
+            to { opacity:var(--text-opacity, 1); filter:blur(0); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); } 
+        }
+        @keyframes lyricGlitch {
+            0% { transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)) skew(0deg); text-shadow:0 0 0 transparent; }
+            20% { transform:translate(-52%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)) skew(-3deg); text-shadow:-2px 0 #f43f5e, 2px 0 #06b6d4; }
+            40% { transform:translate(-49%,-49%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)) skew(2deg); text-shadow:2px 0 #f43f5e, -2px 0 #06b6d4; }
+            60% { transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)) skew(0deg); text-shadow:0 0 0 transparent; }
+            80% { transform:translate(-51%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)) skew(4deg); text-shadow:-3px 0 #3b82f6, 3px 0 #ec4899; }
+            100% { transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)) skew(0deg); }
+        }
+        @keyframes lyricBounceDrop {
+            0% { opacity:0; transform:translate(-50%, calc(-50% - 70px)) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 0.7)); }
+            60% { opacity:var(--text-opacity, 1); transform:translate(-50%, calc(-50% + 8px)) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 1.08), calc(var(--text-scale, 1) * 0.92)); }
+            80% { transform:translate(-50%, calc(-50% - 4px)) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 0.96), calc(var(--text-scale, 1) * 1.04)); }
+            100% { transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); }
+        }
+        @keyframes lyricBlurIn { 
+            from { opacity:0; filter:blur(18px); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 1.2)); } 
+            to { opacity:var(--text-opacity, 1); filter:blur(0); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); } 
+        }
+        @keyframes lyricRotateIn { 
+            from { opacity:0; transform:translate(-50%,-50%) rotate(calc(var(--text-rot, 0deg) - 45deg)) scale(calc(var(--text-scale, 1) * 0.4)); } 
+            to { opacity:var(--text-opacity, 1); transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); } 
+        }
+        @keyframes lyricWave {
+            0%, 100% { transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)) translateY(0); }
+            25% { transform:translate(-50%,-50%) rotate(calc(var(--text-rot, 0deg) - 2deg)) scale(var(--text-scale, 1)) translateY(-6px); }
+            75% { transform:translate(-50%,-50%) rotate(calc(var(--text-rot, 0deg) + 2deg)) scale(var(--text-scale, 1)) translateY(6px); }
+        }
+        @keyframes lyricPulse { 
+            0%, 100% { transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(var(--text-scale, 1)); }
+            50% { transform:translate(-50%,-50%) rotate(var(--text-rot, 0deg)) scale(calc(var(--text-scale, 1) * 1.08)); } 
+        }
+        @keyframes lyricWordIn { from { opacity:0; transform:translateY(.3em); } to { opacity:1; transform:translateY(0); } }
+
+        /* ── On-Canvas Text Handles & Draw Mode ── */
+        .text-overlay-handles {
+            position: absolute;
+            inset: -8px;
+            pointer-events: none;
+            border: 1.5px dashed rgba(56, 189, 248, 0.85);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        }
+        .text-handle-resize, .text-handle-rotate {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #38bdf8;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            pointer-events: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            cursor: nwse-resize;
+            z-index: 10;
+            transition: transform 0.12s ease;
+        }
+        .text-handle-resize:hover, .text-handle-rotate:hover {
+            transform: scale(1.25);
+        }
+        .text-handle-resize {
+            right: -8px;
+            bottom: -8px;
+        }
+        .text-handle-rotate {
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ec4899;
+            cursor: grab;
+        }
+        .text-handle-rotate:active {
+            cursor: grabbing;
+        }
+        .text-handle-rotate::after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 10px;
+            background: #ec4899;
+        }
+        .text-motion-path-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+            overflow: visible;
+        }
+        #previewScreen.text-draw-active {
+            cursor: crosshair !important;
+            box-shadow: inset 0 0 0 2px #ec4899, 0 0 20px rgba(236,72,153,0.3) !important;
+        }
+        #previewScreen.text-draw-active * {
+            cursor: crosshair !important;
+        }
+        .text-draw-box-preview {
+            position: absolute;
+            border: 2px dashed #ec4899;
+            background: rgba(236, 72, 153, 0.15);
+            border-radius: 6px;
+            pointer-events: none;
+            z-index: 20;
+            box-shadow: 0 0 16px rgba(236, 72, 153, 0.5);
+        }
         .caption-overlay { bottom:8%; left:50%; top:auto; transform:translateX(-50%); background:rgba(0,0,0,.7); padding:8px 14px; border-radius:8px; font-size:1.05rem; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(8px); }
         .transition-badge { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:9; padding:1px 4px; border-radius:3px; background:rgba(8,8,20,.8); color:#ddd6fe; font-size:9px; pointer-events:none; }
         .timeline-waveform { position:absolute; inset:3px 4px; width:calc(100% - 8px); height:calc(100% - 6px); opacity:.9; pointer-events:none; }
@@ -4560,6 +4699,27 @@
                     </div>
                     <input type="hidden" id="overlayLanguage" value="hinglish"/>
 
+                    <!-- Draw on Video Canvas -->
+                    <button class="music-btn" id="textDrawModeBtn" style="background:rgba(236,72,153,0.18);border:1px solid #ec4899;color:#f472b6;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="toggleTextDrawMode()">
+                        ✏️ Click / Draw on Video Screen
+                    </button>
+
+                    <!-- Font Family Selector (Front Style) -->
+                    <div class="prop-section-title">🔤 Font Family & Typography</div>
+                    <select class="prop-input" id="overlayFontFamily" style="margin-bottom:8px;font-weight:700;cursor:pointer;" onchange="renderTextOverlays();">
+                        <option value="Inter" selected>Inter (Clean Studio Sans)</option>
+                        <option value="Montserrat">Montserrat (Punchy Bold Sans)</option>
+                        <option value="Bebas Neue">Bebas Neue (Tall Cinema Headline)</option>
+                        <option value="Outfit">Outfit (Futuristic Tech)</option>
+                        <option value="Permanent Marker">Permanent Marker (Urban Graffiti)</option>
+                        <option value="Playfair Display">Playfair Display (Luxury Editorial)</option>
+                        <option value="Righteous">Righteous (Synthwave / Retro)</option>
+                        <option value="Bangers">Bangers (Comic / Action YouTube)</option>
+                        <option value="Orbitron">Orbitron (Cyber Sci-Fi)</option>
+                        <option value="Cinzel">Cinzel (Epic Movie Title)</option>
+                        <option value="Dancing Script">Dancing Script (Handwritten Signature)</option>
+                    </select>
+
                     <!-- Screen Placement Choices -->
                     <div class="prop-section-title" style="margin-top:14px;">📍 Video Placement / Position</div>
                     <div class="chip-grid" style="margin-bottom:8px">
@@ -4570,16 +4730,16 @@
                     <div style="display:flex;gap:10px;">
                         <div style="flex:1;">
                             <label class="prop-label">Position Y <span id="overlayYValue">82%</span></label>
-                            <input class="prop-input" id="overlayY" type="range" min="10" max="95" value="82" aria-label="Overlay vertical position percentage" oninput="document.getElementById('overlayYValue').textContent=this.value+'%'; renderTextOverlays();"/>
+                            <input class="prop-input" id="overlayY" type="range" min="2" max="98" value="82" aria-label="Overlay vertical position percentage" oninput="document.getElementById('overlayYValue').textContent=this.value+'%'; renderTextOverlays();"/>
                         </div>
                         <div style="flex:1;">
                             <label class="prop-label">Position X <span id="overlayXValue">50%</span></label>
-                            <input class="prop-input" id="overlayX" type="range" min="10" max="90" value="50" aria-label="Overlay horizontal position percentage" oninput="document.getElementById('overlayXValue').textContent=this.value+'%'; renderTextOverlays();"/>
+                            <input class="prop-input" id="overlayX" type="range" min="2" max="98" value="50" aria-label="Overlay horizontal position percentage" oninput="document.getElementById('overlayXValue').textContent=this.value+'%'; renderTextOverlays();"/>
                         </div>
                     </div>
 
                     <!-- Text Style Presets -->
-                    <div class="prop-section-title" style="margin-top:14px;">🎨 Text Style Preset</div>
+                    <div class="prop-section-title" style="margin-top:14px;">🎨 Visual Style Preset</div>
                     <div class="chip-grid" style="margin-bottom:8px">
                         <div class="chip-option active" onclick="selectChipGroup(this, 'overlayStyle', 'gradient'); renderTextOverlays();">🌈 Gradient Flow</div>
                         <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'neon'); renderTextOverlays();">⚡ Cyber Neon</div>
@@ -4587,7 +4747,8 @@
                         <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'luxury'); renderTextOverlays();">👑 Royal Gold</div>
                         <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'flame'); renderTextOverlays();">🔥 Flame Heat</div>
                         <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'outline'); renderTextOverlays();">✏️ Retro Outline</div>
-                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'solid'); renderTextOverlays();">🎨 Modern Minimal</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'shadow3d'); renderTextOverlays();">🗿 3D Shadow</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayStyle', 'solid'); renderTextOverlays();">⚪ Modern Minimal</div>
                     </div>
                     <input type="hidden" id="overlayStyle" value="gradient"/>
 
@@ -4613,26 +4774,36 @@
                         </div>
                     </div>
 
-                    <!-- Word Highlighting & Animation -->
-                    <label class="prop-label">Word Highlighting & Animation</label>
-                    <div class="chip-grid" style="margin-bottom:8px">
-                        <div class="chip-option active" onclick="selectChipGroup(this, 'overlayAnimation', 'word-by-word'); renderTextOverlays();">🔤 Word Karaoke Glow</div>
-                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'pop'); renderTextOverlays();">💥 Bouncy Pop-In</div>
+                    <!-- Entrance & Motion Animations -->
+                    <div class="prop-section-title" style="margin-top:14px;">✨ Entrance & Motion Animation</div>
+                    <div class="chip-grid" style="margin-bottom:8px;grid-template-columns:repeat(2,1fr);">
+                        <div class="chip-option active" onclick="selectChipGroup(this, 'overlayAnimation', 'pop'); renderTextOverlays();">💥 Bouncy Pop-In</div>
                         <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'slide-up'); renderTextOverlays();">⬆ Smooth Slide Up</div>
-                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'pulse'); renderTextOverlays();">💓 Rhythm Beat Pulse</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'slide-down'); renderTextOverlays();">⬇ Drop Slide Down</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'slide-left'); renderTextOverlays();">⬅ Sweep Left</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'slide-right'); renderTextOverlays();">➡ Sweep Right</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'typewriter'); renderTextOverlays();">⌨️ Typewriter</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'fade-zoom'); renderTextOverlays();">🔍 Cinematic Zoom</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'glitch'); renderTextOverlays();">⚡ Cyber Glitch</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'bounce-drop'); renderTextOverlays();">🏀 Bounce Drop</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'blur-in'); renderTextOverlays();">👓 Lens Blur-In</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'rotate-in'); renderTextOverlays();">🌀 3D Spin Tilt</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'wave'); renderTextOverlays();">🌊 Ocean Wave</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'word-by-word'); renderTextOverlays();">🔤 Karaoke Glow</div>
+                        <div class="chip-option" onclick="selectChipGroup(this, 'overlayAnimation', 'pulse'); renderTextOverlays();">💓 Beat Pulse</div>
                     </div>
-                    <input type="hidden" id="overlayAnimation" value="word-by-word"/>
+                    <input type="hidden" id="overlayAnimation" value="pop"/>
 
                     <label class="prop-label">Text Size <span id="overlaySizeValue">34px</span></label>
-                    <input class="prop-input" id="overlaySize" type="range" min="16" max="96" value="34" aria-label="Overlay text font size" oninput="document.getElementById('overlaySizeValue').textContent=this.value+'px'; renderTextOverlays();"/>
+                    <input class="prop-input" id="overlaySize" type="range" min="14" max="120" value="34" aria-label="Overlay text font size" oninput="document.getElementById('overlaySizeValue').textContent=this.value+'px'; renderTextOverlays();"/>
 
-                    <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;margin-top:10px;" onclick="addTextOverlay()">＋ Add Custom Lyric Layer</button>
+                    <button class="music-btn" style="background:var(--gradient-main);color:#fff;font-weight:700;margin-top:10px;" onclick="addTextOverlay()">＋ Add Custom Text Layer</button>
                     <button class="music-btn" style="margin-top:6px;border-color:rgba(236,72,153,0.5);color:#f472b6;font-weight:700;" onclick="autoGenerateSongLyrics()">✨ AI Auto-Generate Song Lyrics (Trimmed Music)</button>
-                    <p style="color:var(--text-secondary);font-size:.75rem;margin-top:8px">Tip: You can drag lyrics anywhere on the preview screen to reposition in real-time.</p>
+                    <p style="color:var(--text-secondary);font-size:.75rem;margin-top:8px">Tip: Drag text on the video preview, or toggle Draw Mode to place text anywhere!</p>
 
-                    <div class="prop-section-title" style="margin-top:16px;">🎵 Lyric Layers in Project</div>
+                    <div class="prop-section-title" style="margin-top:16px;">🎵 Text & Lyric Layers in Project</div>
                     <div id="lyricsLayerListContainer" style="max-height:180px;overflow-y:auto;">
-                        <p style="font-size:0.75rem;color:var(--text-muted);">No lyric layers added yet. Add your first line above or click Auto-Generate!</p>
+                        <p style="font-size:0.75rem;color:var(--text-muted);">No text layers added yet. Add your first line above or click Draw on Screen!</p>
                     </div>
                 </div>`
             },
@@ -5639,50 +5810,127 @@
             if (titleEl) titleEl.textContent = `✏️ Text: ${item.text ? item.text.slice(0, 14) : 'Layer'}`;
             if (iconEl) iconEl.innerHTML = '✏️';
 
+            const now = typeof getCurrentPlaybackTime === 'function' ? getCurrentPlaybackTime() : 0;
+            const kfs = (item.keyframes || []).slice().sort((a,b) => a.time - b.time);
+            const curTransform = getTextOverlayTransformAt(item, now);
+
             const section = document.createElement('div');
             section.className = 'prop-section';
             section.innerHTML = `
                 <div class="prop-section-title">✏️ Edit Text Content</div>
-                <textarea class="prop-input" id="inspectorOverlayText" rows="2" aria-label="Text overlay string content" style="font-weight:700;margin-bottom:10px;">${escapeHTML(item.text || '')}</textarea>
+                <textarea class="prop-input" id="inspectorOverlayText" rows="2" aria-label="Text overlay string content" style="font-weight:700;margin-bottom:8px;">${escapeHTML(item.text || '')}</textarea>
 
-                <div class="prop-section-title" style="margin-top:10px;">⏱️ Timing & Placement</div>
+                <div class="prop-section-title">🔤 Font Family ("Front Style")</div>
+                <select class="prop-input" id="inspFontFamily" style="margin-bottom:8px;font-weight:700;cursor:pointer;">
+                    ${[
+                        ['Inter', 'Inter (Clean Sans)'],
+                        ['Montserrat', 'Montserrat (Punchy Bold)'],
+                        ['Bebas Neue', 'Bebas Neue (Tall Cinema)'],
+                        ['Outfit', 'Outfit (Modern Tech)'],
+                        ['Permanent Marker', 'Permanent Marker (Graffiti)'],
+                        ['Playfair Display', 'Playfair Display (Luxury Serif)'],
+                        ['Righteous', 'Righteous (Retro Synthwave)'],
+                        ['Bangers', 'Bangers (Comic / YouTube)'],
+                        ['Orbitron', 'Orbitron (Cyber Sci-Fi)'],
+                        ['Cinzel', 'Cinzel (Epic Movie)'],
+                        ['Dancing Script', 'Dancing Script (Handwritten)']
+                    ].map(([f, n]) => `<option value="${f}" ${(item.fontFamily || 'Inter') === f ? 'selected' : ''}>${n}</option>`).join('')}
+                </select>
+
+                <div class="prop-section-title">🎨 Visual Style Preset</div>
+                <div class="chip-grid" style="margin-bottom:8px;">
+                    ${[
+                        ['gradient', '🌈 Gradient'],
+                        ['neon', '⚡ Cyber Neon'],
+                        ['box', '📦 TikTok Box'],
+                        ['luxury', '👑 Royal Gold'],
+                        ['flame', '🔥 Flame Heat'],
+                        ['outline', '✏️ Outline'],
+                        ['shadow3d', '🗿 3D Shadow'],
+                        ['solid', '⚪ Minimal Solid']
+                    ].map(([s, n]) => `<button class="chip-option ${item.style === s ? 'active' : ''}" onclick="item.style='${s}'; renderTextOverlays(); selectOverlay(item);">${n}</button>`).join('')}
+                </div>
+
+                <div class="prop-section-title">✨ Entrance & Motion Animation</div>
+                <div class="chip-grid" style="margin-bottom:8px;grid-template-columns:repeat(2,1fr);">
+                    ${[
+                        ['pop', '💥 Bouncy Pop-In'],
+                        ['slide-up', '⬆ Smooth Slide Up'],
+                        ['slide-down', '⬇ Drop Slide Down'],
+                        ['slide-left', '⬅ Sweep Left'],
+                        ['slide-right', '➡ Sweep Right'],
+                        ['typewriter', '⌨️ Typewriter'],
+                        ['fade-zoom', '🔍 Cinematic Zoom'],
+                        ['glitch', '⚡ Cyber Glitch'],
+                        ['bounce-drop', '🏀 Bounce Drop'],
+                        ['blur-in', '👓 Lens Blur-In'],
+                        ['rotate-in', '🌀 3D Spin Tilt'],
+                        ['wave', '🌊 Ocean Wave'],
+                        ['word-by-word', '🔤 Karaoke Glow'],
+                        ['pulse', '💓 Beat Pulse']
+                    ].map(([a, n]) => `<button class="chip-option ${item.animation === a ? 'active' : ''}" onclick="item.animation='${a}'; renderTextOverlays(); selectOverlay(item);">${n}</button>`).join('')}
+                </div>
+
+                <div class="prop-section-title">⏱️ Timing & Placement</div>
                 <div style="display:flex;gap:6px;margin-bottom:8px;">
                     <button class="chip-option" style="flex:1;font-size:0.74rem;padding:6px;" onclick="item.start=getCurrentPlaybackTime(); renderTextOverlays(); selectOverlay(item);">⏱ Start @ Playhead</button>
                     <button class="chip-option" style="flex:1;font-size:0.74rem;padding:6px;" onclick="item.end=getCurrentPlaybackTime(); renderTextOverlays(); selectOverlay(item);">⏱ End @ Playhead</button>
                 </div>
+
                 <div class="prop-row">
-                    <span class="prop-label">Position Y <span id="inspOverlayYVal">${item.y || 82}%</span></span>
-                    <input class="prop-input" type="range" min="10" max="95" value="${item.y || 82}" aria-label="Text overlay vertical position percentage" oninput="item.y=Number(this.value); document.getElementById('inspOverlayYVal').textContent=this.value+'%'; renderTextOverlays();"/>
+                    <span class="prop-label">Position X <span id="inspOverlayXVal">${Math.round(curTransform.x)}%</span></span>
+                    <input class="prop-input" type="range" min="2" max="98" value="${Math.round(curTransform.x)}" oninput="if(item.keyframeMode){setTextOverlayKeyframeAtCurrentTime(item,{x:Number(this.value)});}else{item.x=Number(this.value);} document.getElementById('inspOverlayXVal').textContent=this.value+'%'; renderTextOverlays();"/>
                 </div>
                 <div class="prop-row">
-                    <span class="prop-label">Position X <span id="inspOverlayXVal">${item.x || 50}%</span></span>
-                    <input class="prop-input" type="range" min="10" max="90" value="${item.x || 50}" aria-label="Text overlay horizontal position percentage" oninput="item.x=Number(this.value); document.getElementById('inspOverlayXVal').textContent=this.value+'%'; renderTextOverlays();"/>
+                    <span class="prop-label">Position Y <span id="inspOverlayYVal">${Math.round(curTransform.y)}%</span></span>
+                    <input class="prop-input" type="range" min="2" max="98" value="${Math.round(curTransform.y)}" oninput="if(item.keyframeMode){setTextOverlayKeyframeAtCurrentTime(item,{y:Number(this.value)});}else{item.y=Number(this.value);} document.getElementById('inspOverlayYVal').textContent=this.value+'%'; renderTextOverlays();"/>
                 </div>
-
-                <div class="prop-section-title" style="margin-top:10px;">🎨 Text Styling Presets</div>
-                <div class="chip-grid" style="margin-bottom:8px;">
-                    <button class="chip-option ${item.style === 'gradient' ? 'active' : ''}" onclick="item.style='gradient'; renderTextOverlays(); selectOverlay(item);">🌈 Gradient</button>
-                    <button class="chip-option ${item.style === 'neon' ? 'active' : ''}" onclick="item.style='neon'; renderTextOverlays(); selectOverlay(item);">⚡ Cyber Neon</button>
-                    <button class="chip-option ${item.style === 'box' ? 'active' : ''}" onclick="item.style='box'; renderTextOverlays(); selectOverlay(item);">📦 TikTok Box</button>
-                    <button class="chip-option ${item.style === 'luxury' ? 'active' : ''}" onclick="item.style='luxury'; renderTextOverlays(); selectOverlay(item);">👑 Royal Gold</button>
-                    <button class="chip-option ${item.style === 'flame' ? 'active' : ''}" onclick="item.style='flame'; renderTextOverlays(); selectOverlay(item);">🔥 Flame Heat</button>
-                    <button class="chip-option ${item.style === 'outline' ? 'active' : ''}" onclick="item.style='outline'; renderTextOverlays(); selectOverlay(item);">✏️ Outline</button>
-                </div>
-
-                <div class="prop-section-title" style="margin-top:10px;">✨ Text Animation</div>
-                <div class="chip-grid" style="margin-bottom:8px;">
-                    <button class="chip-option ${item.animation === 'word-by-word' ? 'active' : ''}" onclick="item.animation='word-by-word'; renderTextOverlays(); selectOverlay(item);">🔤 Karaoke Glow</button>
-                    <button class="chip-option ${item.animation === 'pop' ? 'active' : ''}" onclick="item.animation='pop'; renderTextOverlays(); selectOverlay(item);">💥 Pop-In</button>
-                    <button class="chip-option ${item.animation === 'slide-up' ? 'active' : ''}" onclick="item.animation='slide-up'; renderTextOverlays(); selectOverlay(item);">⬆ Slide Up</button>
-                    <button class="chip-option ${item.animation === 'pulse' ? 'active' : ''}" onclick="item.animation='pulse'; renderTextOverlays(); selectOverlay(item);">💓 Beat Pulse</button>
-                </div>
-
-                <div class="prop-row" style="margin-top:10px;">
+                <div class="prop-row">
                     <span class="prop-label">Font Size <span id="inspTextSizeVal">${item.size || 34}px</span></span>
-                    <input class="prop-input" type="range" min="16" max="96" value="${item.size || 34}" aria-label="Text overlay font size pixels" oninput="item.size=Number(this.value); document.getElementById('inspTextSizeVal').textContent=this.value+'px'; renderTextOverlays();"/>
+                    <input class="prop-input" type="range" min="14" max="120" value="${item.size || 34}" oninput="item.size=Number(this.value); document.getElementById('inspTextSizeVal').textContent=this.value+'px'; renderTextOverlays();"/>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Rotation <span id="inspOverlayRotVal">${Math.round(curTransform.rotation || 0)}°</span></span>
+                    <input class="prop-input" type="range" min="-180" max="180" value="${Math.round(curTransform.rotation || 0)}" oninput="if(item.keyframeMode){setTextOverlayKeyframeAtCurrentTime(item,{rotation:Number(this.value)});}else{item.rotation=Number(this.value);} document.getElementById('inspOverlayRotVal').textContent=this.value+'°'; renderTextOverlays();"/>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Scale Zoom <span id="inspOverlayScaleVal">${Math.round(curTransform.scale || 100)}%</span></span>
+                    <input class="prop-input" type="range" min="20" max="250" value="${Math.round(curTransform.scale || 100)}" oninput="if(item.keyframeMode){setTextOverlayKeyframeAtCurrentTime(item,{scale:Number(this.value)});}else{item.scale=Number(this.value);} document.getElementById('inspOverlayScaleVal').textContent=this.value+'%'; renderTextOverlays();"/>
                 </div>
 
-                <button class="music-btn" style="color:#fca5a5;border-color:rgba(239,68,68,0.4);margin-top:12px;" onclick="deleteLyricOverlay('${item.id}'); deselectClip();">🗑 Delete Text Layer</button>
+                <!-- Per-Frame Motion & Keyframing -->
+                <div class="prop-section-title" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;">
+                    <span>✨ Per-Frame Motion & Path</span>
+                    <span style="font-size:0.72rem;color:var(--text-accent);">${kfs.length} Keyframes</span>
+                </div>
+                <div style="margin-bottom:8px;">
+                    <button class="chip-option ${item.keyframeMode ? 'active' : ''}" style="width:100%;margin-bottom:6px;justify-content:center;" onclick="item.keyframeMode=!item.keyframeMode; selectOverlay(item); showToast(item.keyframeMode?'✨ Per-Frame Motion Mode ON: Dragging text records keyframes per timestamp!':'Motion mode OFF','ℹ️');">
+                        ${item.keyframeMode ? '🟢 Motion Keyframe Mode: ACTIVE' : '⚪ Enable Per-Frame Motion Keyframing'}
+                    </button>
+                    <div style="display:flex;gap:6px;">
+                        <button class="chip-option" style="flex:2;background:rgba(56,189,248,0.15);border-color:#38bdf8;color:#38bdf8;font-weight:700;padding:6px;" onclick="setTextOverlayKeyframeAtCurrentTime(item); selectOverlay(item); showToast('◆ Position keyframe saved @ '+getCurrentPlaybackTime().toFixed(2)+'s!','◆','success');">
+                            ◆ +KF @ ${now.toFixed(2)}s
+                        </button>
+                        <button class="chip-option" style="flex:1;padding:6px;" title="Jump to previous keyframe" onclick="stepTextOverlayKeyframe(item, -1)">◀ Prev</button>
+                        <button class="chip-option" style="flex:1;padding:6px;" title="Jump to next keyframe" onclick="stepTextOverlayKeyframe(item, 1)">Next ▶</button>
+                    </div>
+                </div>
+
+                ${kfs.length > 0 ? `
+                <div style="display:flex;flex-wrap:wrap;gap:4px;max-height:80px;overflow-y:auto;padding:4px;background:rgba(0,0,0,0.25);border-radius:6px;margin-bottom:8px;">
+                    ${kfs.map((k, idx) => `
+                        <div style="display:flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;background:rgba(56,189,248,0.2);border:1px solid rgba(56,189,248,0.4);font-size:0.72rem;color:#7dd3fc;">
+                            <span style="cursor:pointer;" onclick="seekToTimelineTime(${k.time})">◆ ${k.time.toFixed(2)}s</span>
+                            <span style="cursor:pointer;color:#fca5a5;margin-left:2px;" title="Delete keyframe" onclick="deleteTextOverlayKeyframe(item, ${idx}); selectOverlay(item);">✕</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="chip-option" style="width:100%;font-size:0.72rem;color:#fca5a5;margin-bottom:8px;" onclick="item.keyframes=[]; renderTextOverlays(); selectOverlay(item); showToast('Cleared text motion keyframes','🗑️');">
+                    🗑 Clear All Keyframes
+                </button>
+                ` : ''}
+
+                <button class="music-btn" style="color:#fca5a5;border-color:rgba(239,68,68,0.4);margin-top:10px;" onclick="deleteLyricOverlay('${item.id}'); deselectClip();">🗑 Delete Text Layer</button>
             `;
 
             const txtInput = section.querySelector('#inspectorOverlayText');
@@ -5690,6 +5938,15 @@
                 txtInput.addEventListener('input', (e) => {
                     recordEdit();
                     item.text = e.target.value;
+                    renderTextOverlays();
+                });
+            }
+
+            const fontSelect = section.querySelector('#inspFontFamily');
+            if (fontSelect) {
+                fontSelect.addEventListener('change', (e) => {
+                    recordEdit();
+                    item.fontFamily = e.target.value;
                     renderTextOverlays();
                 });
             }
@@ -8278,36 +8535,294 @@
 
         let activeTextDrag = null;
 
+        function getTextOverlayTransformAt(item, time) {
+            if (!item) return { x: 50, y: 76, scale: 100, rotation: 0, opacity: 100 };
+            if (!item.keyframes || !item.keyframes.length) {
+                return {
+                    x: Number(item.x) || 50,
+                    y: Number(item.y) || (item.kind === 'caption' ? 84 : 76),
+                    scale: Number(item.scale) || 100,
+                    rotation: Number(item.rotation) || 0,
+                    opacity: Number(item.opacity) || 100
+                };
+            }
+            const kfs = item.keyframes.slice().sort((a, b) => a.time - b.time);
+            if (time <= kfs[0].time) return { ...kfs[0] };
+            if (time >= kfs[kfs.length - 1].time) return { ...kfs[kfs.length - 1] };
+            for (let i = 0; i < kfs.length - 1; i++) {
+                if (time >= kfs[i].time && time <= kfs[i + 1].time) {
+                    const kfA = kfs[i];
+                    const kfB = kfs[i + 1];
+                    const span = Math.max(0.001, kfB.time - kfA.time);
+                    const ratio = (time - kfA.time) / span;
+                    const ease = ratio < 0.5 ? 2 * ratio * ratio : 1 - Math.pow(-2 * ratio + 2, 2) / 2;
+                    return {
+                        x: kfA.x + (kfB.x - kfA.x) * ease,
+                        y: kfA.y + (kfB.y - kfA.y) * ease,
+                        scale: (kfA.scale ?? 100) + ((kfB.scale ?? 100) - (kfA.scale ?? 100)) * ease,
+                        rotation: (kfA.rotation ?? 0) + ((kfB.rotation ?? 0) - (kfA.rotation ?? 0)) * ease,
+                        opacity: (kfA.opacity ?? 100) + ((kfB.opacity ?? 100) - (kfA.opacity ?? 100)) * ease
+                    };
+                }
+            }
+            return {
+                x: Number(item.x) || 50,
+                y: Number(item.y) || 76,
+                scale: 100,
+                rotation: 0,
+                opacity: 100
+            };
+        }
+
+        function setTextOverlayKeyframeAtCurrentTime(item, updates = {}) {
+            const now = typeof getCurrentPlaybackTime === 'function' ? getCurrentPlaybackTime() : 0;
+            item.keyframes = item.keyframes || [];
+            const cur = getTextOverlayTransformAt(item, now);
+            const targetTime = Number(now.toFixed(2));
+            const existingIdx = item.keyframes.findIndex(k => Math.abs(k.time - targetTime) <= 0.08);
+
+            const kf = {
+                time: targetTime,
+                x: updates.x !== undefined ? updates.x : cur.x,
+                y: updates.y !== undefined ? updates.y : cur.y,
+                scale: updates.scale !== undefined ? updates.scale : cur.scale,
+                rotation: updates.rotation !== undefined ? updates.rotation : cur.rotation,
+                opacity: updates.opacity !== undefined ? updates.opacity : cur.opacity
+            };
+
+            recordEdit();
+            if (existingIdx >= 0) {
+                item.keyframes[existingIdx] = kf;
+            } else {
+                item.keyframes.push(kf);
+                item.keyframes.sort((a, b) => a.time - b.time);
+            }
+            renderTextOverlays();
+        }
+
+        function deleteTextOverlayKeyframe(item, index) {
+            if (!item || !Array.isArray(item.keyframes)) return;
+            recordEdit();
+            item.keyframes.splice(index, 1);
+            renderTextOverlays();
+            if (selectedOverlay === item) selectOverlay(item);
+            showToast('Keyframe removed', '✕', 'info');
+        }
+
+        function stepTextOverlayKeyframe(item, direction = 1) {
+            if (!item || !Array.isArray(item.keyframes) || !item.keyframes.length) return;
+            const now = getCurrentPlaybackTime();
+            const sorted = item.keyframes.slice().sort((a, b) => a.time - b.time);
+            let target = null;
+            if (direction > 0) {
+                target = sorted.find(k => k.time > now + 0.05);
+            } else {
+                for (let i = sorted.length - 1; i >= 0; i--) {
+                    if (sorted[i].time < now - 0.05) {
+                        target = sorted[i];
+                        break;
+                    }
+                }
+            }
+            if (target) {
+                seekToTimelineTime(target.time);
+                showToast(`Jumped to KF @ ${target.time.toFixed(2)}s`, '◆');
+            }
+        }
+
+        let isTextDrawModeActive = false;
+        function toggleTextDrawMode() {
+            isTextDrawModeActive = !isTextDrawModeActive;
+            const btn = document.getElementById('textDrawModeBtn');
+            const screen = document.getElementById('previewScreen');
+            if (btn) {
+                btn.style.background = isTextDrawModeActive ? '#ec4899' : 'rgba(236,72,153,0.18)';
+                btn.style.color = isTextDrawModeActive ? '#ffffff' : '#f472b6';
+            }
+            if (screen) {
+                screen.classList.toggle('text-draw-active', isTextDrawModeActive);
+            }
+            if (isTextDrawModeActive) {
+                showToast('✏️ Draw Mode ACTIVE: Click or drag on video screen to place text!', '✏️', 'info');
+            } else {
+                showToast('Draw Mode deactivated', 'ℹ️', 'info');
+            }
+        }
+
+        function setupTextDrawListener() {
+            const screen = document.getElementById('previewScreen');
+            if (!screen) return;
+
+            let drawStart = null;
+            let drawBox = null;
+
+            screen.addEventListener('pointerdown', (e) => {
+                if (!isTextDrawModeActive) return;
+                // Ignore clicks on video controls, overlays, or buttons
+                if (e.target.closest('.text-handle-resize') || e.target.closest('.text-handle-rotate') || e.target.closest('.preview-controls') || e.target.closest('button') || e.target.closest('input')) return;
+
+                const rect = screen.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startPctX = clamp(((startX - rect.left) / rect.width) * 100, 2, 98);
+                const startPctY = clamp(((startY - rect.top) / rect.height) * 100, 2, 98);
+
+                drawStart = { x: startX, y: startY, pctX: startPctX, pctY: startPctY };
+
+                drawBox = document.createElement('div');
+                drawBox.className = 'text-draw-box-preview';
+                drawBox.style.left = `${startPctX}%`;
+                drawBox.style.top = `${startPctY}%`;
+                drawBox.style.width = '0px';
+                drawBox.style.height = '0px';
+                screen.appendChild(drawBox);
+
+                const onMove = (moveEv) => {
+                    if (!drawStart || !drawBox) return;
+                    const r = screen.getBoundingClientRect();
+                    const curX = moveEv.clientX;
+                    const curY = moveEv.clientY;
+                    const curPctX = clamp(((curX - r.left) / r.width) * 100, 2, 98);
+                    const curPctY = clamp(((curY - r.top) / r.height) * 100, 2, 98);
+
+                    const left = Math.min(drawStart.pctX, curPctX);
+                    const top = Math.min(drawStart.pctY, curPctY);
+                    const widthPct = Math.abs(curPctX - drawStart.pctX);
+                    const heightPct = Math.abs(curPctY - drawStart.pctY);
+
+                    drawBox.style.left = `${left}%`;
+                    drawBox.style.top = `${top}%`;
+                    drawBox.style.width = `${widthPct}%`;
+                    drawBox.style.height = `${heightPct}%`;
+                };
+
+                const onUp = (upEv) => {
+                    window.removeEventListener('pointermove', onMove);
+                    window.removeEventListener('pointerup', onUp);
+
+                    if (drawBox && drawBox.parentElement) {
+                        drawBox.remove();
+                        drawBox = null;
+                    }
+
+                    if (!drawStart) return;
+                    const r = screen.getBoundingClientRect();
+                    const endX = upEv.clientX;
+                    const endY = upEv.clientY;
+                    const dist = Math.hypot(endX - drawStart.x, endY - drawStart.y);
+
+                    let finalX = drawStart.pctX;
+                    let finalY = drawStart.pctY;
+                    let finalSize = 34;
+
+                    if (dist > 15) {
+                        const endPctX = clamp(((endX - r.left) / r.width) * 100, 2, 98);
+                        const endPctY = clamp(((endY - r.top) / r.height) * 100, 2, 98);
+                        finalX = Math.round((drawStart.pctX + endPctX) / 2);
+                        finalY = Math.round((drawStart.pctY + endPctY) / 2);
+                        const boxHeightPx = Math.abs(endY - drawStart.y);
+                        finalSize = clamp(Math.round(boxHeightPx * 0.75), 18, 96);
+                    }
+
+                    drawStart = null;
+
+                    const newItem = addTextOverlayAtPosition(finalX, finalY, finalSize);
+                    selectOverlay(newItem);
+                    toggleTextDrawMode();
+                    showToast('✏️ Text placed! Customize typography & keyframe motion in inspector.', '✨', 'success');
+
+                    setTimeout(() => {
+                        const inp = document.getElementById('inspectorOverlayText');
+                        if (inp) {
+                            inp.focus();
+                            inp.select();
+                        }
+                    }, 50);
+                };
+
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerup', onUp, { once: true });
+            });
+        }
+
+        function addTextOverlayAtPosition(x = 50, y = 50, size = 34) {
+            projectState.textOverlays = projectState.textOverlays || [];
+            const now = getCurrentPlaybackTime();
+            const style = document.getElementById('overlayStyle')?.value || 'gradient';
+            const animation = document.getElementById('overlayAnimation')?.value || 'pop';
+            const fontFamily = document.getElementById('overlayFontFamily')?.value || 'Inter';
+            const colorA = document.getElementById('overlayColorA')?.value || '#f472b6';
+            const colorB = document.getElementById('overlayColorB')?.value || '#38bdf8';
+            
+            const newId = `txt-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+            const item = {
+                id: newId,
+                kind: 'text',
+                text: 'Your Custom Text',
+                start: Number(now.toFixed(2)),
+                end: Number((now + 3.5).toFixed(2)),
+                x: Math.round(x),
+                y: Math.round(y),
+                size: Math.round(size),
+                fontFamily,
+                style,
+                animation,
+                colorA,
+                colorB,
+                scale: 100,
+                rotation: 0,
+                opacity: 100,
+                keyframeMode: false,
+                keyframes: []
+            };
+            recordEdit();
+            projectState.textOverlays.push(item);
+            renderTextOverlays();
+            renderLyricsLayerList();
+            requestTimelineRender();
+            return item;
+        }
+
         function syncTextOverlayPositionControls(item) {
-            const x = clamp(Number(item.x) || 50, 5, 95);
-            const y = clamp(Number(item.y) || 76, 5, 95);
-            const xInput = document.getElementById('overlayX');
-            const yInput = document.getElementById('overlayY');
+            const now = typeof getCurrentPlaybackTime === 'function' ? getCurrentPlaybackTime() : 0;
+            const tf = getTextOverlayTransformAt(item, now);
+            const x = clamp(tf.x, 2, 98);
+            const y = clamp(tf.y, 2, 98);
+            const xInput = document.getElementById('overlayX') || document.querySelector('#inspOverlayXVal')?.parentElement?.querySelector('input');
+            const yInput = document.getElementById('overlayY') || document.querySelector('#inspOverlayYVal')?.parentElement?.querySelector('input');
             if (xInput) xInput.value = String(Math.round(x));
             if (yInput) yInput.value = String(Math.round(y));
-            const xValue = document.getElementById('overlayXValue');
-            const yValue = document.getElementById('overlayYValue');
+            const xValue = document.getElementById('overlayXValue') || document.getElementById('inspOverlayXVal');
+            const yValue = document.getElementById('overlayYValue') || document.getElementById('inspOverlayYVal');
             if (xValue) xValue.textContent = `${Math.round(x)}%`;
             if (yValue) yValue.textContent = `${Math.round(y)}%`;
         }
 
         function beginTextOverlayDrag(event, item, element) {
             if (event.button !== undefined && event.button !== 0) return;
+            if (event.target.closest('.text-handle-resize') || event.target.closest('.text-handle-rotate')) return;
             event.preventDefault();
             event.stopPropagation();
             recordEdit();
+            const now = getCurrentPlaybackTime();
+            const curTf = getTextOverlayTransformAt(item, now);
             activeTextDrag = {
                 item,
                 element,
                 pointerId: event.pointerId,
                 startX: event.clientX,
                 startY: event.clientY,
-                startItemX: Number(item.x) || 50,
-                startItemY: Number(item.y) || 76,
+                startItemX: curTf.x,
+                startItemY: curTf.y,
                 rect: document.getElementById('previewScreen')?.getBoundingClientRect()
             };
             element.classList.add('dragging');
-            try { element.setPointerCapture?.(event.pointerId); } catch (_) { /* window listeners still track the drag */ }
+            try { element.setPointerCapture?.(event.pointerId); } catch (_) {}
             window.addEventListener('pointermove', moveTextOverlayDrag);
             window.addEventListener('pointerup', endTextOverlayDrag, { once: true });
             window.addEventListener('pointercancel', endTextOverlayDrag, { once: true });
@@ -8318,10 +8833,17 @@
             if (!drag || (drag.pointerId !== undefined && event.pointerId !== drag.pointerId)) return;
             const rect = drag.rect || document.getElementById('previewScreen')?.getBoundingClientRect();
             if (!rect || !rect.width || !rect.height) return;
-            drag.item.x = clamp(drag.startItemX + ((event.clientX - drag.startX) / rect.width) * 100, 5, 95);
-            drag.item.y = clamp(drag.startItemY + ((event.clientY - drag.startY) / rect.height) * 100, 5, 95);
-            drag.element.style.left = `${drag.item.x}%`;
-            drag.element.style.top = `${drag.item.y}%`;
+            const newX = clamp(drag.startItemX + ((event.clientX - drag.startX) / rect.width) * 100, 2, 98);
+            const newY = clamp(drag.startItemY + ((event.clientY - drag.startY) / rect.height) * 100, 2, 98);
+            
+            if (drag.item.keyframeMode) {
+                setTextOverlayKeyframeAtCurrentTime(drag.item, { x: newX, y: newY });
+            } else {
+                drag.item.x = newX;
+                drag.item.y = newY;
+            }
+            drag.element.style.left = `${newX}%`;
+            drag.element.style.top = `${newY}%`;
             syncTextOverlayPositionControls(drag.item);
         }
 
@@ -8330,12 +8852,83 @@
             if (!drag) return;
             if (event?.pointerId !== undefined && drag.pointerId !== undefined && event.pointerId !== drag.pointerId) return;
             drag.element.classList.remove('dragging');
-            try { drag.element.releasePointerCapture?.(drag.pointerId); } catch (_) { /* capture may already be released */ }
+            try { drag.element.releasePointerCapture?.(drag.pointerId); } catch (_) {}
+            const item = drag.item;
             activeTextDrag = null;
             window.removeEventListener('pointermove', moveTextOverlayDrag);
             window.removeEventListener('pointercancel', endTextOverlayDrag);
+            if (item.keyframeMode) {
+                showToast(`Keyframe recorded @ ${getCurrentPlaybackTime().toFixed(2)}s!`, '◆', 'success');
+                if (selectedOverlay === item) selectOverlay(item);
+            } else {
+                showToast('Text position updated.', '↕', 'info');
+            }
             requestTimelineRender();
-            showToast('Text position updated.', '↕', 'success');
+        }
+
+        function beginTextOverlayResize(event, item, element) {
+            event.preventDefault();
+            event.stopPropagation();
+            recordEdit();
+            const startSize = Number(item.size) || 34;
+            const startX = event.clientX;
+            const startY = event.clientY;
+
+            const onMove = (e) => {
+                const delta = (e.clientX - startX) + (e.clientY - startY);
+                const newSize = clamp(Math.round(startSize + delta * 0.45), 14, 120);
+                item.size = newSize;
+                element.style.fontSize = `${newSize}px`;
+                const sizeVal = document.getElementById('inspTextSizeVal');
+                if (sizeVal) sizeVal.textContent = `${newSize}px`;
+            };
+
+            const onEnd = () => {
+                window.removeEventListener('pointermove', onMove);
+                window.removeEventListener('pointerup', onEnd);
+                renderTextOverlays();
+                if (selectedOverlay === item) selectOverlay(item);
+                showToast(`Font size: ${item.size}px`, '🔍', 'info');
+            };
+
+            window.addEventListener('pointermove', onMove);
+            window.addEventListener('pointerup', onEnd, { once: true });
+        }
+
+        function beginTextOverlayRotate(event, item, element) {
+            event.preventDefault();
+            event.stopPropagation();
+            recordEdit();
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const onMove = (e) => {
+                const rad = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+                let deg = Math.round(rad * (180 / Math.PI) + 90);
+                if (deg > 180) deg -= 360;
+                if (deg < -180) deg += 360;
+
+                if (item.keyframeMode) {
+                    setTextOverlayKeyframeAtCurrentTime(item, { rotation: deg });
+                } else {
+                    item.rotation = deg;
+                }
+                element.style.setProperty('--text-rot', `${deg}deg`);
+                const rotVal = document.getElementById('inspOverlayRotVal');
+                if (rotVal) rotVal.textContent = `${deg}°`;
+            };
+
+            const onEnd = () => {
+                window.removeEventListener('pointermove', onMove);
+                window.removeEventListener('pointerup', onEnd);
+                renderTextOverlays();
+                if (selectedOverlay === item) selectOverlay(item);
+                showToast(`Rotated: ${item.rotation || 0}°`, '🔄', 'info');
+            };
+
+            window.addEventListener('pointermove', onMove);
+            window.addEventListener('pointerup', onEnd, { once: true });
         }
 
         function renderTextOverlays() {
@@ -8352,20 +8945,63 @@
                 return;
             }
             layer.replaceChildren();
+
+            // Render SVG motion path if selected overlay has keyframes
+            if (selectedOverlay && selectedOverlay.keyframes && selectedOverlay.keyframes.length > 1) {
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('class', 'text-motion-path-svg');
+                const sorted = selectedOverlay.keyframes.slice().sort((a,b) => a.time - b.time);
+                let d = '';
+                sorted.forEach((kf, idx) => {
+                    d += (idx === 0 ? `M ${kf.x} ${kf.y}` : ` L ${kf.x} ${kf.y}`);
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', `${kf.x}%`);
+                    circle.setAttribute('cy', `${kf.y}%`);
+                    circle.setAttribute('r', '4');
+                    circle.setAttribute('fill', Math.abs(kf.time - now) < 0.1 ? '#38bdf8' : '#ec4899');
+                    circle.setAttribute('stroke', '#ffffff');
+                    circle.setAttribute('stroke-width', '1.5');
+                    svg.appendChild(circle);
+                });
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', d);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', '#38bdf8');
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('stroke-dasharray', '4,4');
+                path.setAttribute('opacity', '0.75');
+                svg.insertBefore(path, svg.firstChild);
+                layer.appendChild(svg);
+            }
             
             activeOverlays.forEach(item => {
                 const el = document.createElement('div');
                 const style = item.style || (item.kind === 'caption' ? 'solid' : 'gradient');
-                const animation = item.animation || 'word-by-word';
+                const animation = item.animation || 'pop';
                 const textFilter = item.textFilter || 'none';
                 const isSelected = selectedOverlay && selectedOverlay.id === item.id;
+                
+                const tf = getTextOverlayTransformAt(item, now);
+                const rot = tf.rotation || 0;
+                const scaleRatio = (tf.scale || 100) / 100;
+
                 el.className = `text-overlay ${isSelected ? 'selected-overlay' : ''} ${item.kind === 'caption' ? 'caption-overlay' : ''} lyric-${style} lyric-${animation} lyric-${textFilter}`.trim();
-                el.style.left = `${clamp(Number(item.x) || 50, 5, 95)}%`;
-                el.style.top = `${clamp(Number(item.y) || (item.kind === 'caption' ? 84 : 76), 5, 95)}%`;
-                el.style.fontSize = `${clamp(Number(item.size) || 32, 14, 96)}px`;
+                el.style.left = `${clamp(tf.x, 2, 98)}%`;
+                el.style.top = `${clamp(tf.y, 2, 98)}%`;
+                el.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(${scaleRatio})`;
+                el.style.setProperty('--text-rot', `${rot}deg`);
+                el.style.setProperty('--text-scale', `${scaleRatio}`);
+                el.style.setProperty('--text-opacity', `${(tf.opacity ?? 100) / 100}`);
+                el.style.opacity = `${(tf.opacity ?? 100) / 100}`;
+                el.style.fontSize = `${clamp(Number(item.size) || 34, 14, 120)}px`;
+                el.style.fontFamily = `'${item.fontFamily || 'Inter'}', sans-serif`;
+                if (item.fontWeight) el.style.fontWeight = item.fontWeight;
+                if (item.letterSpacing !== undefined) el.style.letterSpacing = `${item.letterSpacing}px`;
+                if (item.textTransform) el.style.textTransform = item.textTransform;
                 el.style.setProperty('--lyric-a', item.colorA || item.color || '#f472b6');
-                el.style.setProperty('--lyric-b', item.colorB || item.color || '#60a5fa');
-                el.title = 'Click to edit or drag to reposition';
+                el.style.setProperty('--lyric-b', item.colorB || item.color || '#38bdf8');
+                el.title = 'Click to edit or drag to reposition / keyframe';
+                
                 el.onclick = (event) => {
                     event.stopPropagation();
                     selectOverlay(item);
@@ -8382,38 +9018,36 @@
                 const duration = Math.max(0.1, end - start);
                 const elapsed = Math.max(0, now - start);
                 const progress = Math.min(1, elapsed / duration);
-                
-                // Determine active word index with word-level timing precision
-                let activeWordIndex = -1;
-                const hasDetailedWords = Array.isArray(item.words) && item.words.length > 0;
-                
-                if (hasDetailedWords) {
-                    activeWordIndex = item.words.findIndex(w => now >= Number(w.start || 0) && now < Number(w.end || (Number(w.start || 0) + 0.3)));
-                    if (activeWordIndex === -1 && now >= start && now <= end) {
-                        for (let i = item.words.length - 1; i >= 0; i--) {
-                            if (now >= Number(item.words[i].start || 0)) {
-                                activeWordIndex = i;
-                                break;
+
+                if (animation === 'typewriter') {
+                    const typeProgress = Math.min(1, elapsed / Math.min(duration * 0.75, 2.5));
+                    const charsToShow = Math.max(1, Math.floor(typeProgress * rawText.length));
+                    const visibleText = rawText.slice(0, charsToShow);
+                    const cursor = (typeProgress < 1 || (Math.floor(elapsed * 3) % 2 === 0)) ? '❙' : '';
+                    el.textContent = visibleText + cursor;
+                } else if (animation === 'word-by-word' || item.kind === 'caption') {
+                    let activeWordIndex = -1;
+                    const hasDetailedWords = Array.isArray(item.words) && item.words.length > 0;
+                    if (hasDetailedWords) {
+                        activeWordIndex = item.words.findIndex(w => now >= Number(w.start || 0) && now < Number(w.end || (Number(w.start || 0) + 0.3)));
+                        if (activeWordIndex === -1 && now >= start && now <= end) {
+                            for (let i = item.words.length - 1; i >= 0; i--) {
+                                if (now >= Number(item.words[i].start || 0)) {
+                                    activeWordIndex = i;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                
-                if (activeWordIndex === -1) {
-                    activeWordIndex = Math.min(words.length - 1, Math.floor(progress * words.length));
-                }
-
-                if (animation === 'word-by-word' || animation === 'pop' || animation === 'slide-up' || animation === 'pulse' || item.kind === 'caption') {
-                    const displayList = (hasDetailedWords && item.words.length === words.length)
-                        ? item.words.map(w => w.word)
-                        : words;
-
+                    if (activeWordIndex === -1) {
+                        activeWordIndex = Math.min(words.length - 1, Math.floor(progress * words.length));
+                    }
+                    const displayList = (hasDetailedWords && item.words.length === words.length) ? item.words.map(w => w.word) : words;
                     displayList.forEach((word, index) => {
                         const span = document.createElement('span');
                         let stateClass = 'upcoming';
                         if (index < activeWordIndex) stateClass = 'sung';
                         else if (index === activeWordIndex) stateClass = 'active-word';
-                        
                         span.className = `lyric-word ${stateClass}`;
                         span.style.setProperty('--word-index', index);
                         span.textContent = word + (index < displayList.length - 1 ? ' ' : '');
@@ -8422,6 +9056,27 @@
                 } else {
                     el.textContent = rawText;
                 }
+
+                // Add on-canvas interactive resize and rotate handles when selected
+                if (isSelected) {
+                    const handles = document.createElement('div');
+                    handles.className = 'text-overlay-handles';
+                    
+                    const resizer = document.createElement('div');
+                    resizer.className = 'text-handle-resize';
+                    resizer.title = 'Drag corner to resize text font size';
+                    resizer.onpointerdown = (ev) => beginTextOverlayResize(ev, item, el);
+
+                    const rotator = document.createElement('div');
+                    rotator.className = 'text-handle-rotate';
+                    rotator.title = 'Drag to rotate text angle';
+                    rotator.onpointerdown = (ev) => beginTextOverlayRotate(ev, item, el);
+
+                    handles.appendChild(resizer);
+                    handles.appendChild(rotator);
+                    el.appendChild(handles);
+                }
+
                 layer.appendChild(el);
             });
         }
@@ -8505,9 +9160,7 @@
             const videoTime = typeof getCurrentPlaybackTime === 'function' ? getCurrentPlaybackTime() : (document.getElementById('previewVideo')?.currentTime || 0);
             const start = Math.max(0, Number(document.getElementById('overlayStart')?.value) ?? videoTime);
             const end = Math.max(start + 0.2, Number(document.getElementById('overlayEnd')?.value) ?? (start + 3.5));
-            recordEdit();
-            projectState.textOverlays ||= [];
-            projectState.textOverlays.push({
+            const newItem = {
                 id: `lyric-${Date.now()}-${Math.floor(Math.random()*1000)}`,
                 kind: 'lyric',
                 text,
@@ -8515,17 +9168,27 @@
                 end,
                 x: clamp(Number(document.getElementById('overlayX')?.value) || 50, 10, 90),
                 y: clamp(Number(document.getElementById('overlayY')?.value) || 82, 10, 95),
-                size: clamp(Number(document.getElementById('overlaySize')?.value) || 34, 16, 96),
+                size: clamp(Number(document.getElementById('overlaySize')?.value) || 34, 16, 120),
+                fontFamily: document.getElementById('overlayFontFamily')?.value || 'Inter',
                 style: document.getElementById('overlayStyle')?.value || 'gradient',
                 colorA: document.getElementById('overlayColorA')?.value || '#f472b6',
                 colorB: document.getElementById('overlayColorB')?.value || '#38bdf8',
-                animation: document.getElementById('overlayAnimation')?.value || 'word-by-word',
-                textFilter: 'glow'
-            });
+                animation: document.getElementById('overlayAnimation')?.value || 'pop',
+                textFilter: 'glow',
+                scale: 100,
+                rotation: 0,
+                opacity: 100,
+                keyframeMode: false,
+                keyframes: []
+            };
+            recordEdit();
+            projectState.textOverlays = projectState.textOverlays || [];
+            projectState.textOverlays.push(newItem);
             renderTextOverlays();
             renderLyricsLayerList();
             requestTimelineRender();
-            showToast('✨ Custom lyric layer added!', '🎤', 'success');
+            selectOverlay(newItem);
+            showToast('✨ Custom text layer added!', '🎤', 'success');
         }
 
         function sliceAudioBuffer(ctx, fullBuffer, startTime = 0, endTime = null) {
@@ -10088,8 +10751,12 @@
             updateExportEligibility();
             setSaveStatus('saved');
 
+            // Setup interactive on-canvas text draw listener
+            setupTextDrawListener();
+
             // Preview screen click to deselect clips & overlays when clicking empty space
             document.getElementById('previewScreen')?.addEventListener('click', (e) => {
+                if (isTextDrawModeActive) return;
                 if (e.target.closest('.text-overlay') || e.target.closest('.preview-controls') || e.target.closest('button') || e.target.closest('input')) return;
                 deselectClip();
             });
