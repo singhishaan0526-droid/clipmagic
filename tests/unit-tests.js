@@ -517,6 +517,16 @@ it('Per-frame keyframe interpolation correctly evaluates position, scale, and ro
     assert(mid.rotation > 0 && mid.rotation < 45, `mid.rotation ${mid.rotation} should be between 0 and 45`);
 });
 
+it('Live filter playback applies GPU-accelerated CSS filters without blocking seek-loops', () => {
+    const updatedEditorSrc = fs.readFileSync(path.join(__dirname, '../frontend/editor.html'), 'utf8');
+    const updatedFiltersPackSrc = fs.readFileSync(path.join(__dirname, '../frontend/filters-pack.js'), 'utf8');
+    
+    assert(!updatedEditorSrc.includes("const baseFilter = isPack ? '' :"), 'baseFilter must not be bypassed for pack filters');
+    assert(updatedEditorSrc.includes("typeof getBasePreviewFilter === 'function' ? getBasePreviewFilter(clip?.filter, clip?.filterAmount) : ''"), 'applyVisualFilters must compute baseFilter');
+    assert(!updatedFiltersPackSrc.includes('webglOverlay.renderer.render'), 'syncPreview must not execute synchronous WebGL texture upload loop');
+    assert(updatedEditorSrc.includes('if (!baseVid.seeking)'), 'baseVid seeking guard must prevent seek-loops');
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Test Summary
 // ─────────────────────────────────────────────────────────────────────────────

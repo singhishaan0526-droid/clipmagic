@@ -3735,9 +3735,11 @@
                             if (clipChanged) {
                                 baseVid.currentTime = sourceTime;
                             } else if (isPlaying) {
-                                const drift = Math.abs(baseVid.currentTime - sourceTime);
-                                if (drift > 0.45) {
-                                    baseVid.currentTime = sourceTime;
+                                if (!baseVid.seeking) {
+                                    const drift = Math.abs(baseVid.currentTime - sourceTime);
+                                    if (drift > 0.85) {
+                                        baseVid.currentTime = sourceTime;
+                                    }
                                 }
                             } else {
                                 const drift = Math.abs(baseVid.currentTime - sourceTime);
@@ -3806,9 +3808,11 @@
                                 if (clipLayerChanged) {
                                     el.currentTime = sourceTime;
                                 } else if (isPlaying) {
-                                    const drift = Math.abs(el.currentTime - sourceTime);
-                                    if (drift > 0.45) {
-                                        el.currentTime = sourceTime;
+                                    if (!el.seeking) {
+                                        const drift = Math.abs(el.currentTime - sourceTime);
+                                        if (drift > 0.85) {
+                                            el.currentTime = sourceTime;
+                                        }
                                     }
                                 } else {
                                     const drift = Math.abs(el.currentTime - sourceTime);
@@ -3885,7 +3889,7 @@
 
             applyVisualFilters(el, clip) {
                 const isPack = window.ClipFilterPack?.isPack(clip?.filter);
-                const baseFilter = isPack ? '' : (typeof getBasePreviewFilter === 'function' ? getBasePreviewFilter(clip?.filter, clip?.filterAmount) : '');
+                const baseFilter = typeof getBasePreviewFilter === 'function' ? getBasePreviewFilter(clip?.filter, clip?.filterAmount) : '';
                 const gradeFilter = typeof getGradePreviewFilter === 'function' ? getGradePreviewFilter(clip?.colorGrade) : '';
                 const vfx = clip?.vfx || {};
                 const level = clamp(Number(vfx.intensity) || 0, 0, 100) / 100;
@@ -8351,7 +8355,7 @@
                 video.classList.remove('vfx-glitch', 'vfx-blur', 'vfx-shake');
                 video.style.setProperty('--vfx-intensity', `${Math.max(1, level * 10)}`);
                 const isPack = window.ClipFilterPack?.isPack(activeClip.filter);
-                const baseFilter = isPack ? '' : getBasePreviewFilter(activeClip.filter, activeClip.filterAmount);
+                const baseFilter = typeof getBasePreviewFilter === 'function' ? getBasePreviewFilter(activeClip.filter, activeClip.filterAmount) : '';
                 const gradeFilter = getGradePreviewFilter(activeClip.colorGrade);
                 const glitchFilter = vfx.preset === 'glitch' ? `contrast(${1 + level}) saturate(${1 + level * 1.5}) hue-rotate(${level * 18}deg)` : '';
                 const blurFilter = (vfx.preset === 'blur' || transBlur > 0) ? `blur(${Math.max(transBlur, level * 8)}px)` : '';
@@ -10270,6 +10274,8 @@
                     const clipStart = Number(activeClip.start) || 0;
                     const trimStart = Number(activeClip.trimStart) || 0;
                     timelinePlayheadTime = clipStart + Math.max(0, baseVid.currentTime - trimStart);
+                } else if (baseVid && baseVid.seeking) {
+                    // Hold playhead steady while hardware video decoder seeks target frame
                 } else {
                     timelinePlayheadTime += dt;
                 }

@@ -111,15 +111,20 @@
   function mirrorLoop() {
     raf = mirrors.length ? requestAnimationFrame(mirrorLoop) : 0;
     const v = mirrorVideo;
-    if (!v || v.readyState < 2 || !v.videoWidth) return;
+    if (!v || v.readyState < 2 || !v.videoWidth || v.paused) return;
     for (const m of mirrors) {
-      const c = m.canvas, w = v.videoWidth, h = v.videoHeight;
-      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
-      const g = c.getContext('2d'); g.clearRect(0, 0, w, h);
+      const c = m.canvas;
+      const dw = Math.min(640, Math.round(c.clientWidth || 320));
+      const dh = Math.max(1, Math.round(dw * (v.videoHeight / v.videoWidth)));
+      if (c.width !== dw || c.height !== dh) { c.width = dw; c.height = dh; }
+      const g = c.getContext('2d');
+      g.clearRect(0, 0, dw, dh);
       if (m.kind === 'ghost') {
-        const sw = w * m.s, sh = h * m.s;
-        g.drawImage(v, w * m.dx - (sw - w) / 2, h * m.dy - (sh - h) / 2, sw, sh);
-      } else g.drawImage(v, 0, 0, w, h);
+        const sw = dw * m.s, sh = dh * m.s;
+        g.drawImage(v, dw * m.dx - (sw - dw) / 2, dh * m.dy - (sh - dh) / 2, sw, sh);
+      } else {
+        g.drawImage(v, 0, 0, dw, dh);
+      }
     }
   }
 
@@ -147,88 +152,7 @@
     o.style.transformOrigin = video.style.transformOrigin || 'center center';
     o.style.display = (video.style.display === 'none' || rect.width === 0) ? 'none' : 'block';
 
-    // 1. Hardware WebGL Shader Engine (exact pixel match with demo.html)
-    if (supportsWebGL && (f.w || f.curve)) {
-      if (!webglOverlay || webglOverlay.container !== o) {
-        o.innerHTML = '';
-        const canvas = document.createElement('canvas');
-        canvas.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:fill;pointer-events:none;display:block;';
-        o.appendChild(canvas);
-        let renderer = null;
-        try {
-          renderer = new FilterRenderer(canvas);
-        } catch (e) {
-          renderer = null;
-        }
-        webglOverlay = {
-          container: o,
-          canvas,
-          renderer,
-          filter: f,
-          amount: k,
-          video,
-          raf: 0
-        };
-      }
-      webglOverlay.filter = f;
-      webglOverlay.amount = k;
-      webglOverlay.video = video;
-
-      if (webglOverlay.renderer) {
-        const renderFrame = (t) => {
-          if (!webglOverlay || !webglOverlay.renderer || !video) return;
-          const currentRect = getVideoDisplayRect(video);
-          o.style.left = currentRect.left + 'px';
-          o.style.top = currentRect.top + 'px';
-          o.style.width = currentRect.width + 'px';
-          o.style.height = currentRect.height + 'px';
-          o.style.transform = video.style.transform || '';
-          o.style.transformOrigin = video.style.transformOrigin || 'center center';
-          if (currentRect.vw > 0 && currentRect.vh > 0 && video.readyState >= 2) {
-            webglOverlay.renderer.render(
-              video,
-              webglOverlay.filter,
-              webglOverlay.amount,
-              (t || performance.now()) / 1000,
-              currentRect.vw,
-              currentRect.vh
-            );
-          }
-          if (!video.paused && !video.ended) {
-            webglOverlay.raf = requestAnimationFrame(renderFrame);
-          } else {
-            webglOverlay.raf = 0;
-          }
-        };
-
-        renderFrame(performance.now());
-
-        if (!video._cfp_hooked) {
-          video._cfp_hooked = true;
-          const onPlay = () => {
-            if (webglOverlay && !webglOverlay.raf) {
-              webglOverlay.raf = requestAnimationFrame(renderFrame);
-            }
-          };
-          const onUpdate = () => {
-            if (webglOverlay && video.paused) {
-              renderFrame(performance.now());
-            }
-          };
-          video.addEventListener('play', onPlay);
-          video.addEventListener('timeupdate', onUpdate);
-          video.addEventListener('seeked', onUpdate);
-          video.addEventListener('loadeddata', onUpdate);
-        }
-
-        if (!video.paused && !video.ended && !webglOverlay.raf) {
-          webglOverlay.raf = requestAnimationFrame(renderFrame);
-        }
-        return;
-      }
-    }
-
-    // 2. 2D Canvas / CSS Overlay Fallback
+    // Real-time CSS Blend & Effects Overlay (GPU-accelerated, zero-stutter)
     const key = id + '|' + k;
     mirrorVideo = video;
     if (o.dataset.key === key) return;
