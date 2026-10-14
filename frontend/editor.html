@@ -3584,14 +3584,27 @@
                     } else if (baseVid) {
                         baseVid.style.display = 'block';
                         const url = AssetManager.getUrlSync(projectId, activeBaseClip.assetId);
-                        if (url && (!baseVid.src || baseVid.src === window.location.href || !baseVid.src.includes('blob:'))) {
+                        const clipChanged = this._lastBaseClipId !== activeBaseClip.id;
+                        this._lastBaseClipId = activeBaseClip.id;
+
+                        if (url && (baseVid.dataset.assetId !== activeBaseClip.assetId || !baseVid.src || baseVid.src === window.location.href || !baseVid.src.includes('blob:'))) {
+                            baseVid.dataset.assetId = activeBaseClip.assetId;
                             baseVid.src = url;
                         }
 
                         if (Number.isFinite(sourceTime)) {
-                            const drift = Math.abs(baseVid.currentTime - sourceTime);
-                            if (isPlaying ? drift > 0.15 : drift > 0.04) {
+                            if (clipChanged) {
                                 baseVid.currentTime = sourceTime;
+                            } else if (isPlaying) {
+                                const drift = Math.abs(baseVid.currentTime - sourceTime);
+                                if (drift > 0.45) {
+                                    baseVid.currentTime = sourceTime;
+                                }
+                            } else {
+                                const drift = Math.abs(baseVid.currentTime - sourceTime);
+                                if (drift > 0.03) {
+                                    baseVid.currentTime = sourceTime;
+                                }
                             }
                         }
 
@@ -3647,10 +3660,22 @@
                         const sourceTime = trimStart + localRel;
 
                         if (clip.type !== 'image' && el.tagName === 'VIDEO') {
+                            const clipLayerChanged = el.dataset.renderedClipId !== clip.id;
+                            el.dataset.renderedClipId = clip.id;
+
                             if (Number.isFinite(sourceTime)) {
-                                const drift = Math.abs(el.currentTime - sourceTime);
-                                if (isPlaying ? drift > 0.15 : drift > 0.04) {
+                                if (clipLayerChanged) {
                                     el.currentTime = sourceTime;
+                                } else if (isPlaying) {
+                                    const drift = Math.abs(el.currentTime - sourceTime);
+                                    if (drift > 0.45) {
+                                        el.currentTime = sourceTime;
+                                    }
+                                } else {
+                                    const drift = Math.abs(el.currentTime - sourceTime);
+                                    if (drift > 0.03) {
+                                        el.currentTime = sourceTime;
+                                    }
                                 }
                             }
                             if (isPlaying) {
@@ -8316,9 +8341,17 @@
         function renderTextOverlays() {
             const layer = document.getElementById('textOverlayLayer');
             if (!layer) return;
-            layer.replaceChildren();
+            const allOverlays = projectState.textOverlays || [];
+            if (!allOverlays.length) {
+                if (layer.childNodes.length > 0) layer.replaceChildren();
+                return;
+            }
             const now = typeof getCurrentPlaybackTime === 'function' ? getCurrentPlaybackTime() : (document.getElementById('previewVideo')?.currentTime || 0);
-            const activeOverlays = (projectState.textOverlays || []).filter(item => now >= Number(item.start || 0) && now <= Number(item.end || 0));
+            const activeOverlays = allOverlays.filter(item => now >= Number(item.start || 0) && now <= Number(item.end || 0));
+            if (!activeOverlays.length && !layer.childNodes.length) {
+                return;
+            }
+            layer.replaceChildren();
             
             activeOverlays.forEach(item => {
                 const el = document.createElement('div');
@@ -8968,8 +9001,17 @@
                     }
                 }
                 
-                if (Math.abs(audioEl.currentTime - targetAudioTime) > 0.15) {
-                    audioEl.currentTime = targetAudioTime;
+                const drift = Math.abs(audioEl.currentTime - targetAudioTime);
+                if (isPlaying) {
+                    if (audioEl.paused) {
+                        if (drift > 0.05) audioEl.currentTime = targetAudioTime;
+                        audioEl.play().catch(() => {});
+                    } else if (drift > 0.35) {
+                        audioEl.currentTime = targetAudioTime;
+                    }
+                } else {
+                    if (!audioEl.paused) audioEl.pause();
+                    if (drift > 0.03) audioEl.currentTime = targetAudioTime;
                 }
                 
                 const vol = (activeAudioClip.volume !== undefined ? activeAudioClip.volume : 1) * (projectState.musicVolume !== undefined ? projectState.musicVolume : 1);
@@ -9511,6 +9553,7 @@
         function seekToTimelineTime(targetTime) {
             const totalDur = getTimelineTotalDuration();
             timelinePlayheadTime = clamp(targetTime, 0, Math.max(0.1, totalDur));
+            lastClockTickTime = performance.now();
             updateTimelinePlayheadUI();
             CompositorEngine.render(timelinePlayheadTime, isTimelinePlaying);
             syncAudioPlayback(timelinePlayheadTime, isTimelinePlaying);
@@ -9553,10 +9596,21 @@
             function tick() {
                 if (!isTimelinePlaying) return;
                 const now = performance.now();
-                const dt = (now - lastClockTickTime) / 1000;
+                const dt = Math.min((now - lastClockTickTime) / 1000, 0.1);
                 lastClockTickTime = now;
                 const totalDur = getTimelineTotalDuration();
-                timelinePlayheadTime += dt;
+
+                const baseVid = document.getElementById('previewVideo');
+                const activeClip = getActivePlayingClip();
+
+                if (baseVid && activeClip && activeClip.type !== 'image' && !baseVid.paused && !baseVid.seeking && baseVid.readyState >= 2) {
+                    const clipStart = Number(activeClip.start) || 0;
+                    const trimStart = Number(activeClip.trimStart) || 0;
+                    timelinePlayheadTime = clipStart + Math.max(0, baseVid.currentTime - trimStart);
+                } else {
+                    timelinePlayheadTime += dt;
+                }
+
                 if (timelinePlayheadTime >= totalDur) {
                     timelinePlayheadTime = totalDur;
                     pausePlayback();
@@ -9568,6 +9622,7 @@
                 CompositorEngine.render(timelinePlayheadTime, true);
                 syncAudioPlayback(timelinePlayheadTime, true);
                 renderTextOverlays();
+                updatePreviewVisuals();
                 timelineClockRaf = requestAnimationFrame(tick);
             }
             timelineClockRaf = requestAnimationFrame(tick);
@@ -10089,60 +10144,70 @@
         });
 
         let timeUpdateQueued = false;
-        document.getElementById('previewVideo').ontimeupdate = () => {
-            if (timeUpdateQueued) return;
-            timeUpdateQueued = true;
-            requestAnimationFrame(() => {
-                timeUpdateQueued = false;
-                const vid = document.getElementById('previewVideo');
-                if (!vid) return;
+        const mainPreviewVid = document.getElementById('previewVideo');
+        if (mainPreviewVid) {
+            mainPreviewVid.ontimeupdate = () => {
+                if (timeUpdateQueued) return;
+                timeUpdateQueued = true;
+                requestAnimationFrame(() => {
+                    timeUpdateQueued = false;
+                    const vid = document.getElementById('previewVideo');
+                    if (!vid) return;
 
-                const videoTrack = projectState.tracks.find(t => t.type === 'video') || projectState.tracks[0];
-                const activeClip = getActivePlayingClip();
-                
-                if (activeClip && videoTrack) {
-                    const srcDur = getClipSourceDuration(activeClip);
-                    const trimStart = Number.isFinite(activeClip.trimStart) ? activeClip.trimStart : 0;
-                    const trimEnd = Number.isFinite(activeClip.trimEnd) ? activeClip.trimEnd : srcDur;
+                    const videoTrack = projectState.tracks.find(t => t.type === 'video') || projectState.tracks[0];
+                    const activeClip = getActivePlayingClip();
                     
-                    if (vid.currentTime >= trimEnd - 0.02 && !vid.paused) {
-                        const clipIndex = videoTrack.clips.indexOf(activeClip);
-                        const nextClip = videoTrack.clips[clipIndex + 1];
-                        if (nextClip) {
-                            vid.currentTime = nextClip.trimStart || 0;
-                        } else {
-                            vid.pause();
-                            vid.currentTime = trimEnd;
+                    if (activeClip && videoTrack) {
+                        const srcDur = getClipSourceDuration(activeClip);
+                        const trimStart = Number.isFinite(activeClip.trimStart) ? activeClip.trimStart : 0;
+                        const trimEnd = Number.isFinite(activeClip.trimEnd) ? activeClip.trimEnd : srcDur;
+                        
+                        if (vid.currentTime >= trimEnd - 0.02 && !vid.paused) {
+                            const clipIndex = videoTrack.clips.indexOf(activeClip);
+                            const nextClip = videoTrack.clips[clipIndex + 1];
+                            if (nextClip) {
+                                vid.currentTime = nextClip.trimStart || 0;
+                            } else {
+                                pausePlayback();
+                                vid.currentTime = trimEnd;
+                                return;
+                            }
                         }
                     }
-                }
 
-                const totalDur = getTimelineTotalDuration();
-                let timelineCurrent = 0;
-                if (activeClip) {
-                    const trimStart = activeClip.trimStart || 0;
-                    timelineCurrent = (activeClip.start || 0) + Math.max(0, vid.currentTime - trimStart);
-                } else {
-                    timelineCurrent = vid.currentTime;
-                }
-                
-                const progress = totalDur > 0 ? clamp(timelineCurrent / totalDur, 0, 1) : 0;
-                const scrubber = document.getElementById('scrubber');
-                if (scrubber) scrubber.value = progress * 100;
-                
-                const timeDisplay = document.getElementById('timeDisplay');
-                if (timeDisplay) timeDisplay.textContent = formatTime(timelineCurrent) + ' / ' + formatTime(totalDur);
-                
-                document.querySelectorAll('.lane-playhead').forEach(el => {
-                    el.style.left = clamp((timelineCurrent / MAX_TIMELINE_SECONDS) * 100, 0, 100) + '%';
+                    if (!isTimelinePlaying) {
+                        const totalDur = getTimelineTotalDuration();
+                        let timelineCurrent = 0;
+                        if (activeClip) {
+                            const trimStart = activeClip.trimStart || 0;
+                            timelineCurrent = (activeClip.start || 0) + Math.max(0, vid.currentTime - trimStart);
+                        } else {
+                            timelineCurrent = vid.currentTime;
+                        }
+                        
+                        const progress = totalDur > 0 ? clamp(timelineCurrent / totalDur, 0, 1) : 0;
+                        const scrubber = document.getElementById('scrubber');
+                        if (scrubber) scrubber.value = progress * 100;
+                        
+                        const timeDisplay = document.getElementById('timeDisplay');
+                        if (timeDisplay) timeDisplay.textContent = formatTime(timelineCurrent) + ' / ' + formatTime(totalDur);
+                        
+                        document.querySelectorAll('.lane-playhead').forEach(el => {
+                            el.style.left = clamp((timelineCurrent / MAX_TIMELINE_SECONDS) * 100, 0, 100) + '%';
+                        });
+                        
+                        updatePreviewVisuals();
+                        syncKeyframeToolbarState();
+                        renderTextOverlays();
+                        syncAudioPlayback(timelineCurrent, false);
+                    }
                 });
-                
-                updatePreviewVisuals();
-                syncKeyframeToolbarState();
-                renderTextOverlays();
-                syncAudioPlayback(timelineCurrent, !vid.paused);
-            });
-        };
+            };
+
+            mainPreviewVid.onended = () => {
+                pausePlayback();
+            };
+        }
 
         // ══════════════════════════════════════════════════════════════════════
         // ── Phase 6: Media-Aware, Safe & Transparent AI Engine ───────────────
