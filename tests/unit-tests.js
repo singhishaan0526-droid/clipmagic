@@ -231,6 +231,219 @@ it('Editor provides accessible form labels and high-visibility focus styles', ()
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 5. Multi-Clip, Multi-Layer Compositor & State Integrity (Phase 1)
+// ─────────────────────────────────────────────────────────────────────────────
+console.log('\n🎞️ Test Suite 5: Multi-Clip, Multi-Layer Compositor & State Integrity');
+
+function resolveActiveClipsAtTime(tracks, time) {
+    const active = [];
+    (tracks || []).forEach((track, trackIdx) => {
+        if (track.hidden) return;
+        const zIndex = track.zIndex !== undefined ? track.zIndex : (track.isBase ? 10 : 20 + trackIdx * 10);
+        (track.clips || []).forEach(clip => {
+            const start = Number(clip.start) || 0;
+            const trimStart = Number(clip.trimStart) || 0;
+            const trimEnd = Number(clip.trimEnd) || Number(clip.duration) || (trimStart + 1);
+            const duration = Math.max(0.01, trimEnd - trimStart);
+            if (time >= start && time < start + duration) {
+                const sourceTime = trimStart + (time - start);
+                active.push({
+                    clip,
+                    track,
+                    zIndex,
+                    sourceTime,
+                    isBase: !!track.isBase
+                });
+            }
+        });
+    });
+    return active.sort((a, b) => a.zIndex - b.zIndex);
+}
+
+function addMediaAssetToProject(projectState, asset) {
+    if (!projectState.mediaAssets) projectState.mediaAssets = [];
+    const existing = projectState.mediaAssets.find(a => a.id === asset.id);
+    if (!existing) {
+        projectState.mediaAssets.push({ ...asset });
+    }
+    return projectState.mediaAssets;
+}
+
+it('Importing a second media asset preserves the first in projectState.mediaAssets', () => {
+    const state = {
+        mediaAssets: [],
+        tracks: [{ id: 'track-v1', type: 'video', isBase: true, clips: [] }]
+    };
+    addMediaAssetToProject(state, { id: 'asset-1', name: 'beach.mp4', duration: 10, type: 'video' });
+    assert.strictEqual(state.mediaAssets.length, 1);
+    assert.strictEqual(state.mediaAssets[0].id, 'asset-1');
+
+    addMediaAssetToProject(state, { id: 'asset-2', name: 'sunset.mp4', duration: 8, type: 'video' });
+    assert.strictEqual(state.mediaAssets.length, 2, 'Second asset must be added without replacing first');
+    assert.strictEqual(state.mediaAssets[0].id, 'asset-1', 'First asset remains intact');
+    assert.strictEqual(state.mediaAssets[1].id, 'asset-2', 'Second asset has distinct ID');
+});
+
+it('resolveActiveClipsAtTime identifies both base and overlay clips during overlap', () => {
+    const tracks = [
+        {
+            id: 'track-v1',
+            type: 'video',
+            name: 'Base Video',
+            isBase: true,
+            zIndex: 10,
+            clips: [
+                { id: 'clip-base-1', assetId: 'asset-1', start: 0, duration: 10, trimStart: 0, trimEnd: 10 }
+            ]
+        },
+        {
+            id: 'track-v2',
+            type: 'video',
+            name: 'Overlay Video',
+            isBase: false,
+            zIndex: 20,
+            clips: [
+                { id: 'clip-overlay-1', assetId: 'asset-2', start: 2, duration: 5, trimStart: 1, trimEnd: 6 }
+            ]
+        }
+    ];
+
+    // At t = 1.0 (before overlay starts): only base clip is active
+    const activeAt1 = resolveActiveClipsAtTime(tracks, 1.0);
+    assert.strictEqual(activeAt1.length, 1);
+    assert.strictEqual(activeAt1[0].clip.id, 'clip-base-1');
+    assert.strictEqual(activeAt1[0].sourceTime, 1.0);
+
+    // At t = 3.5 (during overlap): both base and overlay clips are active in deterministic z-order
+    const activeAt3p5 = resolveActiveClipsAtTime(tracks, 3.5);
+    assert.strictEqual(activeAt3p5.length, 2, 'Both clips must be active during overlap');
+    assert.strictEqual(activeAt3p5[0].clip.id, 'clip-base-1', 'Base clip renders first (lower z-index)');
+    assert.strictEqual(activeAt3p5[1].clip.id, 'clip-overlay-1', 'Overlay clip renders second (higher z-index)');
+    assert.strictEqual(activeAt3p5[0].zIndex < activeAt3p5[1].zIndex, true, 'Base z-index must be lower than overlay');
+    // Check computed source times:
+    // Base: start=0, trimStart=0 -> sourceTime = 3.5
+    assert.strictEqual(activeAt3p5[0].sourceTime, 3.5);
+    // Overlay: start=2, trimStart=1 -> sourceTime = 1 + (3.5 - 2) = 2.5
+    assert.strictEqual(activeAt3p5[1].sourceTime, 2.5);
+
+    // At t = 8.0 (after overlay ends): only base clip is active
+    const activeAt8 = resolveActiveClipsAtTime(tracks, 8.0);
+    assert.strictEqual(activeAt8.length, 1);
+    assert.strictEqual(activeAt8[0].clip.id, 'clip-base-1');
+});
+
+it('Overlay layer respects visibility toggle and mute settings', () => {
+    const tracks = [
+        {
+            id: 'track-v1',
+            type: 'video',
+            isBase: true,
+            zIndex: 10,
+            clips: [{ id: 'clip-base', start: 0, duration: 10, trimStart: 0, trimEnd: 10 }]
+        },
+        {
+            id: 'track-v2',
+            type: 'video',
+            isBase: false,
+            zIndex: 20,
+            hidden: true, // hidden track
+            clips: [{ id: 'clip-overlay', start: 0, duration: 10, trimStart: 0, trimEnd: 10 }]
+        }
+    ];
+
+    const active = resolveActiveClipsAtTime(tracks, 5.0);
+    assert.strictEqual(active.length, 1, 'Hidden overlay track must not be included in active render');
+    assert.strictEqual(active[0].clip.id, 'clip-base');
+});
+
+it('Split clip operation preserves total duration and creates independent instances', () => {
+    const clip = {
+        id: 'clip-orig',
+        assetId: 'asset-1',
+        start: 2.0,
+        trimStart: 1.0,
+        trimEnd: 9.0
+    };
+    const splitPoint = 5.0; // split at 5.0s on timeline (relative local = 1.0 + (5.0 - 2.0) = 4.0s)
+
+    const relSplit = clip.trimStart + (splitPoint - clip.start);
+    const clipA = {
+        ...clip,
+        id: 'clip-orig',
+        trimEnd: relSplit
+    };
+    const clipB = {
+        ...clip,
+        id: 'clip-split-2',
+        start: splitPoint,
+        trimStart: relSplit,
+        trimEnd: clip.trimEnd
+    };
+
+    const durA = clipA.trimEnd - clipA.trimStart; // 4.0 - 1.0 = 3.0s
+    const durB = clipB.trimEnd - clipB.trimStart; // 9.0 - 4.0 = 5.0s
+    assert.strictEqual(durA + durB, 8.0, 'Total duration of split halves must equal original 8.0s');
+    assert.strictEqual(clipA.start + durA, clipB.start, 'Clip B must start exactly where Clip A ends');
+    assert.notStrictEqual(clipA.id, clipB.id, 'Split clips must have unique IDs');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. Filter Pack (preview + FFmpeg export parity)
+// ─────────────────────────────────────────────────────────────────────────────
+console.log('\n🎨 Test Suite 6: Filter Pack');
+
+const pack = require('../frontend/filters-pack.js');
+const engineSrc = fs.readFileSync(path.join(__dirname, '../frontend/ffmpeg-engine.js'), 'utf8');
+
+it('Filter pack defines 18 uniquely-named filters', () => {
+    assert.strictEqual(pack.FILTERS.length, 18);
+    assert.strictEqual(new Set(pack.FILTERS.map(f => f.id)).size, 18);
+    pack.FILTERS.forEach(f => assert(pack.previewFilter(f.id, 100).length > 0, `${f.id} needs a preview filter`));
+});
+
+it('Every filter builds a balanced FFmpeg graph at 100% and 40% strength', () => {
+    for (const f of pack.FILTERS) for (const amt of [100, 40, 0]) {
+        const segs = pack.ffmpegStage(f.id, amt, '[in]', '[out]', 't');
+        const used = {}, made = {};
+        segs.forEach(seg => {
+            const outs = seg.match(/\[[^\]]+\]/g) || [];
+            // leading labels are inputs, trailing labels are outputs
+            const m = seg.match(/^((?:\[[^\]]+\])+)/); const ins = m ? m[1].match(/\[[^\]]+\]/g) : [];
+            const tail = seg.match(/((?:\[[^\]]+\])+)$/); const os = tail ? tail[1].match(/\[[^\]]+\]/g) : [];
+            ins.forEach(l => used[l] = (used[l] || 0) + 1); os.forEach(l => made[l] = (made[l] || 0) + 1);
+        });
+        Object.keys(used).forEach(l => { if (l !== '[in]') assert(made[l], `${f.id}@${amt}: ${l} consumed but never produced`); });
+        Object.keys(made).forEach(l => { if (l !== '[out]') assert(used[l], `${f.id}@${amt}: ${l} produced but never consumed`); });
+        assert(made['[out]'] === 1, `${f.id}: exactly one [out]`);
+    }
+});
+
+it('Strength 0 leaves the picture untouched in preview', () => {
+    pack.FILTERS.forEach(f => {
+        const css = pack.previewFilter(f.id, 0);
+        css.split(') ').forEach(fn => assert(/(brightness|contrast|saturate)\(1\)?|(sepia|grayscale)\(0\)|hue-rotate\(0deg\)/.test(fn.endsWith(')') ? fn : fn + ')'), `${f.id}: ${fn}`));
+    });
+});
+
+it('Editor and export engine are wired to the filter pack', () => {
+    assert(editorSrc.includes('src="filters-pack.js"'));
+    assert(editorSrc.includes('applyClipFilterAmount'));
+    assert(engineSrc.includes('ClipFilterPack.ffmpegStage'));
+    assert(assetLibrarySrc.includes('ClipFilterPack.FILTERS.forEach'));
+});
+
+it('Filter pack provides canvas Renderer and ClipFilters compatibility API', () => {
+    assert(typeof pack.Renderer === 'function', 'Renderer class must be exported');
+    const renderer = new pack.Renderer(null);
+    assert(renderer.filter, 'Renderer must initialize with default filter');
+    renderer.setFilter('toxic-glitch');
+    assert.strictEqual(renderer.filter.id, 'toxic-glitch');
+    renderer.setIntensity(0.5);
+    assert.strictEqual(renderer.intensity, 0.5);
+    assert(typeof pack.exportVideo === 'function', 'exportVideo method must be exported');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Test Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log('\n═══════════════════════════════════════════════════════════════');

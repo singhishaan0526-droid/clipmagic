@@ -433,6 +433,23 @@
         }
     ];
 
+    // Filter Pack (filters-pack.js) — same ids drive preview, export and this library.
+    if (window.ClipFilterPack) {
+        const tintOf = f => (f.layers.find(l => l.t === 'tint') || {}).color || '#64748b';
+        window.ClipFilterPack.FILTERS.forEach(f => ASSET_CATALOG.push({
+            id: `cm-flt-${f.id}`,
+            name: f.name,
+            type: 'filter',
+            category: 'Stylized',
+            filterVal: f.id,
+            preview: '🎨',
+            previewColor: `linear-gradient(135deg, ${tintOf(f)}, #0f172a)`,
+            tags: ['filter', 'instagram', 'look', ...f.id.split('-')],
+            license: 'Clip Magic Native Preset',
+            attribution: 'Clip Magic Creative Lab'
+        }));
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // 2. FAVORITES & RECENTS PERSISTENCE
     // ──────────────────────────────────────────────────────────────────────────

@@ -226,9 +226,11 @@ const ProjectService = {
 
     // Default dynamic track structure
     const defaultProjectState = {
+      schemaVersion: 2,
+      mediaAssets: [],
       tracks: [
-        { id: 'track-v1', type: 'video', name: 'Video 1', clips: [] },
-        { id: 'track-a1', type: 'audio', name: 'Audio 1', clips: [] }
+        { id: 'track-v1', type: 'video', name: 'Base Track', isBase: true, zIndex: 10, clips: [] },
+        { id: 'track-a1', type: 'audio', name: 'Audio 1', zIndex: 5, clips: [] }
       ]
     };
 
@@ -400,6 +402,16 @@ const ProjectService = {
 const AssetManager = {
   urlCache: new Map(),
 
+  registerUrl(projectId, assetId, url) {
+    const key = `${projectId}:${assetId}`;
+    this.urlCache.set(key, url);
+  },
+
+  getUrlSync(projectId, assetId) {
+    const key = `${projectId}:${assetId}`;
+    return this.urlCache.get(key) || null;
+  },
+
   async getUrl(projectId, assetId) {
     const key = `${projectId}:${assetId}`;
     if (this.urlCache.has(key)) return this.urlCache.get(key);
@@ -435,6 +447,11 @@ const AssetManager = {
     }
   }
 };
+
+if (typeof window !== 'undefined') {
+  window.ProjectService = ProjectService;
+  window.AssetManager = AssetManager;
+}
 
 
 // === Smooth page transitions ===

@@ -435,7 +435,14 @@ async function exportProjectVideo(projectId, opts = {}) {
             } else if (incomingTransition === 'wipe') {
                 videoFilters.push(`fade=t=in:st=0:d=${transitionDuration}`);
             }
-            filterParts.push(`[${idx}:v]${videoFilters.join(',')}${videoLabel}`);
+            if (window.ClipFilterPack?.isPack(clip.filter)) {
+                // Filter-pack styles can need split/blend/overlay stages, so they run as their own graph segment.
+                const packIn = `[pk${idx}]`;
+                filterParts.push(`[${idx}:v]${videoFilters.join(',')}${packIn}`);
+                filterParts.push(...window.ClipFilterPack.ffmpegStage(clip.filter, clip.filterAmount, packIn, videoLabel, `c${idx}`));
+            } else {
+                filterParts.push(`[${idx}:v]${videoFilters.join(',')}${videoLabel}`);
+            }
             vStreams.push(videoLabel);
             const isClipAudioAllowed = !state.muteVideoAudio && clip.hasAudio !== false && !clip.muteAudio && (clip.volume === undefined || clip.volume > 0);
             if (isClipAudioAllowed) {
