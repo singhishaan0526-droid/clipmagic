@@ -395,9 +395,9 @@ console.log('\n🎨 Test Suite 6: Filter Pack');
 const pack = require('../frontend/filters-pack.js');
 const engineSrc = fs.readFileSync(path.join(__dirname, '../frontend/ffmpeg-engine.js'), 'utf8');
 
-it('Filter pack defines 18 uniquely-named filters', () => {
-    assert.strictEqual(pack.FILTERS.length, 18);
-    assert.strictEqual(new Set(pack.FILTERS.map(f => f.id)).size, 18);
+it('Filter pack defines 20 uniquely-named filters', () => {
+    assert.strictEqual(pack.FILTERS.length, 20);
+    assert.strictEqual(new Set(pack.FILTERS.map(f => f.id)).size, 20);
     pack.FILTERS.forEach(f => assert(pack.previewFilter(f.id, 100).length > 0, `${f.id} needs a preview filter`));
 });
 

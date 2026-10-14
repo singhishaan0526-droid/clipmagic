@@ -4,8 +4,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard — Clip Magic</title>
-    <meta name="description" content="Manage your video projects on the Clip Magic dashboard." />
+    <title>Creator Dashboard — Clip Magic AI Video Editor</title>
+    <meta name="description" content="View and manage your video projects, draft timelines, and exported assets in Clip Magic." />
+    <link rel="canonical" href="https://clipmagic.app/dashboard.html" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="robots" content="noindex, follow" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Creator Dashboard — Clip Magic" />
+    <meta property="og:description" content="Manage your video projects and timeline drafts." />
+    <meta property="og:image" content="https://clipmagic.app/og-preview.png" />
+    <meta property="og:url" content="https://clipmagic.app/dashboard.html" />
     <link rel="stylesheet" href="style.css" />
     <style>
         .dashboard-page {
@@ -522,12 +531,11 @@
                 <li><a href="dashboard.html" class="active">Dashboard</a></li>
             </ul>
             <div class="nav-cta">
-                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light or dark theme">
                     <span class="icon-sun"><i data-lucide="sun" style="width:18px; height:18px;"></i></span>
                     <span class="icon-moon"><i data-lucide="moon" style="width:18px; height:18px;"></i></span>
                 </button>
-                <span style="font-size:0.83rem; color: var(--text-muted);">👤 Alex Rivera</span>
-                <a href="login.html" class="btn btn-ghost btn-sm">Sign Out</a>
+                <a href="editor.html" class="btn btn-primary btn-sm">Start Editing ✦</a>
             </div>
         </nav>
 
@@ -797,17 +805,19 @@
             <div class="footer-left">
                 <span style="font-size:1.3rem"><i data-lucide="video" style="width:20px; height:20px;"></i></span>
                 <span class="footer-brand">Clip Magic</span>
-                <span class="footer-copy">© 2026 All rights reserved.</span>
+                <span class="footer-copy">© 2026 Clip Magic Platform. All rights reserved.</span>
             </div>
             <div class="footer-links">
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
-                <a href="#">Help</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms and Conditions</a>
+                <button type="button" onclick="openCookieSettings(event)" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;padding:0;opacity:0.8;">Cookie Preferences</button>
+                <a href="https://github.com/singhishaan0526-droid/clipmagic" target="_blank" rel="noopener">GitHub</a>
             </div>
         </footer>
     </div>
 
     <script src="app.js"></script>
+    <script src="cookie-consent.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             renderProjects();

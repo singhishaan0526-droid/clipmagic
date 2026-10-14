@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Page Not Found | Clip Magic</title>
+  <meta name="description" content="The page you are looking for does not exist on Clip Magic. Return to the home page or open the video editor." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@600;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #080914;
+      color: #cbd5e1;
+      font-family: 'Inter', -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .not-found-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 24px;
+      position: relative;
+    }
+    .glitch-404 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(5rem, 15vw, 10rem);
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+      letter-spacing: -0.04em;
+      filter: drop-shadow(0 0 40px rgba(168, 85, 247, 0.4));
+    }
+    .not-found-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 100px;
+      color: #f87171;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 20px;
+    }
+    .not-found-heading {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      color: #fff;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .not-found-desc {
+      max-width: 520px;
+      color: #94a3b8;
+      font-size: 1.05rem;
+      margin: 0 auto 36px;
+    }
+    .btn-group-404 {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar" role="navigation" aria-label="Main Navigation">
+    <a href="/" class="nav-logo" aria-label="Clip Magic Home">
+      <div class="nav-logo-icon">⚡</div>
+      <span class="nav-logo-text">Clip Magic</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="editor.html">Editor</a></li>
+      <li><a href="upload.html">Upload</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+    <div class="nav-cta">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+      </button>
+      <a href="editor.html" class="btn btn-primary btn-sm">Start Editing ✦</a>
+    </div>
+  </nav>
+
+  <main class="not-found-main">
+    <div class="not-found-badge">🎬 Scene Cut • 404</div>
+    <div class="glitch-404">404</div>
+    <h1 class="not-found-heading">Cut! This Scene Doesn't Exist</h1>
+    <p class="not-found-desc">
+      The timeline playhead wandered off the track. The link you followed might be broken or the page was moved to a new edit.
+    </p>
+    <div class="btn-group-404">
+      <a href="/" class="btn btn-ghost" style="padding:14px 28px; font-weight:700;">🏠 Return to Home</a>
+      <a href="editor.html" class="btn btn-primary" style="padding:14px 28px; font-weight:700;">🚀 Open Video Editor</a>
+    </div>
+  </main>
+
+  <footer class="site-footer" style="padding:24px 0; border-top:1px solid rgba(255,255,255,0.08);">
+    <div style="max-width:1200px; margin:0 auto; padding:0 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-size:0.85rem; color:#64748b;">
+      <span>© 2026 Clip Magic Platform. All rights reserved.</span>
+      <div style="display:flex; gap:16px;">
+        <a href="privacy.html" style="color:#94a3b8; text-decoration:none;">Privacy</a>
+        <a href="terms.html" style="color:#94a3b8; text-decoration:none;">Terms</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

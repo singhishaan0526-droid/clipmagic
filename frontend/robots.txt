@@ -1,0 +1,6 @@
+# Clip Magic AI Video Editor Robots Configuration
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://clipmagic.ai/sitemap.xml

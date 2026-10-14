@@ -7,6 +7,20 @@
   <title>Clip Magic — Next-Gen AI Video Editor & Keyframing Platform</title>
   <meta name="description"
     content="Clip Magic transforms raw video footage into cinematic viral masterpieces with 1-tap animation presets, diamond keyframing, AI auto-cuts, smart captions, and lossless export." />
+  <link rel="canonical" href="https://clipmagic.ai/" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Clip Magic" />
+  <meta property="og:title" content="Clip Magic — Next-Gen AI Video Editor & Keyframing Platform" />
+  <meta property="og:description" content="Clip Magic transforms raw video footage into cinematic viral masterpieces with 1-tap animation presets, diamond keyframing, AI auto-cuts, smart captions, and lossless export." />
+  <meta property="og:image" content="https://clipmagic.ai/og-preview.png" />
+  <meta property="og:url" content="https://clipmagic.ai/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Clip Magic — Next-Gen AI Video Editor & Keyframing Platform" />
+  <meta name="twitter:description" content="Transform raw video footage into cinematic viral masterpieces with 1-tap animation presets, diamond keyframing, AI auto-cuts, smart captions, and lossless export." />
+  <meta name="twitter:image" content="https://clipmagic.ai/og-preview.png" />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1171,201 +1185,6 @@
     }
 
     /* ==========================================================================
-       PRICING SECTION WITH TOGGLE
-       ========================================================================== */
-    .pricing-section {
-      padding: 90px 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .pricing-billing-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 6px 14px;
-      border-radius: 100px;
-      margin-bottom: 48px;
-    }
-
-    .toggle-label {
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: #94a3b8;
-      cursor: pointer;
-    }
-
-    .toggle-label.active {
-      color: #38bdf8;
-    }
-
-    .switch-ui {
-      width: 44px;
-      height: 24px;
-      background: #334155;
-      border-radius: 100px;
-      position: relative;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .switch-handle {
-      width: 18px;
-      height: 18px;
-      background: #fff;
-      border-radius: 50%;
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      transition: transform 0.25s ease;
-    }
-
-    .switch-ui.yearly .switch-handle {
-      transform: translateX(20px);
-    }
-    .switch-ui.yearly {
-      background: #8b5cf6;
-    }
-
-    .save-pill {
-      background: rgba(16, 185, 129, 0.2);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      color: #34d399;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 100px;
-    }
-
-    .pricing-card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 28px;
-      text-align: left;
-    }
-
-    .p-card {
-      background: var(--card-gradient);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      padding: 36px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-    }
-
-    .p-card.featured-card {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(56, 189, 248, 0.08) 100%);
-      border: 2px solid #8b5cf6;
-      box-shadow: 0 0 50px rgba(139, 92, 246, 0.3);
-      transform: scale(1.03);
-      z-index: 5;
-    }
-
-    .p-popular-badge {
-      position: absolute;
-      top: -14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #8b5cf6, #38bdf8);
-      color: #fff;
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 4px 16px;
-      border-radius: 100px;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
-    }
-
-    .p-plan-name {
-      font-family: var(--font-display);
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 6px;
-    }
-
-    .p-plan-desc {
-      color: #94a3b8;
-      font-size: 0.88rem;
-      margin-bottom: 24px;
-    }
-
-    .p-price-row {
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-      margin-bottom: 28px;
-    }
-
-    .p-currency { font-size: 1.5rem; font-weight: 700; color: #fff; }
-    .p-amount { font-family: var(--font-display); font-size: 3.2rem; font-weight: 900; color: #fff; line-height: 1; }
-    .p-period { color: #64748b; font-size: 0.95rem; }
-
-    .p-features-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 32px;
-    }
-
-    .p-features-list li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #cbd5e1;
-      font-size: 0.9rem;
-    }
-
-    .p-features-list li.check::before {
-      content: '✓';
-      color: #38bdf8;
-      font-weight: 900;
-    }
-
-    .p-cta-btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      font-family: var(--font-display);
-      font-size: 1rem;
-      font-weight: 700;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      display: block;
-    }
-
-    .btn-plan-ghost {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #fff;
-    }
-
-    .btn-plan-ghost:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: #38bdf8;
-    }
-
-    .btn-plan-glow {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6, #38bdf8);
-      color: #fff;
-      box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
-    }
-
-    .btn-plan-glow:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 35px rgba(56, 189, 248, 0.6);
-    }
-
-    /* ==========================================================================
        FAQ ACCORDION SECTION
        ========================================================================== */
     .faq-section {
@@ -1551,8 +1370,6 @@
       .bento-large { grid-column: span 2; }
       .steps-row { grid-template-columns: 1fr 1fr; }
       .testimonial-grid { grid-template-columns: 1fr; }
-      .pricing-card-grid { grid-template-columns: 1fr; }
-      .p-card.featured-card { transform: none; }
       .footer-inner { grid-template-columns: 1fr 1fr; }
       .metric-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -1668,21 +1485,19 @@
     <a href="#demo" onclick="toggleMobileMenu()"><span>▶</span> Live Demo</a>
     <a href="#features" onclick="toggleMobileMenu()"><span>✨</span> Superpowers</a>
     <a href="#workflow" onclick="toggleMobileMenu()"><span>⚙️</span> How It Works</a>
-    <a href="#pricing" onclick="toggleMobileMenu()"><span>💎</span> Pricing</a>
     <a href="#testimonials" onclick="toggleMobileMenu()"><span>⭐</span> Creators</a>
     <a href="#faq" onclick="toggleMobileMenu()"><span>❓</span> FAQ</a>
     <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:4px 0;">
     <a href="dashboard.html"><span>📁</span> Dashboard</a>
     <a href="upload.html"><span>📤</span> Quick Upload</a>
-    <a href="login.html"><span>🔑</span> Sign In</a>
-    <a href="editor.html" style="background:linear-gradient(135deg,#6366f1,#38bdf8); color:#fff; justify-content:center; font-weight:700; margin-top:4px;">🚀 Launch Editor ✦</a>
+    <a href="editor.html" style="background:linear-gradient(135deg,#6366f1,#38bdf8); color:#fff; justify-content:center; font-weight:700; margin-top:4px;">🚀 Start Editing ✦</a>
   </div>
 
   <div class="landing-wrapper">
     <!-- Sticky Glass Navbar -->
     <header class="site-header">
       <div class="nav-inner">
-        <a href="/" class="brand-logo">
+        <a href="/" class="brand-logo" aria-label="Clip Magic Homepage">
           <div class="brand-icon-box">⚡</div>
           <span class="brand-name">Clip Magic</span>
           <span class="brand-pill">AI 2.0</span>
@@ -1692,14 +1507,13 @@
           <li><a href="#demo">Live Demo</a></li>
           <li><a href="#features">Superpowers</a></li>
           <li><a href="#workflow">How It Works</a></li>
-          <li><a href="#pricing">Pricing</a></li>
           <li><a href="#testimonials">Creators</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>
 
         <div class="nav-cta-group">
-          <a href="login.html" class="btn-nav-ghost">Sign In</a>
-          <a href="editor.html" class="btn-nav-glow">Launch Editor ✦</a>
+          <a href="dashboard.html" class="btn-nav-ghost">Dashboard</a>
+          <a href="editor.html" class="btn-nav-glow">Start Editing ✦</a>
           <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-label="Toggle navigation menu">☰</button>
         </div>
       </div>
@@ -1723,8 +1537,8 @@
       </p>
 
       <div class="hero-cta-row">
-        <a href="editor.html" class="btn-hero-primary">
-          <span>🚀 Launch Editor Free</span>
+        <a href="editor.html" class="btn-hero-primary" aria-label="Start Editing with Clip Magic">
+          <span>🚀 Start Editing</span>
         </a>
         <a href="#demo" class="btn-hero-secondary">
           <span>✨ Try Interactive Playground</span>
@@ -2123,90 +1937,7 @@
       </div>
     </section>
 
-    <!-- ==========================================================================
-         PRICING SECTION WITH MONTHLY / ANNUAL TOGGLE
-         ========================================================================== -->
-    <section class="pricing-section" id="pricing">
-      <div class="section-tag">Pricing Plans</div>
-      <h2 class="section-headline">Simple, Transparent Pricing</h2>
-      <p class="section-subtext">Start free with all core features. Upgrade for unlimited 4K exports and AI compute.</p>
 
-      <div class="pricing-billing-toggle">
-        <span class="toggle-label active" id="lblMonthly" onclick="setBilling(false)">Monthly</span>
-        <div class="switch-ui" id="billingSwitch" onclick="toggleBilling()">
-          <div class="switch-handle"></div>
-        </div>
-        <span class="toggle-label" id="lblYearly" onclick="setBilling(true)">Annual</span>
-        <span class="save-pill">Save 30%</span>
-      </div>
-
-      <div class="pricing-card-grid">
-        <!-- Starter Free -->
-        <div class="p-card">
-          <div>
-            <div class="p-plan-name">Starter Free</div>
-            <div class="p-plan-desc">For creators exploring AI video editing.</div>
-            <div class="p-price-row">
-              <span class="p-currency">$</span>
-              <span class="p-amount">0</span>
-              <span class="p-period">/mo</span>
-            </div>
-            <ul class="p-features-list">
-              <li class="check">Full Quick Animate Presets</li>
-              <li class="check">Diamond Keyframe Editing</li>
-              <li class="check">Lossless Stream Copy Export</li>
-              <li class="check">1080p Resolution</li>
-              <li class="check">No Watermark</li>
-            </ul>
-          </div>
-          <a href="editor.html" class="p-cta-btn btn-plan-ghost">Start Free Now</a>
-        </div>
-
-        <!-- Creator Pro (Featured) -->
-        <div class="p-card featured-card">
-          <div class="p-popular-badge">Most Popular</div>
-          <div>
-            <div class="p-plan-name">Creator Pro</div>
-            <div class="p-plan-desc">For serious YouTubers and content creators.</div>
-            <div class="p-price-row">
-              <span class="p-currency">$</span>
-              <span class="p-amount" id="proPrice">19</span>
-              <span class="p-period" id="proPeriod">/mo</span>
-            </div>
-            <ul class="p-features-list">
-              <li class="check">Everything in Starter Free</li>
-              <li class="check">Unlimited 4K 60FPS Exports</li>
-              <li class="check">Gemini AI Auto-Transcription</li>
-              <li class="check">Smart AI Beat Sync Engine</li>
-              <li class="check">Kinetic Karaoke Captions</li>
-              <li class="check">Priority Processing Pipeline</li>
-            </ul>
-          </div>
-          <a href="editor.html" class="p-cta-btn btn-plan-glow">Start 14-Day Free Trial</a>
-        </div>
-
-        <!-- Studio Agency -->
-        <div class="p-card">
-          <div>
-            <div class="p-plan-name">Studio Team</div>
-            <div class="p-plan-desc">For production teams, studios, and agencies.</div>
-            <div class="p-price-row">
-              <span class="p-currency">$</span>
-              <span class="p-amount" id="studioPrice">49</span>
-              <span class="p-period" id="studioPeriod">/mo</span>
-            </div>
-            <ul class="p-features-list">
-              <li class="check">Everything in Creator Pro</li>
-              <li class="check">10 Team Collaboration Seats</li>
-              <li class="check">Shared Project Cloud Sync</li>
-              <li class="check">Custom Brand Presets & LUTs</li>
-              <li class="check">Dedicated 24/7 VIP Support</li>
-            </ul>
-          </div>
-          <a href="login.html" class="p-cta-btn btn-plan-ghost">Contact Sales</a>
-        </div>
-      </div>
-    </section>
 
     <!-- ==========================================================================
          FAQ ACCORDION SECTION
@@ -2304,17 +2035,17 @@
             <li><a href="#workflow">Workflow Guide</a></li>
             <li><a href="#faq">Documentation & FAQ</a></li>
             <li><a href="about.html">About Clip Magic</a></li>
-            <li><a href="login.html">Sign In / Register</a></li>
+            <li><a href="upload.html">Quick Upload</a></li>
           </ul>
         </div>
 
         <div class="footer-col">
           <h5>Legal & Security</h5>
           <ul>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Security Overview</a></li>
-            <li><a href="#">Status Page</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms and Conditions</a></li>
+            <li><button type="button" onclick="openCookieSettings(event)" style="background:none;border:none;padding:0;color:inherit;font:inherit;cursor:pointer;opacity:0.8;text-align:left;">Cookie Preferences</button></li>
+            <li><a href="https://github.com/singhishaan0526-droid/clipmagic" target="_blank" rel="noopener">Open Source GitHub</a></li>
           </ul>
         </div>
       </div>
@@ -2476,35 +2207,6 @@
       }
     }
 
-    // ── Pricing Toggle ──────────────────────────────────────────────────
-    let isYearly = false;
-    function toggleBilling() {
-      setBilling(!isYearly);
-    }
-
-    function setBilling(yearly) {
-      isYearly = yearly;
-      const sw = document.getElementById('billingSwitch');
-      const lblM = document.getElementById('lblMonthly');
-      const lblY = document.getElementById('lblYearly');
-      const proP = document.getElementById('proPrice');
-      const stuP = document.getElementById('studioPrice');
-
-      if (yearly) {
-        sw.classList.add('yearly');
-        lblY.classList.add('active');
-        lblM.classList.remove('active');
-        if (proP) proP.textContent = '13';
-        if (stuP) stuP.textContent = '34';
-      } else {
-        sw.classList.remove('yearly');
-        lblM.classList.add('active');
-        lblY.classList.remove('active');
-        if (proP) proP.textContent = '19';
-        if (stuP) stuP.textContent = '49';
-      }
-    }
-
     // ── FAQ Accordion ───────────────────────────────────────────────────
     function toggleFaq(header) {
       const item = header.parentElement;
@@ -2532,5 +2234,6 @@
       }
     }
   </script>
+  <script src="cookie-consent.js"></script>
 </body>
 </html>

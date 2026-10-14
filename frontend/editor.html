@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Editor — Clip Magic</title>
+    <title>Editor Workspace — Clip Magic AI Video Editor</title>
+    <meta name="description" content="Professional in-browser video editor with WebGL GLSL filters, multi-track timeline, auto captions, and WebAssembly export." />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="robots" content="noindex, follow" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;700;900&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -226,6 +229,67 @@
         .preview-screen.filter-bw video { filter: grayscale(1) contrast(1.12); }
         .preview-screen.filter-warm video { filter: saturate(1.2) sepia(0.22) hue-rotate(-8deg); }
         .preview-screen.filter-cool video { filter: saturate(0.92) hue-rotate(12deg) brightness(1.04); }
+
+        /* ── WebGL Filter Station Bubbles ── */
+        .cfp-bubble-item {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer;
+            background: transparent !important;
+            border: none !important;
+            padding: 4px 2px !important;
+            border-radius: 8px;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .cfp-bubble {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #151522;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cfp-thumb-canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 50%;
+        }
+        .cfp-bubble-name {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            max-width: 66px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            margin-top: 5px;
+            transition: color 0.2s ease;
+        }
+        .cfp-bubble-item:hover .cfp-bubble {
+            border-color: rgba(168, 85, 247, 0.6);
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 6px 16px rgba(168, 85, 247, 0.35);
+        }
+        .cfp-bubble-item.active .cfp-bubble {
+            border-color: #a855f7 !important;
+            box-shadow: 0 0 16px rgba(168, 85, 247, 0.8), 0 0 4px #c084fc !important;
+            transform: scale(1.08);
+        }
+        .cfp-bubble-item.active .cfp-bubble-name {
+            color: #fff !important;
+            font-weight: 700 !important;
+        }
+
         .text-overlay-layer { position:absolute; inset:0; pointer-events:none; z-index:4; }
         .text-overlay { 
             position:absolute; 
@@ -3656,13 +3720,23 @@
             },
 
             applyVisualFilters(el, clip) {
-                const baseFilter = typeof getBasePreviewFilter === 'function' ? getBasePreviewFilter(clip.filter, clip.filterAmount) : '';
-                const gradeFilter = typeof getGradePreviewFilter === 'function' ? getGradePreviewFilter(clip.colorGrade) : '';
-                const vfx = clip.vfx || {};
+                const isPack = window.ClipFilterPack?.isPack(clip?.filter);
+                const baseFilter = isPack ? '' : (typeof getBasePreviewFilter === 'function' ? getBasePreviewFilter(clip?.filter, clip?.filterAmount) : '');
+                const gradeFilter = typeof getGradePreviewFilter === 'function' ? getGradePreviewFilter(clip?.colorGrade) : '';
+                const vfx = clip?.vfx || {};
                 const level = clamp(Number(vfx.intensity) || 0, 0, 100) / 100;
                 const glitchFilter = vfx.preset === 'glitch' ? `contrast(${1 + level}) saturate(${1 + level * 1.5}) hue-rotate(${level * 18}deg)` : '';
                 const blurFilter = vfx.preset === 'blur' ? `blur(${Math.max(1, level * 8)}px)` : '';
                 el.style.filter = `${baseFilter} ${gradeFilter} ${glitchFilter} ${blurFilter}`.trim();
+
+                const screen = document.getElementById('previewScreen');
+                if (screen && window.ClipFilterPack && el && el.id === 'previewVideo') {
+                    if (isPack) {
+                        window.ClipFilterPack.syncPreview(screen, el, clip.filter, clip.filterAmount);
+                    } else {
+                        window.ClipFilterPack.clearPreview(screen);
+                    }
+                }
             },
 
             pauseAll() {
@@ -7994,13 +8068,18 @@
                 const level = clamp(Number(vfx.intensity) || 0, 0, 100) / 100;
                 video.classList.remove('vfx-glitch', 'vfx-blur', 'vfx-shake');
                 video.style.setProperty('--vfx-intensity', `${Math.max(1, level * 10)}`);
-                const baseFilter = getBasePreviewFilter(activeClip.filter, activeClip.filterAmount);
+                const isPack = window.ClipFilterPack?.isPack(activeClip.filter);
+                const baseFilter = isPack ? '' : getBasePreviewFilter(activeClip.filter, activeClip.filterAmount);
                 const gradeFilter = getGradePreviewFilter(activeClip.colorGrade);
                 const glitchFilter = vfx.preset === 'glitch' ? `contrast(${1 + level}) saturate(${1 + level * 1.5}) hue-rotate(${level * 18}deg)` : '';
                 const blurFilter = (vfx.preset === 'blur' || transBlur > 0) ? `blur(${Math.max(transBlur, level * 8)}px)` : '';
                 const transBrightnessFilter = transBrightness !== 1.0 ? `brightness(${transBrightness})` : '';
                 video.style.filter = `${baseFilter} ${gradeFilter} ${glitchFilter} ${blurFilter} ${transBrightnessFilter}`.trim();
-                if (window.ClipFilterPack?.isPack(activeClip.filter)) window.ClipFilterPack.syncPreview(screen, video, activeClip.filter, activeClip.filterAmount);
+                if (isPack) {
+                    window.ClipFilterPack.syncPreview(screen, video, activeClip.filter, activeClip.filterAmount);
+                } else {
+                    window.ClipFilterPack?.clearPreview(screen);
+                }
                 if (vfx.preset === 'shake') video.classList.add('vfx-shake');
                 if (vfx.preset === 'glitch') video.classList.add('vfx-glitch');
                 if (vfx.preset === 'blur') video.classList.add('vfx-blur');
@@ -10490,6 +10569,7 @@
         });
 
 </script>
+<script src="cookie-consent.js"></script>
 </body>
 
 </html>

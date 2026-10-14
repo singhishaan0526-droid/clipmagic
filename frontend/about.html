@@ -3,8 +3,22 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>About — Clip Magic</title>
-    <meta name="description" content="Learn more about Clip Magic and the creator behind it." />
+    <title>About Us — Clip Magic AI Video Editor</title>
+    <meta name="description" content="Discover Clip Magic's mission to make browser-based AI video editing effortless, fast, and private for creators worldwide." />
+    <link rel="canonical" href="https://clipmagic.app/about.html" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="robots" content="index, follow" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="About Us — Clip Magic AI Video Editor" />
+    <meta property="og:description" content="Discover Clip Magic's mission to make browser-based AI video editing effortless, fast, and private." />
+    <meta property="og:image" content="https://clipmagic.app/og-preview.png" />
+    <meta property="og:url" content="https://clipmagic.app/about.html" />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="About Us — Clip Magic" />
+    <meta name="twitter:description" content="Browser-based AI video editor powered by WebAssembly & WebGL." />
+    <meta name="twitter:image" content="https://clipmagic.app/og-preview.png" />
     <link rel="stylesheet" href="style.css" />
     <style>
         .about-hero {
@@ -141,12 +155,11 @@
                 <li><a href="dashboard.html">Dashboard</a></li>
             </ul>
             <div class="nav-cta">
-                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light or dark theme">
                     <span class="icon-sun">☀️</span>
                     <span class="icon-moon">🌙</span>
                 </button>
-                <a href="login.html" class="btn btn-ghost btn-sm">Sign In</a>
-                <a href="upload.html" class="btn btn-primary btn-sm">Start Free</a>
+                <a href="editor.html" class="btn btn-primary btn-sm">Start Editing ✦</a>
             </div>
         </nav>
 
@@ -194,10 +207,10 @@
         </section>
 
         <section class="cta-banner" style="margin-bottom: 80px;">
-            <h2>Ready to join the magic?</h2>
-            <p>Start your first project today and see the difference AI makes.</p>
+            <h2>Ready to transform your videos?</h2>
+            <p>Start your project directly in your browser. No sign in required.</p>
             <div class="cta-actions">
-                <a href="upload.html" class="btn btn-primary btn-lg">🚀 Get Started Now</a>
+                <a href="editor.html" class="btn btn-primary btn-lg">✦ Start Editing Now</a>
             </div>
         </section>
 
@@ -205,16 +218,18 @@
             <div class="footer-left">
                 <span style="font-size:1.3rem">🎬</span>
                 <span class="footer-brand">Clip Magic</span>
-                <span class="footer-copy">© 2026 All rights reserved.</span>
+                <span class="footer-copy">© 2026 Clip Magic Platform. All rights reserved.</span>
             </div>
             <div class="footer-links">
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
-                <a href="#">Help</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms and Conditions</a>
+                <button type="button" onclick="openCookieSettings(event)" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;padding:0;opacity:0.8;">Cookie Preferences</button>
+                <a href="https://github.com/singhishaan0526-droid/clipmagic" target="_blank" rel="noopener">GitHub</a>
             </div>
         </footer>
     </div>
 
     <script src="app.js"></script>
+    <script src="cookie-consent.js"></script>
 </body>
 </html>

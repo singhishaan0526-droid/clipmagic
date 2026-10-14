@@ -9,10 +9,12 @@ build/
 
 # Environment and sensitive keys
 .env
-.env.local
-.env.*.local
+.env.*
+*.env
 *.pem
 *.key
+*.cert
+*.pfx
 
 # Media files (prevent accidental large commits)
 *.mp4
