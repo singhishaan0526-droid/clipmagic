@@ -82,9 +82,16 @@
     if (o) o.remove();
     if (webglOverlay) {
       if (webglOverlay.raf) cancelAnimationFrame(webglOverlay.raf);
+      if (webglOverlay.rvfc && webglOverlay.video && typeof webglOverlay.video.cancelVideoFrameCallback === 'function') {
+        webglOverlay.video.cancelVideoFrameCallback(webglOverlay.rvfc);
+      }
       webglOverlay = null;
     }
     mirrors = [];
+    if (raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
   }
 
   function getVideoDisplayRect(video) {
@@ -152,7 +159,106 @@
     o.style.transformOrigin = video.style.transformOrigin || 'center center';
     o.style.display = (video.style.display === 'none' || rect.width === 0) ? 'none' : 'block';
 
-    // Real-time CSS Blend & Effects Overlay (GPU-accelerated, zero-stutter)
+    // 1. High-Performance Hardware WebGL Shader Engine (Fitted Polynomials, Tone Curves & Grain)
+    if (supportsWebGL && (f.w || f.curve)) {
+      if (!webglOverlay || webglOverlay.container !== o) {
+        o.innerHTML = '';
+        const canvas = document.createElement('canvas');
+        canvas.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:fill;pointer-events:none;display:block;';
+        o.appendChild(canvas);
+        let renderer = null;
+        try {
+          renderer = new FilterRenderer(canvas);
+        } catch (e) {
+          renderer = null;
+        }
+        webglOverlay = {
+          container: o,
+          canvas,
+          renderer,
+          filter: f,
+          amount: k,
+          video,
+          raf: 0,
+          rvfc: 0,
+          isLooping: false
+        };
+      }
+      webglOverlay.filter = f;
+      webglOverlay.amount = k;
+      webglOverlay.video = video;
+
+      if (webglOverlay.renderer) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        const targetW = Math.min(960, Math.max(320, Math.round(rect.width * dpr)));
+        const targetH = Math.max(180, Math.round(targetW * (rect.height / Math.max(1, rect.width))));
+
+        const doRender = (now) => {
+          if (!webglOverlay || !webglOverlay.renderer || !video || video.readyState < 2) return;
+          if (video.seeking) return;
+          const currentRect = getVideoDisplayRect(video);
+          o.style.left = currentRect.left + 'px';
+          o.style.top = currentRect.top + 'px';
+          o.style.width = currentRect.width + 'px';
+          o.style.height = currentRect.height + 'px';
+          o.style.transform = video.style.transform || '';
+          o.style.transformOrigin = video.style.transformOrigin || 'center center';
+
+          try {
+            webglOverlay.renderer.render(
+              video,
+              webglOverlay.filter,
+              webglOverlay.amount,
+              (now || performance.now()) / 1000,
+              targetW,
+              targetH
+            );
+          } catch (_) {}
+        };
+
+        const scheduleNext = () => {
+          if (!webglOverlay || !video) return;
+          if (video.paused || video.ended) {
+            webglOverlay.isLooping = false;
+            return;
+          }
+          webglOverlay.isLooping = true;
+          if (typeof video.requestVideoFrameCallback === 'function') {
+            webglOverlay.rvfc = video.requestVideoFrameCallback((now) => {
+              webglOverlay.rvfc = 0;
+              doRender(now);
+              scheduleNext();
+            });
+          } else {
+            webglOverlay.raf = requestAnimationFrame((now) => {
+              webglOverlay.raf = 0;
+              doRender(now);
+              scheduleNext();
+            });
+          }
+        };
+
+        // Render immediately for active frame
+        doRender(performance.now());
+
+        if (!webglOverlay.isLooping && !video.paused && !video.ended) {
+          scheduleNext();
+        }
+
+        if (!video._cfp_hooked) {
+          video._cfp_hooked = true;
+          video.addEventListener('play', () => {
+            if (webglOverlay && !webglOverlay.isLooping) scheduleNext();
+          });
+          video.addEventListener('seeked', () => {
+            if (webglOverlay) doRender(performance.now());
+          });
+        }
+        return;
+      }
+    }
+
+    // 2. Real-time CSS Blend & Effects Overlay Fallback
     const key = id + '|' + k;
     mirrorVideo = video;
     if (o.dataset.key === key) return;
