@@ -1716,6 +1716,16 @@
                 get html() {
                     return window.AssetLibraryUI ? window.AssetLibraryUI.getHTML() : '<div class="prop-section"><p style="font-size:0.8rem;color:var(--text-secondary);">Loading Royalty-Free Asset Library...</p></div>';
                 }
+            },
+            ai: {
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>',
+                title: 'Magic AI Tools',
+                html: () => {
+                    setTimeout(() => {
+                        if (typeof renderAIToolsPanel === 'function') renderAIToolsPanel();
+                    }, 50);
+                    return `<div class="prop-section"><div class="prop-section-title">✨ Magic AI Suite</div><div id="aiToolsSheetMount">${document.getElementById('aiToolsPanel')?.innerHTML || ''}</div></div>`;
+                }
             }
         };
         toolConfigs.audio = toolConfigs.music;
@@ -1724,6 +1734,7 @@
         toolConfigs.transitions = toolConfigs.transition;
         toolConfigs.canvas = toolConfigs.more;
         toolConfigs.assets = toolConfigs.library;
+        toolConfigs.magic = toolConfigs.ai;
 
         function renderMediaClipsSummary() {
             // 1. Render Media Bin Assets
@@ -3078,15 +3089,71 @@
             sheet.classList.toggle('expanded');
         }
 
+        // ── Clip Duplication & Media Replacement ──
+        function duplicateSelectedClip() {
+            if (!selectedClip) return;
+            const clipId = selectedClip.id;
+            const track = (projectState.tracks || []).find(item => item.clips?.some(clip => clip.id === clipId));
+            if (!track) return;
+            recordEdit();
+
+            const cloned = JSON.parse(JSON.stringify(selectedClip));
+            cloned.id = 'clip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const dur = Math.max(MIN_TRIM_SECONDS, (Number(cloned.trimEnd) || Number(cloned.duration) || 1) - (Number(cloned.trimStart) || 0));
+            cloned.start = Number(((Number(selectedClip.start) || 0) + dur).toFixed(3));
+
+            track.clips.push(cloned);
+            track.clips.sort((a, b) => (Number(a.start) || 0) - (Number(b.start) || 0));
+
+            selectClip(cloned);
+            requestTimelineRender();
+            showToast('⧉ Clip duplicated', '⧉', 'info');
+        }
+
+        function replaceSelectedClipMedia(event) {
+            const file = event?.target?.files?.[0];
+            if (!file || !selectedClip) return;
+            recordEdit();
+            const isVideo = file.type.startsWith('video');
+            const isAudio = file.type.startsWith('audio');
+            const isImage = file.type.startsWith('image');
+
+            const url = URL.createObjectURL(file);
+            selectedClip.url = url;
+            selectedClip.name = file.name;
+            if (isVideo) selectedClip.type = 'video';
+            else if (isAudio) selectedClip.type = 'audio';
+            else if (isImage) selectedClip.type = 'image';
+
+            if (isVideo) {
+                const tempV = document.createElement('video');
+                tempV.src = url;
+                tempV.onloadedmetadata = () => {
+                    if (tempV.duration && Number.isFinite(tempV.duration)) {
+                        selectedClip.duration = tempV.duration;
+                        selectedClip.trimEnd = tempV.duration;
+                        requestTimelineRender();
+                    }
+                };
+            }
+
+            requestTimelineRender();
+            selectClip(selectedClip);
+            showToast('🔄 Media replaced with ' + file.name, '🔄', 'info');
+            if (event.target) event.target.value = '';
+        }
+
         // ── Mobile Bottom Toolbar Selection Controller ──
         function syncMobileToolbarForSelection() {
             const toolbar = document.getElementById('mobileBottomToolbar');
-            if (!toolbar) return;
+            const pill = document.getElementById('timelineContextPill');
 
             if (selectedClip) {
+                if (pill) pill.style.display = 'flex';
+                if (!toolbar) return;
                 const isAudio = selectedClip.type === 'music' || selectedClip.type === 'audio';
                 toolbar.innerHTML = `
-                    <button class="mob-tool-btn" id="mob-clip-split" onclick="handleMobileClipAction('split')" aria-label="Split Clip" title="Split clip at playhead">
+                    <button class="mob-tool-btn" id="mob-clip-split" onclick="handleMobileClipAction('split')" aria-label="Split" title="Split clip at playhead">
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
                         <span>Split</span>
                     </button>
@@ -3098,9 +3165,17 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
                         <span>Volume</span>
                     </button>
-                    <button class="mob-tool-btn" id="mob-clip-animate" onclick="handleMobileClipAction('animate')" aria-label="Animation" title="Keyframe animation">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 12 12 22 22 12 12 2"/></svg>
-                        <span>Animate</span>
+                    <button class="mob-tool-btn" id="mob-clip-keyframe" onclick="handleMobileClipAction('keyframe')" aria-label="Keyframe" title="Toggle Keyframe">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 22 12 12 22 22 12 12 2"/></svg>
+                        <span>Keyframe</span>
+                    </button>
+                    <button class="mob-tool-btn" id="mob-clip-replace" onclick="handleMobileClipAction('replace')" aria-label="Replace" title="Replace clip media">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                        <span>Replace</span>
+                    </button>
+                    <button class="mob-tool-btn" id="mob-clip-duplicate" onclick="handleMobileClipAction('duplicate')" aria-label="Duplicate" title="Duplicate clip">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <span>Duplicate</span>
                     </button>
                     ${!isAudio ? `
                     <button class="mob-tool-btn" id="mob-clip-filters" onclick="handleMobileClipAction('filters')" aria-label="Filters" title="Filters & LUTs">
@@ -3125,20 +3200,30 @@
                     </button>
                 `;
             } else {
+                if (pill) pill.style.display = 'none';
+                if (!toolbar) return;
                 toolbar.innerHTML = `
-                    <button class="mob-tool-btn active" id="mob-tool-media" onclick="handleMobileToolClick('media')" aria-label="Media">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
-                        <span>Media</span>
+                    <button class="mob-tool-btn" id="mob-tool-split" onclick="handleMobileToolClick('split')" aria-label="Split">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+                        <span>Split</span>
                     </button>
-                    <button class="mob-tool-btn" id="mob-tool-library" onclick="handleMobileToolClick('library')" aria-label="Asset Library">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
-                        <span>Library</span>
+                    <button class="mob-tool-btn" id="mob-tool-trim" onclick="handleMobileToolClick('trim')" aria-label="Trim">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 18h16M8 6v12M16 6v12"/></svg>
+                        <span>Trim</span>
                     </button>
-                    <button class="mob-tool-btn" id="mob-tool-audio" onclick="handleMobileToolClick('audio')" aria-label="Audio & Music">
+                    <button class="mob-tool-btn" id="mob-tool-speed" onclick="handleMobileToolClick('speed')" aria-label="Speed">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>Speed</span>
+                    </button>
+                    <button class="mob-tool-btn" id="mob-tool-keyframe" onclick="handleMobileToolClick('keyframe')" aria-label="Keyframe">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 12 12 22 22 12 12 2"/></svg>
+                        <span>Keyframe</span>
+                    </button>
+                    <button class="mob-tool-btn" id="mob-tool-audio" onclick="handleMobileToolClick('audio')" aria-label="Audio">
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                         <span>Audio</span>
                     </button>
-                    <button class="mob-tool-btn" id="mob-tool-text" onclick="handleMobileToolClick('text')" aria-label="Text & Lyrics">
+                    <button class="mob-tool-btn" id="mob-tool-text" onclick="handleMobileToolClick('text')" aria-label="Text">
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
                         <span>Text</span>
                     </button>
@@ -3146,21 +3231,37 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                         <span>Stickers</span>
                     </button>
-                    <button class="mob-tool-btn" id="mob-tool-filters" onclick="handleMobileToolClick('filters')" aria-label="Filters">
+                    <button class="mob-tool-btn" id="mob-tool-filters" onclick="handleMobileToolClick('filters')" aria-label="Filter">
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20v-20z"/></svg>
-                        <span>Filters</span>
+                        <span>Filter</span>
                     </button>
-                    <button class="mob-tool-btn" id="mob-tool-effects" onclick="handleMobileToolClick('effects')" aria-label="Effects & VFX">
+                    <button class="mob-tool-btn" id="mob-tool-effects" onclick="handleMobileToolClick('effects')" aria-label="Effect">
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        <span>Effects</span>
+                        <span>Effect</span>
                     </button>
-                    <button class="mob-tool-btn" id="mob-tool-transitions" onclick="handleMobileToolClick('transitions')" aria-label="Transitions">
+                    <button class="mob-tool-btn" id="mob-tool-transitions" onclick="handleMobileToolClick('transitions')" aria-label="Transition">
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
                         <span>Transition</span>
                     </button>
-                    <button class="mob-tool-btn" id="mob-tool-canvas" onclick="handleMobileToolClick('canvas')" aria-label="Canvas Settings">
+                    <button class="mob-tool-btn" id="mob-tool-ai" onclick="handleMobileToolClick('ai')" aria-label="Magic AI">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                        <span>Magic AI</span>
+                    </button>
+                    <button class="mob-tool-btn" id="mob-tool-library" onclick="handleMobileToolClick('library')" aria-label="Asset Library">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
+                        <span>Library</span>
+                    </button>
+                    <button class="mob-tool-btn" id="mob-tool-media" onclick="handleMobileToolClick('media')" aria-label="Media">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+                        <span>Media</span>
+                    </button>
+                    <button class="mob-tool-btn" id="mob-tool-canvas" onclick="handleMobileToolClick('canvas')" aria-label="Ratio">
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-                        <span>Canvas</span>
+                        <span>Ratio</span>
+                    </button>
+                    <button class="mob-tool-btn" id="mob-tool-delete" onclick="handleMobileToolClick('delete')" aria-label="Delete">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        <span>Delete</span>
                     </button>
                 `;
             }
@@ -3182,21 +3283,44 @@
                 setTool('speed', true);
             } else if (action === 'volume') {
                 setTool('audio', true);
-            } else if (action === 'animate') {
-                setTool('effects', true);
-                if (typeof switchAnimTab === 'function') switchAnimTab('custom');
+            } else if (action === 'animate' || action === 'keyframe') {
+                toggleKeyframeAtPlayhead();
             } else if (action === 'filters') {
                 setTool('filters', true);
             } else if (action === 'adjust') {
                 setTool('grade', true);
             } else if (action === 'crop') {
                 setTool('pip', true);
+            } else if (action === 'duplicate') {
+                duplicateSelectedClip();
+            } else if (action === 'replace') {
+                document.getElementById('clipReplaceInput')?.click();
             }
         }
 
         function handleMobileToolClick(toolKey) {
+            if (navigator.vibrate) {
+                try { navigator.vibrate(12); } catch(e) {}
+            }
             document.querySelectorAll('.mob-tool-btn').forEach(btn => btn.classList.toggle('active', btn.id === `mob-tool-${toolKey}`));
-            
+
+            if (toolKey === 'split') {
+                splitAtPlayhead();
+                return;
+            }
+            if (toolKey === 'keyframe') {
+                toggleKeyframeAtPlayhead();
+                return;
+            }
+            if (toolKey === 'delete') {
+                if (selectedClip) {
+                    deleteSelectedClip();
+                } else {
+                    deleteInOutRange(true);
+                }
+                return;
+            }
+
             const toolMap = {
                 'media': 'media',
                 'library': 'library',
@@ -3208,8 +3332,10 @@
                 'effects': 'effects',
                 'transitions': 'transitions',
                 'canvas': 'canvas',
-                'edit': 'trim',
-                'more': 'canvas'
+                'ratio': 'canvas',
+                'trim': 'trim',
+                'speed': 'speed',
+                'ai': 'ai'
             };
             const target = toolMap[toolKey] || toolKey;
             setTool(target, true);
@@ -3282,10 +3408,16 @@
                 'keyframe': 'effects',
                 'transition': 'transitions',
                 'more': 'canvas',
+                'ratio': 'canvas',
                 'library': 'library',
-                'assets': 'library'
+                'assets': 'library',
+                'ai': 'ai',
+                'magic': 'ai'
             };
             const canonicalName = canonicalMap[name] || name;
+            if (canonicalName === 'ai') {
+                setEditMode('ai');
+            }
 
             if (canonicalName === 'select') {
                 if (selectedClip) {

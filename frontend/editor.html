@@ -271,41 +271,6 @@
 
             <!-- CENTER WORKSPACE -->
             <div class="editor-center">
-                <div class="quick-actions-bar" role="toolbar" aria-label="Quick Actions">
-                    <button class="quick-btn" style="border-color:rgba(168,85,247,0.45);color:#c084fc;font-weight:700;" onclick="setTool('library')" title="Open Royalty-Free Asset Library (Stickers, Music, SFX, Filters, VFX)" aria-label="Asset Library">
-                        <span>📚</span> Asset Library
-                    </button>
-                    <button class="quick-btn" onclick="document.getElementById('fileInput').click()" title="Import Video or Image into project" aria-label="Import Video">
-                        <span>🎬</span> + Video
-                    </button>
-                    <button class="quick-btn" style="border-color:rgba(236,72,153,0.45);color:#f472b6;" onclick="document.getElementById('globalAudioInput').click()" title="Import Audio file (MP3, WAV, AAC, MPEG)" aria-label="Import Audio">
-                        <span>🎵</span> Import Audio
-                    </button>
-                    <button class="quick-btn magic" onclick="quickMagicAction('auto-extract-music')" title="Detect and extract music/speech from loaded video into an audio clip" aria-label="Detect Music in Video">
-                        <span>🎙️</span> Detect Music in Video
-                    </button>
-                    <button class="quick-btn magic" onclick="quickMagicAction('auto-lyrics')" title="Generate animated word-by-word lyric captions" aria-label="Generate Lyric Captions">
-                        <span>🎤</span> Generate Lyric Captions
-                    </button>
-                    <button class="quick-btn" onclick="quickMagicAction('auto-enhance')" title="Auto-enhance color grade, saturation, and contrast" aria-label="Auto Enhance">
-                        <span>🪄</span> Auto Enhance
-                    </button>
-                    <button class="quick-btn" onclick="quickMagicAction('tiktok-reframe')" title="Crop preview canvas to 9:16 vertical TikTok/Reels format" aria-label="TikTok 9:16 Reframe">
-                        <span>📱</span> TikTok 9:16
-                    </button>
-                    <button class="quick-btn" onclick="quickMagicAction('auto-captions')" title="Generate AI subtitles from spoken audio" aria-label="AI Captions">
-                        <span>💬</span> AI Captions
-                    </button>
-                    <button class="quick-btn" onclick="quickMagicAction('sync-beats')" title="Analyze audio rhythm and sync edits to musical beats" aria-label="Sync Edits to Beats">
-                        <span>🥁</span> Sync Edits to Beats
-                    </button>
-                    <button class="quick-btn" onclick="quickMagicAction('fast-speed')" title="Apply 1.5x speed boost to selected clip" aria-label="Speed Boost">
-                        <span>⚡</span> Speed Boost
-                    </button>
-                    <button class="quick-btn" onclick="quickMagicAction('vfx-glitch')" title="Apply glitch music video visual effect" aria-label="Glitch VFX">
-                        <span>✦</span> Glitch VFX
-                    </button>
-                </div>
                 <div class="preview-area">
                     <div class="preview-screen" id="previewScreen">
                         <video id="previewVideo" preload="auto" playsinline webkit-playsinline disablePictureInPicture x-webkit-airplay="deny" style="display:none; width:100%; height:100%; object-fit:contain;"></video>
@@ -325,6 +290,7 @@
                             <input type="file" id="fileInput" hidden aria-label="Media file picker for video, image or audio" accept="video/*,image/*,audio/*,.mp4,.mov,.avi,.mkv,.webm,.mpeg,.mpg,.mpe,.ts,.m2ts,.m4v,.mp3,.wav,.m4a,.aac,.ogg,.flac" onchange="loadVideo(event)" multiple />
                             <label for="globalAudioInput" class="sr-only">Audio file picker</label>
                             <input type="file" id="globalAudioInput" hidden aria-label="Audio file picker" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mpa,.mpeg,.mpg" onchange="handleMusicUpload(event)" />
+                            <input type="file" id="clipReplaceInput" hidden accept="video/*,image/*,audio/*" onchange="replaceSelectedClipMedia(event)" />
                         </div>
                     </div>
                     <div class="preview-controls" id="previewControls" style="display:none;">
@@ -342,23 +308,31 @@
                     </div>
                 </div>
 
-                <!-- MOBILE WORKSPACE TABS (Timeline / Active Tool / Magic AI) -->
-                <div class="mobile-workspace-nav" id="mobileWorkspaceNav">
-                    <button class="mobile-tab-btn active" id="mobileTabTimeline" onclick="setMobileTab('timeline')">
-                        <span>🎬</span>
-                        <span>Timeline</span>
-                    </button>
-                    <button class="mobile-tab-btn" id="mobileTabProps" onclick="setMobileTab('props')">
-                        <span id="mobilePropsTabIcon">⚙️</span>
-                        <span id="mobilePropsTabLabel">Tool Controls</span>
-                    </button>
-                    <button class="mobile-tab-btn" id="mobileTabMagic" onclick="setMobileTab('magic')">
-                        <span>✨</span>
-                        <span>Magic AI</span>
-                    </button>
-                </div>
-
                 <div class="timeline-area">
+                    <!-- Floating Context Action Pill for Selected Clip (VN/CapCut Style) -->
+                    <div class="timeline-context-pill" id="timelineContextPill" style="display:none;" role="toolbar" aria-label="Selected Clip Quick Actions">
+                        <button class="context-pill-btn" onclick="handleMobileClipAction('replace')" title="Replace Media">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                            <span>Replace</span>
+                        </button>
+                        <button class="context-pill-btn" onclick="handleMobileClipAction('keyframe')" title="Add Keyframe">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 22 12 12 22 2 12 12 2"/></svg>
+                            <span>Add Frame</span>
+                        </button>
+                        <button class="context-pill-btn" onclick="handleMobileClipAction('duplicate')" title="Duplicate Clip">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            <span>Duplicate</span>
+                        </button>
+                        <button class="context-pill-btn" onclick="handleMobileClipAction('split')" title="Split Clip">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+                            <span>Split</span>
+                        </button>
+                        <button class="context-pill-btn delete-btn" onclick="handleMobileClipAction('delete')" title="Delete Clip">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                            <span>Delete</span>
+                        </button>
+                    </div>
+
                     <div class="timeline-header" style="flex-wrap:wrap;gap:6px;">
                         <div style="display:flex;align-items:center;gap:8px;">
                             <div class="timeline-title">Timeline</div>
@@ -408,43 +382,67 @@
                 </div>
             </div>
 
-            <!-- MOBILE BOTTOM TOOLBAR (Phone view: thumb zone) -->
+            <!-- MOBILE BOTTOM TOOLBAR (All features on downside) -->
             <nav class="mobile-bottom-toolbar" id="mobileBottomToolbar" aria-label="Editing Tools">
-                <button class="mob-tool-btn active" id="mob-tool-media" onclick="handleMobileToolClick('media')" aria-label="Media">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
-                    <span>Media</span>
+                <button class="mob-tool-btn" id="mob-tool-split" onclick="handleMobileToolClick('split')" aria-label="Split">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+                    <span>Split</span>
                 </button>
-                <button class="mob-tool-btn" id="mob-tool-library" onclick="handleMobileToolClick('library')" aria-label="Asset Library">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
-                    <span>Library</span>
+                <button class="mob-tool-btn" id="mob-tool-trim" onclick="handleMobileToolClick('trim')" aria-label="Trim">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 18h16M8 6v12M16 6v12"/></svg>
+                    <span>Trim</span>
                 </button>
-                <button class="mob-tool-btn" id="mob-tool-audio" onclick="handleMobileToolClick('audio')" aria-label="Audio & Music">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                <button class="mob-tool-btn" id="mob-tool-speed" onclick="handleMobileToolClick('speed')" aria-label="Speed">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Speed</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-keyframe" onclick="handleMobileToolClick('keyframe')" aria-label="Keyframe">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 12 12 22 22 12 12 2"/></svg>
+                    <span>Keyframe</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-audio" onclick="handleMobileToolClick('audio')" aria-label="Audio">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                     <span>Audio</span>
                 </button>
-                <button class="mob-tool-btn" id="mob-tool-text" onclick="handleMobileToolClick('text')" aria-label="Text & Lyrics">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                <button class="mob-tool-btn" id="mob-tool-text" onclick="handleMobileToolClick('text')" aria-label="Text">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
                     <span>Text</span>
                 </button>
                 <button class="mob-tool-btn" id="mob-tool-stickers" onclick="handleMobileToolClick('stickers')" aria-label="Stickers">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                     <span>Stickers</span>
                 </button>
-                <button class="mob-tool-btn" id="mob-tool-filters" onclick="handleMobileToolClick('filters')" aria-label="Filters">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20v-20z"/></svg>
-                    <span>Filters</span>
+                <button class="mob-tool-btn" id="mob-tool-filters" onclick="handleMobileToolClick('filters')" aria-label="Filter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20v-20z"/></svg>
+                    <span>Filter</span>
                 </button>
-                <button class="mob-tool-btn" id="mob-tool-effects" onclick="handleMobileToolClick('effects')" aria-label="Effects & VFX">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    <span>Effects</span>
+                <button class="mob-tool-btn" id="mob-tool-effects" onclick="handleMobileToolClick('effects')" aria-label="Effect">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span>Effect</span>
                 </button>
-                <button class="mob-tool-btn" id="mob-tool-transitions" onclick="handleMobileToolClick('transitions')" aria-label="Transitions">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                <button class="mob-tool-btn" id="mob-tool-transitions" onclick="handleMobileToolClick('transitions')" aria-label="Transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
                     <span>Transition</span>
                 </button>
-                <button class="mob-tool-btn" id="mob-tool-canvas" onclick="handleMobileToolClick('canvas')" aria-label="Canvas Settings">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-                    <span>Canvas</span>
+                <button class="mob-tool-btn" id="mob-tool-ai" onclick="handleMobileToolClick('ai')" aria-label="Magic AI">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                    <span>Magic AI</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-library" onclick="handleMobileToolClick('library')" aria-label="Asset Library">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
+                    <span>Library</span>
+                </button>
+                <button class="mob-tool-btn active" id="mob-tool-media" onclick="handleMobileToolClick('media')" aria-label="Media">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+                    <span>Media</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-canvas" onclick="handleMobileToolClick('canvas')" aria-label="Ratio">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+                    <span>Ratio</span>
+                </button>
+                <button class="mob-tool-btn" id="mob-tool-delete" onclick="handleMobileToolClick('delete')" aria-label="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span>Delete</span>
                 </button>
             </nav>
         </div>

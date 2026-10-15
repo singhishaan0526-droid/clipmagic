@@ -925,7 +925,74 @@
         }
 
         /* Timeline */
-        .timeline-area { background: var(--bg-secondary); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; flex-direction: column; max-height: 45vh; min-height: 180px; }
+        .timeline-area { position: relative; background: var(--bg-secondary); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; flex-direction: column; max-height: 45vh; min-height: 180px; }
+
+        /* ── Selected Clip Floating Context Action Pill (VN/CapCut Style) ── */
+        .timeline-context-pill {
+            position: absolute;
+            top: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            background: #0066fe;
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            padding: 4px 6px;
+            gap: 2px;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            animation: pillPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 95%;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .timeline-context-pill::-webkit-scrollbar {
+            display: none;
+        }
+        @keyframes pillPop {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.92); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1); }
+        }
+        .context-pill-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.68rem;
+            font-weight: 600;
+            gap: 3px;
+            white-space: nowrap;
+            transition: background 0.15s ease, transform 0.1s ease;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .context-pill-btn:hover, .context-pill-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.96);
+        }
+        .context-pill-btn.delete-btn:hover, .context-pill-btn.delete-btn:active {
+            background: rgba(239, 68, 68, 0.35);
+        }
+        .context-pill-btn svg {
+            color: #ffffff;
+            stroke: #ffffff;
+        }
+        .context-pill-btn span {
+            color: #ffffff;
+            font-size: 0.64rem;
+            font-weight: 600;
+            line-height: 1;
+        }
 
         .timeline-header {
             display: flex;
