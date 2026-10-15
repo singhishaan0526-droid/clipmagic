@@ -5,11 +5,16 @@
   "scripts": {
     "start": "node backend/server.js",
     "serve": "node backend/server.js",
+    "build": "tsc && node build.js",
+    "typecheck": "tsc --noEmit",
     "test": "node tests/unit-tests.js"
   },
   "devDependencies": {
+    "@types/node": "^26.6.5",
+    "esbuild": "^0.28.2",
     "http-server": "^14.1.1",
-    "live-server": "^1.2.2"
+    "live-server": "^1.2.2",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

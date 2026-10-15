@@ -36,6 +36,64 @@
   --transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
   --orb-opacity: 0.05;
   --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.4);
+
+  /* === 6. CSS Variables for Clip Magic (Mobile & Timeline Design System) === */
+  /* Accent & Lime Tokens (Active Tool & Selection) */
+  --accent-lime: #a3e635;
+  --accent-lime-hover: #bef264;
+  --accent-lime-active: #84cc16;
+  --accent-lime-dim: rgba(163, 230, 53, 0.14);
+  --accent-lime-border: rgba(163, 230, 53, 0.35);
+  --accent-lime-glow: 0 0 16px rgba(163, 230, 53, 0.4);
+
+  /* Track Types Color System (Preserves distinct clip track identities) */
+  --track-video-bg: rgba(139, 92, 246, 0.35);
+  --track-video-border: rgba(139, 92, 246, 0.65);
+  --track-video-text: #ddd6fe;
+  --track-video-accent: #a78bfa;
+
+  --track-audio-bg: rgba(236, 72, 153, 0.32);
+  --track-audio-border: rgba(236, 72, 153, 0.6);
+  --track-audio-text: #fbcfe8;
+  --track-audio-accent: #f472b6;
+
+  --track-text-bg: rgba(6, 182, 212, 0.32);
+  --track-text-border: rgba(6, 182, 212, 0.6);
+  --track-text-text: #a5f3fc;
+  --track-text-accent: #22d3ee;
+
+  --track-overlay-bg: rgba(56, 189, 248, 0.32);
+  --track-overlay-border: rgba(56, 189, 248, 0.6);
+  --track-overlay-text: #bae6fd;
+  --track-overlay-accent: #38bdf8;
+
+  /* Mobile Bottom Toolbar Tokens (Dark Toolbar + Lime Active Only) */
+  --mobile-toolbar-bg: #0d0e12;
+  --mobile-toolbar-border: rgba(255, 255, 255, 0.08);
+  --mobile-toolbar-height: 56px;
+  --mobile-toolbar-btn-color: #94a3b8;
+  --mobile-toolbar-btn-text: #cbd5e1;
+  --mobile-toolbar-active-color: var(--accent-lime);
+  --mobile-toolbar-active-text: var(--accent-lime-hover);
+  --mobile-toolbar-active-bg: rgba(163, 230, 53, 0.12);
+  --mobile-toolbar-active-border: rgba(163, 230, 53, 0.28);
+
+  /* Selection Tokens (Accent Lime border & glow, preserves clip body color) */
+  --clip-selected-outline: 2px solid var(--accent-lime);
+  --clip-selected-shadow: 0 0 0 2px rgba(163, 230, 53, 0.32), 0 0 14px rgba(163, 230, 53, 0.45);
+  --clip-selected-handle-bg: var(--accent-lime);
+  --clip-selected-handle-glow: 0 0 8px rgba(163, 230, 53, 0.65);
+
+  /* Dark Surface High-Contrast Typography & Icons */
+  --surface-dark-1: #090a0f;
+  --surface-dark-2: #0d0e12;
+  --surface-dark-3: #12141c;
+  --surface-dark-4: #191c26;
+  --text-on-dark-high: #f8fafc;
+  --text-on-dark-medium: #cbd5e1;
+  --text-on-dark-muted: #94a3b8;
+  --icon-on-dark-primary: #f1f5f9;
+  --icon-on-dark-secondary: #94a3b8;
 }
 
 /* === CSS Variables â€” Light Mode === */

@@ -207,7 +207,10 @@ it('Project state serialization preserves tracks, overlays, keyframes and audio 
 // ─────────────────────────────────────────────────────────────────────────────
 console.log('\n📱 Test Suite 4: Mobile Viewport CSS & Accessibility Attributes');
 
-const editorSrc = fs.readFileSync(path.join(__dirname, '../frontend/editor.html'), 'utf8');
+const editorHtmlSrc = fs.readFileSync(path.join(__dirname, '../frontend/editor.html'), 'utf8');
+const editorCssSrc = fs.existsSync(path.join(__dirname, '../frontend/editor.css')) ? fs.readFileSync(path.join(__dirname, '../frontend/editor.css'), 'utf8') : '';
+const editorJsSrc = fs.existsSync(path.join(__dirname, '../frontend/editor-main.js')) ? fs.readFileSync(path.join(__dirname, '../frontend/editor-main.js'), 'utf8') : '';
+const editorSrc = editorHtmlSrc + '\n' + editorCssSrc + '\n' + editorJsSrc;
 
 it('Editor includes mobile landscape media query rules', () => {
     assert(editorSrc.includes('@media (max-height: 520px) and (orientation: landscape)'), 'Landscape query must exist');
@@ -518,7 +521,7 @@ it('Per-frame keyframe interpolation correctly evaluates position, scale, and ro
 });
 
 it('Live filter playback applies GPU-accelerated WebGL filters with requestVideoFrameCallback and seek-loop guards', () => {
-    const updatedEditorSrc = fs.readFileSync(path.join(__dirname, '../frontend/editor.html'), 'utf8');
+    const updatedEditorSrc = editorSrc;
     const updatedFiltersPackSrc = fs.readFileSync(path.join(__dirname, '../frontend/filters-pack.js'), 'utf8');
     
     assert(!updatedEditorSrc.includes("const baseFilter = isPack ? '' :"), 'baseFilter must not be bypassed for pack filters');
@@ -526,6 +529,258 @@ it('Live filter playback applies GPU-accelerated WebGL filters with requestVideo
     assert(updatedFiltersPackSrc.includes('requestVideoFrameCallback'), 'syncPreview must use requestVideoFrameCallback for smooth lockstep frame presentation');
     assert(updatedFiltersPackSrc.includes('targetW'), 'syncPreview must scale render target to display dimensions');
     assert(updatedEditorSrc.includes('if (!baseVid.seeking)'), 'baseVid seeking guard must prevent seek-loops');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Test Suite 8: Clip Magic CSS Design System & Mobile Lime Toolbar
+// ─────────────────────────────────────────────────────────────────────────────
+console.log('\n🎨 Test Suite 8: Clip Magic CSS Design System & Mobile Lime Toolbar');
+
+it('Global style.css defines the Clip Magic CSS variables system', () => {
+    const styleSrc = fs.readFileSync(path.join(__dirname, '../frontend/style.css'), 'utf8');
+    assert(styleSrc.includes('--accent-lime:'), 'style.css must define --accent-lime');
+    assert(styleSrc.includes('--track-video-bg:'), 'style.css must define --track-video-bg');
+    assert(styleSrc.includes('--track-audio-bg:'), 'style.css must define --track-audio-bg');
+    assert(styleSrc.includes('--track-text-bg:'), 'style.css must define --track-text-bg');
+    assert(styleSrc.includes('--track-overlay-bg:'), 'style.css must define --track-overlay-bg');
+    assert(styleSrc.includes('--mobile-toolbar-bg:'), 'style.css must define --mobile-toolbar-bg');
+    assert(styleSrc.includes('--clip-selected-outline:'), 'style.css must define --clip-selected-outline');
+    assert(styleSrc.includes('--text-on-dark-high:'), 'style.css must define --text-on-dark-high');
+});
+
+it('Editor stylesheet integrates design system variables with dark toolbar & lime active tool', () => {
+    assert(editorSrc.includes('--accent-lime: #a3e635;'), 'editor.html must declare --accent-lime in :root');
+    assert(editorSrc.includes('--mobile-toolbar-bg: #0d0e12;'), 'editor.html must keep toolbar dark');
+    assert(editorSrc.includes('.mob-tool-btn.active'), 'editor.html must define active tool state');
+    assert(editorSrc.includes('var(--mobile-toolbar-active-color, #a3e635)'), 'active tool must use accent lime');
+    assert(editorSrc.includes('.track-clip.selected'), 'editor.html must define selected clip state');
+    assert(editorSrc.includes('var(--clip-selected-outline'), 'selected clip must use lime accent outline');
+});
+
+it('Track clip styling preserves distinctive colors for video, audio, text, and overlay tracks', () => {
+    assert(editorSrc.includes('.clip-video'), 'Video clips must have distinct styling');
+    assert(editorSrc.includes('--track-video-bg'), 'Video clips must use video track token');
+    assert(editorSrc.includes('.clip-music, .clip-audio'), 'Audio clips must have distinct styling');
+    assert(editorSrc.includes('--track-audio-bg'), 'Audio clips must use audio track token');
+    assert(editorSrc.includes('.clip-caption, .clip-text'), 'Text/caption clips must have distinct styling');
+    assert(editorSrc.includes('--track-text-bg'), 'Text clips must use text track token');
+    assert(editorSrc.includes('.clip-overlay, .clip-image'), 'Overlay clips must have distinct styling');
+    assert(editorSrc.includes('--track-overlay-bg'), 'Overlay clips must use overlay track token');
+});
+
+it('Small text and icons have enhanced contrast and readability against dark surfaces', () => {
+    assert(editorSrc.includes('.clip-content-label'), 'clip-content-label must be styled');
+    assert(editorSrc.includes('text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95)'), 'clip text must have shadow for readability');
+    assert(editorSrc.includes('--text-on-dark-medium'), 'Must use readable text tokens for dark surfaces');
+    assert(editorSrc.includes('syncMobileToolbarForSelection'), 'Toolbar must dynamically synchronize for clip selection');
+});
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 9. TypeScript Migrated Engines & Type-Safe Core Validation
+// ─────────────────────────────────────────────────────────────────────────────
+console.log('\n⚡ Test Suite 9: TypeScript Migrated Engines & Core Validation');
+
+const vm = require('vm');
+const bundlePath = path.join(__dirname, '../frontend/dist/clip-magic.bundle.js');
+const dtsPath = path.join(__dirname, '../frontend/dist/index.d.ts');
+
+it('TypeScript build artifacts and type declarations exist', () => {
+    assert(fs.existsSync(bundlePath), 'clip-magic.bundle.js must exist in frontend/dist/');
+    assert(fs.existsSync(dtsPath), 'index.d.ts declaration file must exist in frontend/dist/');
+    const dtsContent = fs.readFileSync(dtsPath, 'utf8');
+    assert(dtsContent.includes('TimelineEngine'), 'Declarations must export TimelineEngine');
+    assert(dtsContent.includes('PlaybackEngine'), 'Declarations must export PlaybackEngine');
+    assert(dtsContent.includes('CompositorEngine'), 'Declarations must export CompositorEngine');
+    assert(dtsContent.includes('RenderEngine'), 'Declarations must export RenderEngine');
+});
+
+// Evaluate bundle in isolated VM with browser mock
+const sandbox = { console };
+sandbox.window = sandbox;
+const bundleSrc = fs.readFileSync(bundlePath, 'utf8');
+vm.runInNewContext(bundleSrc, sandbox);
+const Core = sandbox.ClipMagicCore;
+
+it('ClipMagicCore exports all primary editing engines and guards', () => {
+    assert(Core.TimelineEngine, 'Must export TimelineEngine');
+    assert(Core.PlaybackEngine, 'Must export PlaybackEngine');
+    assert(Core.CompositorEngine, 'Must export CompositorEngine');
+    assert(Core.TransitionEngine, 'Must export TransitionEngine');
+    assert(Core.KeyframeEngine, 'Must export KeyframeEngine');
+    assert(Core.AudioEngine, 'Must export AudioEngine');
+    assert(Core.FilterEngine, 'Must export FilterEngine');
+    assert(Core.OverlayEngine, 'Must export OverlayEngine');
+    assert(Core.RenderEngine, 'Must export RenderEngine');
+    assert(typeof Core.isVideoClip === 'function', 'Must export isVideoClip');
+    assert(typeof Core.isAudioClip === 'function', 'Must export isAudioClip');
+});
+
+it('TimelineEngine: accurately calculates clip duration accounting for speed segments', () => {
+    const normalClip = { id: 'c1', assetId: 'a1', name: 'V1', type: 'video', start: 0, duration: 10, trimStart: 2, trimEnd: 8, volume: 1, speed: 1.0 };
+    const dur1 = Core.TimelineEngine.calculateClipDuration(normalClip);
+    assert.strictEqual(dur1, 6.0, 'Duration should be trimEnd - trimStart at 1.0x speed');
+
+    const fastClip = { id: 'c2', assetId: 'a1', name: 'V2', type: 'video', start: 0, duration: 10, trimStart: 0, trimEnd: 10, volume: 1, speed: 2.0 };
+    const dur2 = Core.TimelineEngine.calculateClipDuration(fastClip);
+    assert.strictEqual(dur2, 5.0, 'Duration should be halved at 2.0x speed');
+});
+
+it('TimelineEngine: splitClipAtTime correctly divides clip into two continuous instances', () => {
+    const clip = { id: 'c_orig', assetId: 'a1', name: 'Original', type: 'video', start: 2.0, duration: 10.0, trimStart: 0.0, trimEnd: 10.0, volume: 1, speed: 1.0 };
+    const track = { id: 't1', type: 'video', clips: [clip] };
+    // Split at timeline time 6.0s (4.0s into the clip)
+    const result = Core.TimelineEngine.splitClipAtTime(clip, track, 6.0);
+    assert(result, 'splitClipAtTime should return a split pair');
+    const { original, created } = result;
+
+    assert.strictEqual(original.start, 2.0);
+    assert.strictEqual(original.trimStart, 0.0);
+    assert.strictEqual(original.trimEnd, 4.0);
+    assert.strictEqual(original.duration, 4.0);
+
+    assert.strictEqual(created.start, 6.0);
+    assert.strictEqual(created.trimStart, 4.0);
+    assert.strictEqual(created.trimEnd, 10.0);
+    assert.strictEqual(created.duration, 6.0);
+    assert.strictEqual(track.clips.length, 2, 'Track should now have both clips');
+});
+
+it('TimelineEngine: calculateMagneticSnap snaps playhead to clip boundary within threshold', () => {
+    const tracks = [
+        { id: 't1', type: 'video', clips: [
+            { id: 'c1', assetId: 'a1', name: 'C1', type: 'video', start: 0, duration: 5, trimStart: 0, trimEnd: 5, volume: 1 },
+            { id: 'c2', assetId: 'a1', name: 'C2', type: 'video', start: 5, duration: 5, trimStart: 0, trimEnd: 5, volume: 1 }
+        ]}
+    ];
+
+    // Near 5.0s boundary (4.95s is within 0.15s threshold)
+    const snap1 = Core.TimelineEngine.calculateMagneticSnap(4.95, tracks, 0.15);
+    assert.strictEqual(snap1.didSnap, true);
+    assert.strictEqual(snap1.snappedTime, 5.0);
+
+    // Far from 5.0s boundary (3.2s is outside threshold)
+    const snap2 = Core.TimelineEngine.calculateMagneticSnap(3.2, tracks, 0.15);
+    assert.strictEqual(snap2.didSnap, false);
+    assert.strictEqual(snap2.snappedTime, 3.2);
+});
+
+it('TimelineEngine: rippleDeleteClip removes clip and shifts subsequent clips', () => {
+    const tracks = [
+        { id: 't1', type: 'video', clips: [
+            { id: 'c1', assetId: 'a1', name: 'C1', type: 'video', start: 0, duration: 4, trimStart: 0, trimEnd: 4, volume: 1 },
+            { id: 'c2', assetId: 'a1', name: 'C2', type: 'video', start: 4, duration: 6, trimStart: 0, trimEnd: 6, volume: 1 },
+            { id: 'c3', assetId: 'a1', name: 'C3', type: 'video', start: 10, duration: 5, trimStart: 0, trimEnd: 5, volume: 1 }
+        ]}
+    ];
+
+    const deleted = Core.TimelineEngine.rippleDeleteClip(tracks, 'c2');
+    assert.strictEqual(deleted, true);
+    assert.strictEqual(tracks[0].clips.length, 2);
+    assert.strictEqual(tracks[0].clips[0].id, 'c1');
+    assert.strictEqual(tracks[0].clips[1].id, 'c3');
+    // c3 should be rippled backwards by 6 seconds (from 10 to 4)
+    assert.strictEqual(tracks[0].clips[1].start, 4);
+});
+
+it('KeyframeEngine: applyEasing and valueAt interpolate with easing curves', () => {
+    assert.strictEqual(Core.KeyframeEngine.applyEasing(0, 'ease-in'), 0);
+    assert.strictEqual(Core.KeyframeEngine.applyEasing(1, 'ease-in'), 1);
+    assert(Core.KeyframeEngine.applyEasing(0.5, 'ease-in') < 0.5, 'Ease-in starts slower');
+    assert(Core.KeyframeEngine.applyEasing(0.5, 'ease-out') > 0.5, 'Ease-out finishes slower');
+
+    const keyframes = [
+        { time: 0.0, property: 'scale', value: 100, easing: 'linear' },
+        { time: 2.0, property: 'scale', value: 200, easing: 'linear' }
+    ];
+
+    const midway = Core.KeyframeEngine.valueAt(keyframes, 'scale', 1.0, 100);
+    assert.strictEqual(midway, 150, 'Midway linear interpolation should be 150');
+
+    const before = Core.KeyframeEngine.valueAt(keyframes, 'scale', -1.0, 100);
+    assert.strictEqual(before, 100, 'Clamps to first keyframe before start');
+
+    const after = Core.KeyframeEngine.valueAt(keyframes, 'scale', 5.0, 100);
+    assert.strictEqual(after, 200, 'Clamps to last keyframe after end');
+});
+
+it('AudioEngine: computeInstantVolume applies fade-in and fade-out smoothly', () => {
+    const audioClip = {
+        id: 'a1', assetId: 'aud1', name: 'Track', type: 'audio',
+        start: 0, duration: 10, trimStart: 0, trimEnd: 10, volume: 1.0,
+        fadeIn: 2.0, fadeOut: 2.0
+    };
+
+    // At 0s: fade-in should be 0 volume
+    assert.strictEqual(Core.AudioEngine.computeInstantVolume(audioClip, 0), 0);
+    // At 1s: halfway through 2s fade-in (approx 0.5)
+    assert.strictEqual(Math.round(Core.AudioEngine.computeInstantVolume(audioClip, 1.0) * 100) / 100, 0.5);
+    // At 5s: full volume (1.0)
+    assert.strictEqual(Core.AudioEngine.computeInstantVolume(audioClip, 5.0), 1.0);
+    // At 9s: halfway through 2s fade-out (approx 0.5)
+    assert.strictEqual(Math.round(Core.AudioEngine.computeInstantVolume(audioClip, 9.0) * 100) / 100, 0.5);
+    // At 10s: fade-out complete (0 volume)
+    assert.strictEqual(Core.AudioEngine.computeInstantVolume(audioClip, 10.0), 0);
+});
+
+it('CompositorEngine: calculates PiP rect bounds correctly for positioning presets', () => {
+    const pipBottomRight = Core.CompositorEngine.computePiPStyle({ position: 'bottom-right', size: 30, opacity: 100 });
+    assert.strictEqual(pipBottomRight.left, '65%');
+    assert.strictEqual(pipBottomRight.top, '65%');
+    assert.strictEqual(pipBottomRight.width, '30%');
+
+    const pipCenter = Core.CompositorEngine.computePiPStyle({ position: 'center', size: 50, opacity: 100 });
+    assert.strictEqual(pipCenter.left, '25%');
+    assert.strictEqual(pipCenter.top, '25%');
+    assert.strictEqual(pipCenter.width, '50%');
+});
+
+it('TransitionEngine: maps transitions to FFmpeg xfade filter names', () => {
+    assert.strictEqual(Core.TransitionEngine.toFFmpegXFade('fade'), 'fade');
+    assert.strictEqual(Core.TransitionEngine.toFFmpegXFade('dissolve'), 'fade');
+    assert.strictEqual(Core.TransitionEngine.toFFmpegXFade('slide'), 'slideleft');
+    assert.strictEqual(Core.TransitionEngine.toFFmpegXFade('zoom'), 'zoomin');
+    assert.strictEqual(Core.TransitionEngine.toFFmpegXFade('dip-black'), 'fadeblack');
+});
+
+
+it('RenderEngine: evaluates lossless copy capability and builds render plans', () => {
+    const losslessProject = {
+        id: 'p_lossless', name: 'Simple Cut', schemaVersion: 2, mediaAssets: [{ id: 'v1', name: 'V.mp4' }],
+        tracks: [
+            { id: 't1', type: 'video', clips: [{ id: 'c1', assetId: 'v1', name: 'Clip', type: 'video', start: 0, duration: 10, trimStart: 2, trimEnd: 8, volume: 1 }] }
+        ],
+        textOverlays: []
+    };
+
+    const losslessSettings = Core.RenderEngine.normalizeSettings({ quality: 'lossless' });
+    assert.strictEqual(Core.RenderEngine.canPerformLosslessCopy(losslessProject, losslessSettings), true);
+
+    const plan = Core.RenderEngine.buildRenderPlan(losslessProject, losslessSettings, 6.0);
+    assert.strictEqual(plan.isLossless, true);
+    assert(plan.outputArgs.includes('-c') && plan.outputArgs.includes('copy'), 'Must use -c copy for lossless plan');
+
+    // Add filter to clip -> lossless should be disabled, full transcode planned
+    losslessProject.tracks[0].clips[0].filter = 'cyberpunk';
+    assert.strictEqual(Core.RenderEngine.canPerformLosslessCopy(losslessProject, losslessSettings), false);
+
+    const reencodePlan = Core.RenderEngine.buildRenderPlan(losslessProject, Core.RenderEngine.normalizeSettings({ quality: 'balanced', resolution: 1080 }), 6.0);
+    assert.strictEqual(reencodePlan.isLossless, false);
+    assert(reencodePlan.outputArgs.includes('libx264'), 'Must transcode with libx264 when filters are present');
+    assert(reencodePlan.filterComplex.includes('scale='), 'Must include scaling filter in re-encode plan');
+});
+
+it('Project Validation: validates and upgrades legacy project states', () => {
+    const rawLegacy = {
+        name: 'Old Project',
+        tracks: [{ id: 'v1', clips: [{ id: 'c1', assetId: 'a1', start: 0, duration: 5 }] }]
+    };
+
+    const validated = Core.validateProjectState(rawLegacy);
+    assert(validated.id, 'Must generate ID if missing');
+    assert.strictEqual(validated.schemaVersion, 2, 'Must upgrade schemaVersion to 2');
+    assert.strictEqual(validated.tracks[0].type, 'video', 'Must backfill track type if missing');
+    assert(Array.isArray(validated.textOverlays), 'Must ensure textOverlays is an array');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -538,3 +793,4 @@ console.log('══════════════════════�
 if (passedTests !== totalTests) {
     process.exit(1);
 }
+

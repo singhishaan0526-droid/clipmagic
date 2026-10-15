@@ -1,6 +1,7 @@
 
 {
   "framework": null,
+  "buildCommand": "npm run build",
   "outputDirectory": "frontend",
   "cleanUrls": true,
   "headers": [
