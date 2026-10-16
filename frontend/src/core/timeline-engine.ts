@@ -6,6 +6,7 @@
 import { Clip } from '../types/clip';
 import { Track } from '../types/project';
 import { ActiveClipInstance, SnappingResult, SnappingTarget } from '../types/timeline';
+import { calculateOutputDuration, outputTimeToSourceLocal } from '../features/speed';
 
 export const MIN_TRIM_SECONDS = 0.1;
 export const DEFAULT_SNAP_THRESHOLD = 0.15; // 150ms snap attraction window
@@ -46,13 +47,10 @@ export function getClipSourceDuration(clip: Clip, assetDuration?: number): numbe
 }
 
 /**
- * Computes active timeline duration of a clip accounting for trim points and speed.
+ * Computes active timeline duration of a clip accounting for trim points and speed (constant or velocity curve).
  */
 export function calculateClipDuration(clip: Clip): number {
-    const trimStart = Number(clip.trimStart) || 0;
-    const trimEnd = Number(clip.trimEnd) || Number(clip.duration) || (trimStart + 1);
-    const speed = Math.max(0.1, Number(clip.speed) || 1.0);
-    return Math.max(MIN_TRIM_SECONDS, (trimEnd - trimStart) / speed);
+    return Math.max(MIN_TRIM_SECONDS, calculateOutputDuration(clip));
 }
 
 /**
@@ -83,14 +81,14 @@ export function resolveActiveClipsAtTime(tracks: Track[], time: number): ActiveC
         
         (track.clips || []).forEach(clip => {
             const start = Number(clip.start) || 0;
-            const speed = Math.max(0.1, Number(clip.speed) || 1.0);
+            const activeDur = calculateClipDuration(clip);
             const trimStart = Number(clip.trimStart) || 0;
-            const trimEnd = Number(clip.trimEnd) || Number(clip.duration) || (trimStart + 1);
-            const activeDur = (trimEnd - trimStart) / speed;
+            const trimEnd = Number(clip.trimEnd) || (trimStart + (Number(clip.duration) || 10));
 
             if (time >= start && time < start + activeDur) {
-                const clipTimeOffset = (time - start) * speed;
-                const sourceTime = trimStart + clipTimeOffset;
+                const outLocal = Math.max(0, time - start);
+                const sourceLocal = outputTimeToSourceLocal(clip, outLocal);
+                const sourceTime = trimStart + sourceLocal;
                 active.push({
                     clip,
                     track,
@@ -130,22 +128,23 @@ export function splitClipAtTime(
     splitTime: number
 ): { original: Clip; created: Clip } | null {
     const start = Number(clip.start) || 0;
-    const speed = Math.max(0.1, Number(clip.speed) || 1.0);
+    const activeDur = calculateClipDuration(clip);
     const trimStart = Number(clip.trimStart) || 0;
     const trimEnd = Number(clip.trimEnd) || Number(clip.duration) || 10;
-    const activeDur = (trimEnd - trimStart) / speed;
 
     if (splitTime <= start + MIN_TRIM_SECONDS || splitTime >= start + activeDur - MIN_TRIM_SECONDS) {
         return null; // Split point too close to boundary
     }
 
-    const sourceCutPoint = trimStart + (splitTime - start) * speed;
+    const outLocal = splitTime - start;
+    const sourceLocal = outputTimeToSourceLocal(clip, outLocal);
+    const sourceCutPoint = trimStart + sourceLocal;
     const clipIndex = track.clips.indexOf(clip);
     if (clipIndex === -1) return null;
 
     // First half updates in place
     clip.trimEnd = Number(sourceCutPoint.toFixed(3));
-    clip.duration = Number((clip.trimEnd - clip.trimStart).toFixed(3));
+    clip.duration = calculateClipDuration(clip);
 
     // Second half gets created as a separate clone
     const createdClip: Clip = {
@@ -153,9 +152,9 @@ export function splitClipAtTime(
         id: `clip-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         start: Number(splitTime.toFixed(3)),
         trimStart: Number(sourceCutPoint.toFixed(3)),
-        trimEnd: Number(trimEnd.toFixed(3)),
-        duration: Number((trimEnd - sourceCutPoint).toFixed(3))
+        trimEnd: Number(trimEnd.toFixed(3))
     };
+    createdClip.duration = calculateClipDuration(createdClip);
 
     track.clips.splice(clipIndex + 1, 0, createdClip);
     return { original: clip, created: createdClip };

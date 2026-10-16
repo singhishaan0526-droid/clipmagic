@@ -593,6 +593,7 @@ it('TypeScript build artifacts and type declarations exist', () => {
     assert(dtsContent.includes('PlaybackEngine'), 'Declarations must export PlaybackEngine');
     assert(dtsContent.includes('CompositorEngine'), 'Declarations must export CompositorEngine');
     assert(dtsContent.includes('RenderEngine'), 'Declarations must export RenderEngine');
+    assert(dtsContent.includes('SpeedEngine'), 'Declarations must export SpeedEngine');
 });
 
 // Evaluate bundle in isolated VM with browser mock
@@ -611,6 +612,7 @@ it('ClipMagicCore exports all primary editing engines and guards', () => {
     assert(Core.AudioEngine, 'Must export AudioEngine');
     assert(Core.FilterEngine, 'Must export FilterEngine');
     assert(Core.OverlayEngine, 'Must export OverlayEngine');
+    assert(Core.SpeedEngine, 'Must export SpeedEngine');
     assert(Core.RenderEngine, 'Must export RenderEngine');
     assert(typeof Core.isVideoClip === 'function', 'Must export isVideoClip');
     assert(typeof Core.isAudioClip === 'function', 'Must export isAudioClip');
@@ -781,6 +783,139 @@ it('Project Validation: validates and upgrades legacy project states', () => {
     assert.strictEqual(validated.schemaVersion, 2, 'Must upgrade schemaVersion to 2');
     assert.strictEqual(validated.tracks[0].type, 'video', 'Must backfill track type if missing');
     assert(Array.isArray(validated.textOverlays), 'Must ensure textOverlays is an array');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10. Speed Ramping & Velocity Editor Engine
+// ─────────────────────────────────────────────────────────────────────────────
+console.log('\n🚀 Test Suite 10: Speed Ramping, Velocity Curves & FFmpeg Timing Integration');
+
+it('SpeedEngine: provides all 7 ready-made presets with valid control points', () => {
+    const presets = ['montage', 'hero', 'bullet', 'flash-in', 'flash-out', 'smooth-slow', 'custom'];
+    presets.forEach(preset => {
+        const curve = Core.SpeedEngine.createPresetCurve(preset);
+        assert.strictEqual(curve.preset, preset);
+        assert(Array.isArray(curve.points), `${preset} must have points array`);
+        assert(curve.points.length >= 4, `${preset} must have at least 4 control points`);
+        assert.strictEqual(curve.points[0].t, 0.0, `${preset} start point must be t=0`);
+        assert.strictEqual(curve.points[curve.points.length - 1].t, 1.0, `${preset} end point must be t=1`);
+        curve.points.forEach(p => {
+            assert(p.v >= Core.SpeedEngine.MIN_SPEED, `${preset} point speed >= 0.25`);
+            assert(p.v <= Core.SpeedEngine.MAX_SPEED, `${preset} point speed <= 4.0`);
+        });
+    });
+});
+
+it('SpeedEngine: sanitizeCurveData guarantees sorted points and boundary clamping', () => {
+    const malformed = {
+        preset: 'custom',
+        points: [
+            { t: 0.8, v: 5.5 }, // over max speed
+            { t: 0.2, v: 0.05 }, // under min speed
+            { t: 0.5, v: 2.0 }
+        ]
+    };
+
+    const clean = Core.SpeedEngine.sanitizeCurveData(malformed);
+    assert.strictEqual(clean.points[0].t, 0.0, 'Must pad start boundary at t=0');
+    assert.strictEqual(clean.points[clean.points.length - 1].t, 1.0, 'Must pad end boundary at t=1');
+    for (let i = 0; i < clean.points.length - 1; i++) {
+        assert(clean.points[i].t <= clean.points[i + 1].t, 'Points must be strictly sorted by t');
+    }
+    clean.points.forEach(p => {
+        assert(p.v >= Core.SpeedEngine.MIN_SPEED && p.v <= Core.SpeedEngine.MAX_SPEED, 'Points clamped');
+    });
+});
+
+it('SpeedEngine: monotonic cubic Hermite interpolation avoids overshoot and preserves bounds', () => {
+    const curve = Core.SpeedEngine.createPresetCurve('hero');
+    const table = Core.SpeedEngine.buildSpeedIntegrationTable(curve, 100);
+
+    for (let i = 0; i <= 100; i++) {
+        const speed = table.speedSamples[i];
+        assert(speed >= Core.SpeedEngine.MIN_SPEED, `Interpolated speed ${speed} must not dip below 0.25`);
+        assert(speed <= Core.SpeedEngine.MAX_SPEED, `Interpolated speed ${speed} must not exceed 4.0`);
+    }
+});
+
+it('SpeedEngine: numerical integration accurately calculates output duration (integral of 1/v dt)', () => {
+    // 10s clip at constant 2x speed -> output 5s
+    const clip2x = { id: 'c1', assetId: 'a1', name: '2x', type: 'video', start: 0, duration: 10, trimStart: 0, trimEnd: 10, speed: 2.0, volume: 1 };
+    assert.strictEqual(Core.TimelineEngine.calculateClipDuration(clip2x), 5.0);
+
+    // 10s clip at constant 0.5x speed -> output 20s
+    const clipHalf = { id: 'c2', assetId: 'a1', name: '0.5x', type: 'video', start: 0, duration: 10, trimStart: 0, trimEnd: 10, speed: 0.5, volume: 1 };
+    assert.strictEqual(Core.TimelineEngine.calculateClipDuration(clipHalf), 20.0);
+
+    // 10s clip with variable speed curve (Hero preset)
+    const clipHero = {
+        id: 'c3', assetId: 'a1', name: 'Hero Clip', type: 'video', start: 0, duration: 10, trimStart: 0, trimEnd: 10,
+        volume: 1, speedMode: 'curve', speedCurve: Core.SpeedEngine.createPresetCurve('hero')
+    };
+    const heroDur = Core.TimelineEngine.calculateClipDuration(clipHero);
+    // Hero has slow-motion middle section, so output duration must be longer than 10s (approx 12-16s)
+    assert(heroDur > 10.0, `Hero preset output duration (${heroDur}s) should be greater than 10s source due to slow-mo`);
+
+    // Flash-in preset accelerates into fast motion (speeds up to 3.5x), so output duration is shorter than source
+    const clipFlashIn = {
+        id: 'c4', assetId: 'a1', name: 'FlashIn Clip', type: 'video', start: 0, duration: 10, trimStart: 0, trimEnd: 10,
+        volume: 1, speedMode: 'curve', speedCurve: Core.SpeedEngine.createPresetCurve('flash-in')
+    };
+    const flashDur = Core.TimelineEngine.calculateClipDuration(clipFlashIn);
+    assert(flashDur < 10.0, `Flash In preset output duration (${flashDur}s) should be shorter than 10s source due to fast motion`);
+});
+
+it('SpeedEngine: forward and inverse time mapping roundtrips accurately', () => {
+    const clip = {
+        id: 'c1', assetId: 'a1', name: 'Test', type: 'video', start: 0, duration: 10, trimStart: 2, trimEnd: 12,
+        volume: 1, speedMode: 'curve', speedCurve: Core.SpeedEngine.createPresetCurve('montage')
+    };
+
+    const outDur = Core.SpeedEngine.calculateOutputDuration(clip);
+    // Test multiple sample points across the clip
+    for (let testOutTime = 0.5; testOutTime < outDur - 0.5; testOutTime += 1.5) {
+        const srcTimeLocal = Core.SpeedEngine.outputTimeToSourceLocal(clip, testOutTime);
+        const mappedOutTime = Core.SpeedEngine.sourceTimeToOutputLocal(clip, srcTimeLocal);
+        assert(Math.abs(mappedOutTime - testOutTime) < 0.05, `Roundtrip mapping error at ${testOutTime}s should be < 50ms (got ${mappedOutTime}s)`);
+    }
+});
+
+it('SpeedEngine: generates valid FFmpeg video setpts filter expressions and audio atempo filters', () => {
+    const clipCurve = {
+        id: 'c1', assetId: 'a1', name: 'Curve Clip', type: 'video', start: 0, duration: 10, trimStart: 0, trimEnd: 10,
+        volume: 1, speedMode: 'curve', speedCurve: Core.SpeedEngine.createPresetCurve('bullet')
+    };
+
+    const vFilter = Core.SpeedEngine.generateFfmpegVideoSpeedFilter(clipCurve, 30);
+    assert(vFilter.filterChain.length >= 2, 'Video filter chain must have at least setpts and fps');
+    assert(vFilter.filterChain[0].startsWith("setpts='if(lt(T,"), 'Must use piecewise setpts expression for curve');
+    assert(vFilter.filterChain.some(f => f.includes('fps=30')), 'Must include output frame rate');
+
+    const aFilter = Core.SpeedEngine.generateFfmpegAudioSpeedFilter(clipCurve);
+    assert.strictEqual(aFilter.isMuted, false);
+    assert(aFilter.filterStr.includes('atempo='), 'Must include atempo filter');
+
+    // Muted audio test
+    clipCurve.speedAudioMute = true;
+    const aMuted = Core.SpeedEngine.generateFfmpegAudioSpeedFilter(clipCurve);
+    assert.strictEqual(aMuted.isMuted, true);
+    assert(aMuted.filterStr.includes('aevalsrc='), 'Muted clip audio generates silence of matching duration');
+});
+
+it('TimelineEngine: resolveActiveClipsAtTime correctly tracks variable speed frame progression', () => {
+    const clipHero = {
+        id: 'c_hero', assetId: 'a1', name: 'Hero', type: 'video', start: 0, duration: 10, trimStart: 5, trimEnd: 15,
+        volume: 1, speedMode: 'curve', speedCurve: Core.SpeedEngine.createPresetCurve('hero')
+    };
+    const track = { id: 't1', type: 'video', isBase: true, clips: [clipHero] };
+
+    const activeAtStart = Core.TimelineEngine.resolveActiveClipsAtTime([track], 0.0);
+    assert.strictEqual(activeAtStart.length, 1);
+    assert.strictEqual(Math.round(activeAtStart[0].sourceTime), 5, 'At timeline 0, source time is trimStart (5.0s)');
+
+    const activeMid = Core.TimelineEngine.resolveActiveClipsAtTime([track], 3.0);
+    assert.strictEqual(activeMid.length, 1);
+    assert(activeMid[0].sourceTime > 5.0 && activeMid[0].sourceTime < 15.0, 'Mid-playhead maps into source interval');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

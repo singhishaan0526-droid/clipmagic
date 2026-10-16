@@ -103,6 +103,8 @@ export class RenderEngine {
         if (clip.transform && (clip.transform.scale !== 100 || clip.transform.x !== 0 || clip.transform.y !== 0 || clip.transform.rotation !== 0)) return false;
         if (clip.keyframes && clip.keyframes.length > 0) return false;
         if (project.textOverlays && project.textOverlays.length > 0) return false;
+        if (clip.speedMode === 'curve') return false;
+        if (typeof clip.speed === 'number' && Math.abs(clip.speed - 1.0) > 0.01) return false;
 
         return true;
     }

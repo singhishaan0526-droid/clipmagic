@@ -187,7 +187,8 @@ async function exportProjectVideo(projectId, opts = {}) {
         const hasAnimTracks = animFirst && Object.values(animFirst).some(track => Array.isArray(track) && track.length > 0);
         const hasKeyframesFirst = hasLegacyKeyframes || hasAnimTracks || !!targetFirstClip.activePreset;
         const hasTransformFirst = targetFirstClip.transform && (targetFirstClip.transform.scale !== 100 || targetFirstClip.transform.x !== 0 || targetFirstClip.transform.y !== 0 || targetFirstClip.transform.rotation !== 0 || targetFirstClip.transform.opacity !== 100);
-        const isSingleClipTrim = clips.length === 1 && pipClips.length === 0 && (!musicTrack || !musicTrack.clips || musicTrack.clips.length === 0) && !targetFirstClip.filter && !targetFirstClip.colorGrade?.preset && !targetFirstClip.vfx?.preset && !hasKeyframesFirst && !hasTransformFirst;
+        const hasSpeedRampFirst = targetFirstClip.speedMode === 'curve' || (typeof targetFirstClip.speed === 'number' && Math.abs(targetFirstClip.speed - 1.0) > 0.01);
+        const isSingleClipTrim = clips.length === 1 && pipClips.length === 0 && (!musicTrack || !musicTrack.clips || musicTrack.clips.length === 0) && !targetFirstClip.filter && !targetFirstClip.colorGrade?.preset && !targetFirstClip.vfx?.preset && !hasKeyframesFirst && !hasTransformFirst && !hasSpeedRampFirst;
 
         if (isLosslessRequested || (opts.losslessAuto && isSingleClipTrim && !hasTextOverlays)) {
             showToast('⚡ Instant Lossless Stream Copy rendering...', '⚡', 'success');
@@ -298,7 +299,13 @@ async function exportProjectVideo(projectId, opts = {}) {
                 sunset: 'colorbalance=rs=.12:gs=.02:bs=-.08,eq=saturation=1.4'
             };
             const videoLabel = `[video${idx}]`;
-            const videoFilters = ['setpts=PTS-STARTPTS'];
+            let videoFilters = ['setpts=PTS-STARTPTS'];
+            if (window.ClipMagicCore?.SpeedEngine && (clip.speedMode === 'curve' || (typeof clip.speed === 'number' && Math.abs(clip.speed - 1.0) > 0.01))) {
+                const sFilterRes = window.ClipMagicCore.SpeedEngine.generateFfmpegVideoSpeedFilter(clip, fps || 30);
+                if (sFilterRes && Array.isArray(sFilterRes.filterChain) && sFilterRes.filterChain.length > 0) {
+                    videoFilters = [...sFilterRes.filterChain];
+                }
+            }
             if (targetHeight) videoFilters.push(`scale=-2:${targetHeight}:flags=lanczos`);
 
             // Motion & Keyframe Camera Zoom/Pan/Rotate/Opacity Filters
@@ -444,12 +451,21 @@ async function exportProjectVideo(projectId, opts = {}) {
                 filterParts.push(`[${idx}:v]${videoFilters.join(',')}${videoLabel}`);
             }
             vStreams.push(videoLabel);
-            const isClipAudioAllowed = !state.muteVideoAudio && clip.hasAudio !== false && !clip.muteAudio && (clip.volume === undefined || clip.volume > 0);
+            const isClipAudioAllowed = !state.muteVideoAudio && clip.hasAudio !== false && !clip.muteAudio && !clip.speedAudioMute && (clip.volume === undefined || clip.volume > 0);
             if (isClipAudioAllowed) {
                 const audioLabel = `[audio${idx}]`;
                 const baseVolume = Math.max(0, Math.min(2, Number(clip.volume) || 1));
                 const audioFilters = [];
-                const clipDuration = Math.max(0.1, (Number(clip.trimEnd) || 30) - (Number(clip.trimStart) || 0));
+                const clipDuration = window.ClipMagicCore?.SpeedEngine
+                    ? window.ClipMagicCore.SpeedEngine.calculateOutputDuration(clip)
+                    : Math.max(0.1, (Number(clip.trimEnd) || 30) - (Number(clip.trimStart) || 0));
+
+                if (window.ClipMagicCore?.SpeedEngine && (clip.speedMode === 'curve' || (typeof clip.speed === 'number' && Math.abs(clip.speed - 1.0) > 0.01))) {
+                    const aSpeed = window.ClipMagicCore.SpeedEngine.generateFfmpegAudioSpeedFilter(clip);
+                    if (!aSpeed.isMuted && aSpeed.filterStr) {
+                        audioFilters.push(aSpeed.filterStr);
+                    }
+                }
 
                 const volTrack = Array.isArray(anim.volume) && anim.volume.length > 0 ? anim.volume.slice().sort((a, b) => a.t - b.t) : null;
                 if (volTrack && volTrack.length >= 2) {
@@ -471,11 +487,12 @@ async function exportProjectVideo(projectId, opts = {}) {
                 filterParts.push(`[${idx}:a]${audioFilters.join(',')}${audioLabel}`);
                 aStreams.push(audioLabel);
             } else {
-                // inject silence matching the trimmed duration
-                const trimStart = Number.isFinite(clip.trimStart) ? Math.max(0, clip.trimStart) : 0;
-                const trimEnd   = Number.isFinite(clip.trimEnd) && clip.trimEnd > trimStart ? clip.trimEnd : 30;
-                const silLabel  = `[silence${idx}]`;
-                filterParts.push(`aevalsrc=0:d=${trimEnd - trimStart}${silLabel}`);
+                // inject silence matching the calculated output duration
+                const silDur = window.ClipMagicCore?.SpeedEngine
+                    ? window.ClipMagicCore.SpeedEngine.calculateOutputDuration(clip)
+                    : Math.max(0.1, ((Number.isFinite(clip.trimEnd) ? clip.trimEnd : 30) - (Number.isFinite(clip.trimStart) ? clip.trimStart : 0)) / (clip.speed || 1));
+                const silLabel = `[silence${idx}]`;
+                filterParts.push(`aevalsrc=0:d=${silDur.toFixed(3)}${silLabel}`);
                 aStreams.push(silLabel);
             }
         });

@@ -97,7 +97,9 @@
                         const srcDur = getClipSourceDuration(clip);
                         const trimStart = clamp(Number(clip.trimStart) || 0, 0, Math.max(0, srcDur - MIN_TRIM_SECONDS));
                         const trimEnd = clamp(Number(clip.trimEnd) || srcDur, trimStart + MIN_TRIM_SECONDS, srcDur);
-                        const dur = Math.max(MIN_TRIM_SECONDS, trimEnd - trimStart);
+                        const dur = window.ClipMagicCore?.TimelineEngine
+                            ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                            : Math.max(MIN_TRIM_SECONDS, (trimEnd - trimStart) / (clip.speed || 1));
                         if (t >= start && t < start + dur) {
                             activeBaseClip = clip;
                         }
@@ -108,7 +110,11 @@
                     const start = Number(activeBaseClip.start) || 0;
                     const srcDur = getClipSourceDuration(activeBaseClip);
                     const trimStart = clamp(Number(activeBaseClip.trimStart) || 0, 0, Math.max(0, srcDur - MIN_TRIM_SECONDS));
-                    const sourceTime = trimStart + (t - start);
+                    const outLocal = Math.max(0, t - start);
+                    const sourceLocal = window.ClipMagicCore?.SpeedEngine
+                        ? window.ClipMagicCore.SpeedEngine.outputTimeToSourceLocal(activeBaseClip, outLocal)
+                        : outLocal * (activeBaseClip.speed || 1.0);
+                    const sourceTime = trimStart + sourceLocal;
 
                     if (activeBaseClip.type === 'image') {
                         if (baseVid) {
@@ -159,11 +165,17 @@
 
                         if (isPlaying) {
                             if (baseVid.paused) baseVid.play().catch(() => {});
+                            const instantSpeed = window.ClipMagicCore?.SpeedEngine
+                                ? window.ClipMagicCore.SpeedEngine.speedAtSourceLocal(activeBaseClip, sourceLocal)
+                                : (Number(activeBaseClip.speed) || 1.0);
+                            if (Math.abs(baseVid.playbackRate - instantSpeed) > 0.02) {
+                                baseVid.playbackRate = instantSpeed;
+                            }
                         } else {
                             if (!baseVid.paused) baseVid.pause();
                         }
 
-                        const isMuted = baseTrack.muted || activeBaseClip.muted || projectState.muteVideoAudio;
+                        const isMuted = baseTrack.muted || activeBaseClip.muted || activeBaseClip.speedAudioMute || projectState.muteVideoAudio;
                         baseVid.muted = isMuted;
                         if (!isMuted) {
                             const cVol = activeBaseClip.volume !== undefined ? Number(activeBaseClip.volume) : 1;
@@ -188,7 +200,9 @@
                         const srcDur = getClipSourceDuration(clip);
                         const trimStart = clamp(Number(clip.trimStart) || 0, 0, Math.max(0, srcDur - MIN_TRIM_SECONDS));
                         const trimEnd = clamp(Number(clip.trimEnd) || srcDur, trimStart + MIN_TRIM_SECONDS, srcDur);
-                        const dur = Math.max(MIN_TRIM_SECONDS, trimEnd - trimStart);
+                        const dur = window.ClipMagicCore?.TimelineEngine
+                            ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                            : Math.max(MIN_TRIM_SECONDS, (trimEnd - trimStart) / (clip.speed || 1));
 
                         const isActive = (t >= start && t < start + dur);
                         if (!isActive) return;
@@ -205,8 +219,11 @@
                         el.style.display = 'block';
                         el.style.zIndex = String(trackZIndex);
 
-                        const localRel = t - start;
-                        const sourceTime = trimStart + localRel;
+                        const localRel = Math.max(0, t - start);
+                        const sourceLocal = window.ClipMagicCore?.SpeedEngine
+                            ? window.ClipMagicCore.SpeedEngine.outputTimeToSourceLocal(clip, localRel)
+                            : localRel * (clip.speed || 1.0);
+                        const sourceTime = trimStart + sourceLocal;
 
                         if (clip.type !== 'image' && el.tagName === 'VIDEO') {
                             const clipLayerChanged = el.dataset.renderedClipId !== clip.id;
@@ -231,10 +248,16 @@
                             }
                             if (isPlaying) {
                                 if (el.paused) el.play().catch(() => {});
+                                const instantSpeed = window.ClipMagicCore?.SpeedEngine
+                                    ? window.ClipMagicCore.SpeedEngine.speedAtSourceLocal(clip, sourceLocal)
+                                    : (Number(clip.speed) || 1.0);
+                                if (Math.abs(el.playbackRate - instantSpeed) > 0.02) {
+                                    el.playbackRate = instantSpeed;
+                                }
                             } else {
                                 if (!el.paused) el.pause();
                             }
-                            const isMuted = track.muted || clip.muted || projectState.muteVideoAudio;
+                            const isMuted = track.muted || clip.muted || clip.speedAudioMute || projectState.muteVideoAudio;
                             el.muted = isMuted;
                             if (!isMuted) {
                                 const cVol = clip.volume !== undefined ? Number(clip.volume) : 1;
@@ -743,7 +766,10 @@
                     const trimEnd = clamp(Number(c.trimEnd) || sourceDuration, trimStart + MIN_TRIM_SECONDS, sourceDuration);
                     c.trimStart = trimStart;
                     c.trimEnd = trimEnd;
-                    const duration = trimEnd - trimStart;
+                    const duration = window.ClipMagicCore?.TimelineEngine
+                        ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(c)
+                        : Math.max(MIN_TRIM_SECONDS, (trimEnd - trimStart) / (c.speed || 1));
+                    c.duration = duration;
                     clipEl.style.left = (c.start / maxDuration * 100) + '%';
                     clipEl.style.width = (duration / maxDuration * 100) + '%';
                     clipEl.style.background = c.color;
@@ -836,6 +862,21 @@
                         mBadge.className = 'clip-motion-badge';
                         mBadge.textContent = `🔍 ${c.transform.scale}%`;
                         clipEl.appendChild(mBadge);
+                    }
+                    if (c.speedMode === 'curve' && c.speedCurve) {
+                        const sBadge = document.createElement('span');
+                        sBadge.className = 'clip-motion-badge';
+                        sBadge.style.background = 'rgba(56, 189, 248, 0.25)';
+                        sBadge.style.color = '#38bdf8';
+                        sBadge.textContent = `📈 ${c.speedCurve.preset || 'Curve'}`;
+                        clipEl.appendChild(sBadge);
+                    } else if (c.speed && Math.abs(c.speed - 1.0) > 0.01) {
+                        const sBadge = document.createElement('span');
+                        sBadge.className = 'clip-motion-badge';
+                        sBadge.style.background = 'rgba(234, 179, 8, 0.25)';
+                        sBadge.style.color = '#facc15';
+                        sBadge.textContent = `⚡ ${c.speed}×`;
+                        clipEl.appendChild(sBadge);
                     }
                     if (track.type === 'audio' || c.type === 'music' || c.type === 'audio') {
                         const waveform = document.createElement('canvas');
@@ -1586,8 +1627,9 @@
                 </div>`
             },
             speed: {
-                title: 'Speed Ramping',
-                html: `<div class="prop-section"><div class="prop-section-title">Add Speed Point</div><p style="color:var(--text-secondary);font-size:.78rem;margin-bottom:8px">Click a visual speed chip or drag the slider.</p><label class="prop-label">Speed Preset</label><div class="chip-grid" style="margin-bottom:10px"><button class="chip-option" onclick="setSpeedGUI(0.25)">🐢 0.25× Slow</button><button class="chip-option" onclick="setSpeedGUI(0.5)">0.5×</button><button class="chip-option active" onclick="setSpeedGUI(1.0)">▶ 1.0× Normal</button><button class="chip-option" onclick="setSpeedGUI(2.0)">2.0× Fast</button><button class="chip-option" onclick="setSpeedGUI(4.0)">⚡ 4.0× Hyper</button></div><label class="prop-label">Speed Multiplier <span id="speedValLabel">1.0×</span></label><input class="prop-input" id="speedValueRange" type="range" min="0.1" max="8.0" step="0.05" value="1.0" aria-label="Custom speed slider multiplier" oninput="updateSpeedValLabel(this.value)"/><input type="hidden" id="speedValue" value="1"/><button class="music-btn" style="margin-top:10px" onclick="addSpeedPoint()">⏩ Add Speed Point</button></div>`
+                title: 'Speed & Velocity',
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+                html: () => renderSpeedToolHTML()
             },
             pip: {
                 title: 'Picture in Picture',
@@ -1805,17 +1847,865 @@
 
         let selectedOverlay = null;
 
-        function setClipSpeed(clip, speedVal) {
+        // ── Professional Speed Ramping & Velocity Editor Engine ──
+        let speedEditorSelectedPointIndex = 0;
+        let speedEditorActiveDragIndex = null;
+        let speedEditorCanvasRaf = null;
+
+        const speedEscapeHtml = (str) => String(str || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        function rippleUpdateClips(targetClip, oldDur, newDur) {
+            if (!targetClip || !Number.isFinite(oldDur) || !Number.isFinite(newDur) || Math.abs(oldDur - newDur) < 0.001) return;
+            const delta = newDur - oldDur;
+            const track = (projectState.tracks || []).find(tr => (tr.clips || []).some(c => c.id === targetClip.id));
+            if (!track) return;
+            const targetEnd = (Number(targetClip.start) || 0) + oldDur;
+            (track.clips || []).forEach(otherClip => {
+                if (otherClip.id !== targetClip.id && (Number(otherClip.start) || 0) >= targetEnd - 0.05) {
+                    otherClip.start = Math.max(0, (Number(otherClip.start) || 0) + delta);
+                }
+            });
+        }
+
+        function setClipSpeed(clip, speedVal, ripple = true) {
             if (!clip) return;
             recordEdit();
+            const oldDur = window.ClipMagicCore?.TimelineEngine
+                ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                : Math.max(MIN_TRIM_SECONDS, ((clip.trimEnd || getClipSourceDuration(clip)) - (clip.trimStart || 0)) / (clip.speed || 1));
             const speed = clamp(Number(speedVal) || 1.0, 0.25, 4.0);
+            clip.speedMode = 'normal';
             clip.speed = speed;
             clip.speedSegments = [{ time: 0, speed }];
+            const newDur = window.ClipMagicCore?.TimelineEngine
+                ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                : Math.max(MIN_TRIM_SECONDS, ((clip.trimEnd || getClipSourceDuration(clip)) - (clip.trimStart || 0)) / speed);
+            if (ripple) {
+                rippleUpdateClips(clip, oldDur, newDur);
+            }
             const video = document.getElementById('previewVideo');
             if (video) video.playbackRate = speed;
+            requestTimelineRender();
             updatePreviewVisuals();
-            if (selectedClip === clip) selectClip(clip);
-            showToast(`⚡ Playback speed: ${speed}×`, '⚡', 'info');
+            updateSpeedUIElements(clip);
+            if (selectedClip === clip && document.getElementById('inspSpeedVal')) {
+                document.getElementById('inspSpeedVal').textContent = speed.toFixed(2) + '×';
+            }
+            showToast(`⚡ Playback speed: ${speed.toFixed(2)}×`, '⚡', 'info');
+        }
+
+        function setClipSpeedCurve(clip, curveData, ripple = true) {
+            if (!clip) return;
+            recordEdit();
+            const oldDur = window.ClipMagicCore?.TimelineEngine
+                ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                : Math.max(MIN_TRIM_SECONDS, ((clip.trimEnd || getClipSourceDuration(clip)) - (clip.trimStart || 0)) / (clip.speed || 1));
+            clip.speedMode = 'curve';
+            clip.speedCurve = window.ClipMagicCore?.SpeedEngine
+                ? window.ClipMagicCore.SpeedEngine.sanitizeCurveData(curveData)
+                : curveData;
+            const newDur = window.ClipMagicCore?.TimelineEngine
+                ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                : oldDur;
+            if (ripple) {
+                rippleUpdateClips(clip, oldDur, newDur);
+            }
+            requestTimelineRender();
+            updatePreviewVisuals();
+            updateSpeedUIElements(clip);
+            showToast(`📈 Speed Ramp Curve: ${clip.speedCurve?.preset || 'Custom'}`, '📈', 'info');
+        }
+
+        function switchSpeedMode(mode) {
+            const clip = selectedClip || getActiveClip();
+            if (!clip) return;
+            if (mode === 'curve') {
+                if (!clip.speedCurve) {
+                    clip.speedCurve = window.ClipMagicCore?.SpeedEngine?.createPresetCurve('hero') || {
+                        preset: 'hero',
+                        points: [
+                            { t: 0.0, v: 1.0 },
+                            { t: 0.28, v: 1.0 },
+                            { t: 0.5, v: 0.35 },
+                            { t: 0.72, v: 1.0 },
+                            { t: 1.0, v: 1.0 }
+                        ],
+                        interpolation: 'pchip'
+                    };
+                }
+                setClipSpeedCurve(clip, clip.speedCurve, true);
+            } else {
+                const curSpeed = Number(clip.speed) || 1.0;
+                setClipSpeed(clip, curSpeed, true);
+            }
+            const activeTool = document.querySelector('.tool-btn.active')?.id;
+            if (activeTool === 'tool-speed' || document.getElementById('speedNormalSection')) {
+                setTool('speed', false);
+            }
+        }
+
+        function applyNormalSpeedPreset(s) {
+            const clip = selectedClip || getActiveClip();
+            if (!clip) return;
+            setClipSpeed(clip, s, true);
+            updateSpeedUIElements(clip);
+        }
+
+        function onNormalSpeedSlider(val) {
+            const num = clamp(parseFloat(val) || 1.0, 0.25, 4.0);
+            const disp = document.getElementById('normalSpeedDisplay');
+            const inp = document.getElementById('normalSpeedInput');
+            if (disp) disp.textContent = num.toFixed(2) + '×';
+            if (inp) inp.value = num.toFixed(2);
+        }
+
+        function onNormalSpeedSliderEnd(val) {
+            const clip = selectedClip || getActiveClip();
+            if (!clip) return;
+            const num = clamp(parseFloat(val) || 1.0, 0.25, 4.0);
+            setClipSpeed(clip, num, true);
+        }
+
+        function applyNormalSpeedInput(val) {
+            const clip = selectedClip || getActiveClip();
+            if (!clip) return;
+            const num = clamp(parseFloat(val) || 1.0, 0.25, 4.0);
+            const slider = document.getElementById('normalSpeedSlider');
+            if (slider) slider.value = num;
+            setClipSpeed(clip, num, true);
+        }
+
+        function applyCurvePreset(presetId) {
+            const clip = selectedClip || getActiveClip();
+            if (!clip) return;
+            if (!window.ClipMagicCore?.SpeedEngine) return;
+            const newCurve = window.ClipMagicCore.SpeedEngine.createPresetCurve(presetId);
+            setClipSpeedCurve(clip, newCurve, true);
+            speedEditorSelectedPointIndex = Math.min(speedEditorSelectedPointIndex, newCurve.points.length - 1);
+            mountSpeedEditorUI();
+        }
+
+        function addSpeedCurvePointUI() {
+            const clip = selectedClip || getActiveClip();
+            if (!clip || !clip.speedCurve) return;
+            recordEdit();
+            const curve = clip.speedCurve;
+            const pts = curve.points;
+            const srcDur = Math.max(0.05, (clip.trimEnd || getClipSourceDuration(clip)) - (clip.trimStart || 0));
+            const playheadLocalOut = Math.max(0, timelinePlayheadTime - (clip.start || 0));
+            const localSrc = window.ClipMagicCore?.SpeedEngine
+                ? window.ClipMagicCore.SpeedEngine.outputTimeToSourceLocal(clip, playheadLocalOut)
+                : playheadLocalOut;
+            let targetT = clamp(localSrc / srcDur, 0.05, 0.95);
+
+            // Avoid colliding with existing point within 0.03
+            const collides = pts.some(p => Math.abs(p.t - targetT) < 0.03);
+            if (collides) {
+                targetT = 0.5;
+                if (pts.some(p => Math.abs(p.t - targetT) < 0.03)) {
+                    targetT = 0.35;
+                }
+            }
+
+            const currentSpeedAtT = window.ClipMagicCore?.SpeedEngine
+                ? window.ClipMagicCore.SpeedEngine.evaluateSpeedAtNormalizedTime(pts, targetT, curve.interpolation || 'pchip')
+                : 1.0;
+
+            pts.push({ t: targetT, v: clamp(currentSpeedAtT, 0.25, 4.0) });
+            pts.sort((a, b) => a.t - b.t);
+            delete curve._cache;
+            curve.preset = 'custom';
+
+            const newIndex = pts.findIndex(p => Math.abs(p.t - targetT) < 0.001);
+            speedEditorSelectedPointIndex = newIndex >= 0 ? newIndex : 1;
+
+            const oldDur = window.ClipMagicCore?.TimelineEngine
+                ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                : srcDur;
+            requestTimelineRender();
+            updatePreviewVisuals();
+            mountSpeedEditorUI();
+            showToast('➕ Speed point added', '📈', 'info');
+        }
+
+        function deleteSpeedCurvePointUI() {
+            const clip = selectedClip || getActiveClip();
+            if (!clip || !clip.speedCurve) return;
+            const pts = clip.speedCurve.points;
+            if (pts.length <= 2) {
+                return showToast('Curve requires at least start and end points.', '⚠️', 'warning');
+            }
+            if (speedEditorSelectedPointIndex <= 0 || speedEditorSelectedPointIndex >= pts.length - 1) {
+                return showToast('Boundary start/end points cannot be deleted.', '⚠️', 'warning');
+            }
+            recordEdit();
+            const oldDur = window.ClipMagicCore?.TimelineEngine
+                ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                : 10;
+            pts.splice(speedEditorSelectedPointIndex, 1);
+            delete clip.speedCurve._cache;
+            clip.speedCurve.preset = 'custom';
+            speedEditorSelectedPointIndex = Math.max(0, speedEditorSelectedPointIndex - 1);
+
+            const newDur = window.ClipMagicCore?.TimelineEngine
+                ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                : oldDur;
+            rippleUpdateClips(clip, oldDur, newDur);
+            requestTimelineRender();
+            updatePreviewVisuals();
+            mountSpeedEditorUI();
+            showToast('➖ Speed point deleted', '🗑️', 'info');
+        }
+
+        function resetSpeedCurveUI() {
+            const clip = selectedClip || getActiveClip();
+            if (!clip) return;
+            recordEdit();
+            const flatCurve = {
+                preset: 'custom',
+                points: [
+                    { t: 0.0, v: 1.0 },
+                    { t: 0.33, v: 1.0 },
+                    { t: 0.66, v: 1.0 },
+                    { t: 1.0, v: 1.0 }
+                ],
+                interpolation: 'pchip'
+            };
+            setClipSpeedCurve(clip, flatCurve, true);
+            speedEditorSelectedPointIndex = 0;
+            mountSpeedEditorUI();
+            showToast('↺ Speed curve reset to 1.0× flat', '↺', 'info');
+        }
+
+        function onCurvePointSliderInput(val) {
+            const num = clamp(parseFloat(val) || 1.0, 0.25, 4.0);
+            const clip = selectedClip || getActiveClip();
+            if (!clip || !clip.speedCurve) return;
+            const pts = clip.speedCurve.points;
+            if (speedEditorSelectedPointIndex >= 0 && speedEditorSelectedPointIndex < pts.length) {
+                pts[speedEditorSelectedPointIndex].v = num;
+                delete clip.speedCurve._cache;
+                clip.speedCurve.preset = 'custom';
+            }
+            const label = document.getElementById('curvePointSpeedLabel');
+            const numInp = document.getElementById('curvePointSpeedNum');
+            if (label) label.textContent = num.toFixed(2) + '×';
+            if (numInp) numInp.value = num.toFixed(2);
+            updateSpeedCurveLive(clip);
+        }
+
+        function onCurvePointSliderEnd(val) {
+            recordEdit();
+            const clip = selectedClip || getActiveClip();
+            if (clip) updateSpeedCurveLive(clip, true);
+        }
+
+        function onCurvePointNumInput(val) {
+            const num = clamp(parseFloat(val) || 1.0, 0.25, 4.0);
+            const slider = document.getElementById('curvePointSpeedSlider');
+            if (slider) slider.value = num;
+            onCurvePointSliderInput(num);
+            onCurvePointSliderEnd(num);
+        }
+
+        function toggleSpeedAudioPitch(enabled) {
+            const clip = selectedClip || getActiveClip();
+            if (!clip) return;
+            recordEdit();
+            clip.speedAudioPitch = !!enabled;
+            showToast(clip.speedAudioPitch ? '🎵 Audio pitch preserved (time-stretched)' : '⚡ Natural audio resampling', '🎵', 'info');
+        }
+
+        function toggleSpeedAudioMute(enabled) {
+            const clip = selectedClip || getActiveClip();
+            if (!clip) return;
+            recordEdit();
+            clip.speedAudioMute = !!enabled;
+            showToast(clip.speedAudioMute ? '🔇 Clip audio muted during speed change' : '🔊 Clip audio enabled', '🔊', 'info');
+        }
+
+        function updateSpeedUIElements(clip) {
+            if (!clip) return;
+            const srcDur = Math.max(0.05, (clip.trimEnd || getClipSourceDuration(clip)) - (clip.trimStart || 0));
+            const outDur = window.ClipMagicCore?.TimelineEngine
+                ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                : (clip.speedMode === 'normal' ? srcDur / (clip.speed || 1) : srcDur);
+
+            const outVal = document.getElementById('speedOutDurVal');
+            const normBadge = document.getElementById('normalOutDurBadge');
+            const curveBadge = document.getElementById('curveOutDurBadge');
+            const avgBadge = document.getElementById('curveAvgSpeedBadge');
+            if (outVal) outVal.textContent = outDur.toFixed(2) + 's';
+            if (normBadge) normBadge.textContent = outDur.toFixed(2) + 's';
+            if (curveBadge) curveBadge.textContent = outDur.toFixed(2) + 's';
+            if (avgBadge) avgBadge.textContent = (srcDur / outDur).toFixed(2) + '×';
+
+            const chips = document.querySelectorAll('.speed-quick-chips .speed-chip');
+            chips.forEach(chip => {
+                const text = chip.textContent || '';
+                const match = text.match(/([0-9.]+)×/);
+                if (match && clip.speed) {
+                    const s = parseFloat(match[1]);
+                    chip.classList.toggle('active', Math.abs(clip.speed - s) < 0.04);
+                }
+            });
+
+            const normalSlider = document.getElementById('normalSpeedSlider');
+            const normalInp = document.getElementById('normalSpeedInput');
+            const normalDisp = document.getElementById('normalSpeedDisplay');
+            if (normalSlider && clip.speed) normalSlider.value = clip.speed;
+            if (normalInp && clip.speed) normalInp.value = Number(clip.speed).toFixed(2);
+            if (normalDisp && clip.speed) normalDisp.textContent = Number(clip.speed).toFixed(2) + '×';
+
+            const presetCards = document.querySelectorAll('.speed-preset-card');
+            presetCards.forEach(card => {
+                const onclick = card.getAttribute('onclick') || '';
+                const match = onclick.match(/applyCurvePreset\('([^']+)'\)/);
+                if (match && clip.speedCurve) {
+                    card.classList.toggle('active', match[1] === clip.speedCurve.preset);
+                }
+            });
+        }
+
+        function updateSpeedCurveLive(clip, isFinal = false) {
+            if (!clip) return;
+            const canvas = document.getElementById('speedCurveCanvas');
+            if (canvas) {
+                drawSpeedCurveCanvas(canvas, clip);
+            }
+            updateSpeedUIElements(clip);
+            requestTimelineRender();
+            if (isFinal) {
+                const oldDur = window.ClipMagicCore?.TimelineEngine
+                    ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                    : 10;
+                rippleUpdateClips(clip, oldDur, oldDur);
+            }
+        }
+
+        function renderSpeedToolHTML() {
+            const clip = selectedClip || getActiveClip();
+            if (!clip || (clip.type !== 'video' && clip.type !== 'main' && !clip.assetId)) {
+                return `
+                    <div class="prop-section" style="text-align:center;padding:28px 14px;">
+                        <div style="font-size:2.2rem;margin-bottom:8px;opacity:0.85;">⚡</div>
+                        <div style="font-weight:700;font-size:0.95rem;margin-bottom:6px;color:var(--text-primary);">No Video Clip Selected</div>
+                        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;max-width:260px;margin-left:auto;margin-right:auto;line-height:1.45;">
+                            Select a video clip on the timeline to adjust speed or create speed ramping curves.
+                        </p>
+                        <button class="quick-btn" style="justify-content:center;margin:0 auto;padding:10px 18px;font-weight:700;" onclick="const c = getActiveClip(); if (c) { selectClip(c); setTool('speed', true); } else { document.getElementById('fileInput').click(); }">
+                            <span>🎬</span> ${getActiveClip() ? 'Select Current Clip' : '+ Add Video Clip'}
+                        </button>
+                    </div>
+                `;
+            }
+
+            const mode = clip.speedMode || 'normal';
+            const curSpeed = Number(clip.speed) || 1.0;
+            const srcDur = getClipSourceDuration(clip);
+            const trimStart = clamp(Number(clip.trimStart) || 0, 0, srcDur);
+            const trimEnd = clamp(Number(clip.trimEnd) || srcDur, trimStart, srcDur);
+            const effSrcDur = Math.max(0.05, trimEnd - trimStart);
+            const outDur = window.ClipMagicCore?.TimelineEngine
+                ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                : (mode === 'normal' ? effSrcDur / curSpeed : effSrcDur);
+            const curve = clip.speedCurve || window.ClipMagicCore?.SpeedEngine?.createPresetCurve('hero') || { preset: 'hero', points: [], interpolation: 'pchip' };
+            const curPreset = curve.preset || 'custom';
+            const isPitchPreserved = clip.speedAudioPitch ?? true;
+            const isAudioMuted = clip.speedAudioMute ?? false;
+
+            return `
+                <div class="prop-section speed-editor-panel">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;">
+                        <div>
+                            <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+                                <span>⚡</span> <span id="speedClipName">${speedEscapeHtml(clip.name || 'Video Clip')}</span>
+                            </div>
+                            <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">
+                                Src: <span id="speedSrcDurVal">${effSrcDur.toFixed(2)}s</span> ➔ Out: <strong id="speedOutDurVal" style="color:#38bdf8;">${outDur.toFixed(2)}s</strong>
+                            </div>
+                        </div>
+                        <div class="speed-mode-toggle">
+                            <button class="speed-mode-btn ${mode === 'normal' ? 'active' : ''}" id="btnSpeedModeNormal" onclick="switchSpeedMode('normal')">▶ Normal</button>
+                            <button class="speed-mode-btn ${mode === 'curve' ? 'active' : ''}" id="btnSpeedModeCurve" onclick="switchSpeedMode('curve')">📈 Curve</button>
+                        </div>
+                    </div>
+
+                    <!-- NORMAL SPEED SECTION -->
+                    <div id="speedNormalSection" style="${mode === 'normal' ? 'display:block;' : 'display:none;'}">
+                        <label class="prop-label" style="margin-bottom:6px;">Speed Presets</label>
+                        <div class="speed-quick-chips">
+                            ${[0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0].map(s => `
+                                <button class="speed-chip ${Math.abs(curSpeed - s) < 0.04 ? 'active' : ''}" onclick="applyNormalSpeedPreset(${s})">
+                                    ${s === 1.0 ? '1.0× Normal' : s < 1.0 ? `🐢 ${s}×` : s >= 3.0 ? `🚀 ${s}×` : `⚡ ${s}×`}
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <div class="prop-row" style="margin-top:14px;margin-bottom:8px;">
+                            <span class="prop-label">Custom Multiplier: <strong id="normalSpeedDisplay" style="color:#38bdf8;">${curSpeed.toFixed(2)}×</strong></span>
+                            <input class="prop-input" id="normalSpeedInput" type="number" step="0.05" min="0.25" max="4.0" value="${curSpeed.toFixed(2)}" style="width:72px;text-align:center;font-weight:700;" onchange="applyNormalSpeedInput(this.value)" />
+                        </div>
+                        <input class="prop-input" id="normalSpeedSlider" type="range" min="0.25" max="4.0" step="0.05" value="${curSpeed}" style="margin-bottom:14px;" oninput="onNormalSpeedSlider(this.value)" onchange="onNormalSpeedSliderEnd(this.value)" />
+
+                        <div class="speed-stats-badge" style="margin-bottom:14px;">
+                            <div>
+                                <span style="color:var(--text-muted);font-size:0.72rem;">Original Duration:</span>
+                                <div style="font-weight:600;font-size:0.82rem;">${effSrcDur.toFixed(2)}s</div>
+                            </div>
+                            <div style="font-size:1.1rem;color:var(--text-muted);">➔</div>
+                            <div>
+                                <span style="color:var(--text-muted);font-size:0.72rem;">Output Timeline:</span>
+                                <div id="normalOutDurBadge" style="font-weight:700;font-size:0.85rem;color:#38bdf8;">${outDur.toFixed(2)}s</div>
+                            </div>
+                            <div id="normalDiffBadge" style="padding:3px 6px;border-radius:4px;font-size:0.72rem;font-weight:700;background:rgba(56,189,248,0.15);color:#38bdf8;">
+                                ${curSpeed > 1 ? `${(curSpeed).toFixed(1)}× faster` : curSpeed < 1 ? `${(1/curSpeed).toFixed(1)}× slower` : 'Original'}
+                            </div>
+                        </div>
+
+                        <button class="music-btn" style="margin-bottom:14px;background:rgba(168,85,247,0.12);border-color:rgba(168,85,247,0.4);color:#c084fc;font-weight:600;" onclick="switchSpeedMode('curve')">
+                            📈 Switch to Velocity Curve Ramping
+                        </button>
+                    </div>
+
+                    <!-- CURVE SPEED SECTION -->
+                    <div id="speedCurveSection" style="${mode === 'curve' ? 'display:block;' : 'display:none;'}">
+                        <label class="prop-label" style="margin-bottom:6px;">Velocity Presets</label>
+                        <div class="speed-presets-scroll">
+                            ${[
+                                { id: 'montage', icon: '⚡', name: 'Montage', desc: 'Fast & slow beats' },
+                                { id: 'hero', icon: '🦸', name: 'Hero', desc: 'Slow-mo impact drop' },
+                                { id: 'bullet', icon: '🎯', name: 'Bullet', desc: 'Freeze moment pause' },
+                                { id: 'flash-in', icon: '🏎️', name: 'Flash In', desc: 'Ramping to fast speed' },
+                                { id: 'flash-out', icon: '🛑', name: 'Flash Out', desc: 'Fast drop to slow-mo' },
+                                { id: 'smooth-slow', icon: '🌊', name: 'Smooth Slow', desc: 'Cinematic dip' },
+                                { id: 'custom', icon: '✏️', name: 'Custom', desc: 'Freeform curve points' }
+                            ].map(p => `
+                                <div class="speed-preset-card ${curPreset === p.id ? 'active' : ''}" onclick="applyCurvePreset('${p.id}')">
+                                    <span class="speed-preset-icon">${p.icon}</span>
+                                    <span class="speed-preset-name">${p.name}</span>
+                                    <span class="speed-preset-desc">${p.desc}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Canvas Graph Container -->
+                        <div class="speed-curve-wrapper">
+                            <canvas id="speedCurveCanvas" class="speed-curve-canvas"></canvas>
+                        </div>
+
+                        <!-- Curve Control Buttons -->
+                        <div class="speed-point-controls">
+                            <button class="speed-point-btn" id="btnCurveAddPoint" onclick="addSpeedCurvePointUI()" title="Add speed point at playhead or middle">
+                                <span>＋</span> Add Point
+                            </button>
+                            <button class="speed-point-btn" id="btnCurveDelPoint" onclick="deleteSpeedCurvePointUI()" title="Delete selected point">
+                                <span>－</span> Delete Point
+                            </button>
+                            <button class="speed-point-btn" onclick="resetSpeedCurveUI()" title="Reset to 1.0x flat curve">
+                                <span>↺</span> Reset Curve
+                            </button>
+                        </div>
+
+                        <!-- Selected Point Speed Adjustment -->
+                        <div id="selectedPointControlRow" class="prop-row" style="margin-top:8px;margin-bottom:8px;background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);">
+                            <span class="prop-label" style="min-width:90px;">Point Speed: <strong id="curvePointSpeedLabel" style="color:#38bdf8;">1.00×</strong></span>
+                            <input class="prop-input" id="curvePointSpeedSlider" type="range" min="0.25" max="4.0" step="0.05" value="1.0" oninput="onCurvePointSliderInput(this.value)" onchange="onCurvePointSliderEnd(this.value)" />
+                            <input class="prop-input" id="curvePointSpeedNum" type="number" min="0.25" max="4.0" step="0.05" value="1.00" style="width:64px;text-align:center;font-weight:700;" onchange="onCurvePointNumInput(this.value)" />
+                        </div>
+
+                        <div class="speed-stats-badge" style="margin-bottom:12px;">
+                            <div>
+                                <span style="color:var(--text-muted);font-size:0.72rem;">Source:</span>
+                                <div style="font-weight:600;font-size:0.82rem;">${effSrcDur.toFixed(2)}s</div>
+                            </div>
+                            <div>
+                                <span style="color:var(--text-muted);font-size:0.72rem;">Output:</span>
+                                <div id="curveOutDurBadge" style="font-weight:700;font-size:0.85rem;color:#38bdf8;">${outDur.toFixed(2)}s</div>
+                            </div>
+                            <div>
+                                <span style="color:var(--text-muted);font-size:0.72rem;">Avg Velocity:</span>
+                                <div id="curveAvgSpeedBadge" style="font-weight:700;font-size:0.85rem;color:#a855f7;">${(effSrcDur / outDur).toFixed(2)}×</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AUDIO & TIME STRETCH OPTIONS -->
+                    <div class="speed-audio-options">
+                        <div style="font-size:0.78rem;font-weight:700;color:var(--text-primary);margin-bottom:2px;">🎵 Audio Synchronization</div>
+                        <label class="speed-checkbox-label">
+                            <input type="checkbox" id="speedAudioPitchCheck" ${isPitchPreserved ? 'checked' : ''} onchange="toggleSpeedAudioPitch(this.checked)" />
+                            <span>Preserve audio pitch (time-stretch without chipmunk effect)</span>
+                        </label>
+                        <label class="speed-checkbox-label">
+                            <input type="checkbox" id="speedAudioMuteCheck" ${isAudioMuted ? 'checked' : ''} onchange="toggleSpeedAudioMute(this.checked)" />
+                            <span>Mute clip audio during speed change</span>
+                        </label>
+                    </div>
+                </div>
+            `;
+        }
+
+        function mountSpeedEditorUI() {
+            const clip = selectedClip || getActiveClip();
+            if (!clip) return;
+            const canvasList = document.querySelectorAll('#speedCurveCanvas');
+            canvasList.forEach(canvas => {
+                initSpeedCurveCanvas(canvas, clip);
+            });
+            updateSpeedUIElements(clip);
+        }
+
+        function drawSpeedCurveCanvas(canvas, clip) {
+            if (!canvas || !clip) return;
+            const curve = clip.speedCurve;
+            if (!curve || !curve.points) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            const width = rect.width || canvas.clientWidth || 320;
+            const height = 180;
+
+            if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+                canvas.width = Math.round(width * dpr);
+                canvas.height = Math.round(height * dpr);
+                canvas.style.height = height + 'px';
+            }
+
+            ctx.save();
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, width, height);
+
+            const padLeft = 32;
+            const padRight = 14;
+            const padTop = 16;
+            const padBottom = 22;
+            const W = Math.max(10, width - padLeft - padRight);
+            const H = Math.max(10, height - padTop - padBottom);
+
+            // Logarithmic mapping: log2(0.25) = -2 (bottom), log2(1) = 0 (center), log2(4) = +2 (top)
+            const speedToY = (v) => {
+                const logV = Math.log2(clamp(v, 0.25, 4.0));
+                const norm = (logV + 2) / 4; // 0 to 1
+                return padTop + (1 - norm) * H;
+            };
+
+            const tToX = (t) => padLeft + clamp(t, 0, 1) * W;
+
+            // 1. Grid Lines & Speed Labels
+            const gridLevels = [
+                { v: 4.0, label: '4×' },
+                { v: 2.0, label: '2×' },
+                { v: 1.0, label: '1×', isOne: true },
+                { v: 0.5, label: '0.5×' },
+                { v: 0.25, label: '0.25×' }
+            ];
+
+            ctx.font = '10px Inter, -apple-system, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+
+            gridLevels.forEach(lvl => {
+                const y = speedToY(lvl.v);
+                ctx.beginPath();
+                if (lvl.isOne) {
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+                    ctx.lineWidth = 1.2;
+                    ctx.fillStyle = '#38bdf8';
+                } else {
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                    ctx.lineWidth = 1;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                }
+                ctx.moveTo(padLeft, y);
+                ctx.lineTo(padLeft + W, y);
+                ctx.stroke();
+                ctx.fillText(lvl.label, padLeft - 6, y);
+            });
+            ctx.setLineDash([]);
+
+            // 2. Continuous Speed Curve & Shaded Area
+            const steps = 120;
+            const curvePoints = [];
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const v = window.ClipMagicCore?.SpeedEngine
+                    ? window.ClipMagicCore.SpeedEngine.evaluateSpeedAtNormalizedTime(curve.points, t, curve.interpolation || 'pchip')
+                    : 1.0;
+                curvePoints.push({ x: tToX(t), y: speedToY(v), t, v });
+            }
+
+            // Fill area under curve
+            const grad = ctx.createLinearGradient(0, padTop, 0, padTop + H);
+            grad.addColorStop(0, 'rgba(56, 189, 248, 0.32)');
+            grad.addColorStop(0.5, 'rgba(168, 85, 247, 0.16)');
+            grad.addColorStop(1, 'rgba(168, 85, 247, 0.02)');
+
+            ctx.beginPath();
+            ctx.moveTo(padLeft, padTop + H);
+            curvePoints.forEach((pt, i) => {
+                if (i === 0) ctx.lineTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
+            ctx.lineTo(padLeft + W, padTop + H);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Stroke curve line with cyan glow
+            ctx.beginPath();
+            curvePoints.forEach((pt, i) => {
+                if (i === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
+            ctx.shadowColor = 'rgba(56, 189, 248, 0.6)';
+            ctx.shadowBlur = 8;
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // 3. Current Playhead Indicator Line
+            const srcDur = Math.max(0.05, (clip.trimEnd || getClipSourceDuration(clip)) - (clip.trimStart || 0));
+            const clipStart = Number(clip.start) || 0;
+            if (timelinePlayheadTime >= clipStart && timelinePlayheadTime <= clipStart + (window.ClipMagicCore?.TimelineEngine?.calculateClipDuration(clip) || srcDur)) {
+                const outLocal = Math.max(0, timelinePlayheadTime - clipStart);
+                const localSrc = window.ClipMagicCore?.SpeedEngine
+                    ? window.ClipMagicCore.SpeedEngine.outputTimeToSourceLocal(clip, outLocal)
+                    : outLocal;
+                const normPlayhead = clamp(localSrc / srcDur, 0, 1);
+                const px = tToX(normPlayhead);
+
+                ctx.beginPath();
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.moveTo(px, padTop - 4);
+                ctx.lineTo(px, padTop + H + 4);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Small amber indicator top bead
+                ctx.beginPath();
+                ctx.arc(px, padTop - 4, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#f59e0b';
+                ctx.fill();
+            }
+
+            // 4. Draggable Control Points
+            const pts = curve.points || [];
+            pts.forEach((pt, idx) => {
+                const cx = tToX(pt.t);
+                const cy = speedToY(pt.v);
+                const isSelected = idx === speedEditorSelectedPointIndex;
+
+                if (isSelected) {
+                    // Outer pulse ring
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#a855f7';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Speed value badge above point
+                    const txt = `${pt.v.toFixed(2)}×`;
+                    ctx.font = 'bold 11px Inter, sans-serif';
+                    const textW = ctx.measureText(txt).width;
+                    const badgeX = clamp(cx - textW / 2 - 4, padLeft, padLeft + W - textW - 8);
+                    const badgeY = Math.max(12, cy - 20);
+
+                    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+                    ctx.fillRect(badgeX, badgeY - 11, textW + 8, 16);
+                    ctx.strokeStyle = '#a855f7';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(badgeX, badgeY - 11, textW + 8, 16);
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(txt, badgeX + 4, badgeY);
+                }
+
+                // Point outer dot
+                ctx.beginPath();
+                ctx.arc(cx, cy, isSelected ? 7 : 5.5, 0, Math.PI * 2);
+                ctx.fillStyle = isSelected ? '#38bdf8' : '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = isSelected ? '#ffffff' : '#0ea5e9';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            ctx.restore();
+        }
+
+        function initSpeedCurveCanvas(canvas, clip) {
+            if (!canvas || !clip) return;
+            drawSpeedCurveCanvas(canvas, clip);
+
+            // Synchronize selected point sliders
+            const syncPointInputs = () => {
+                const pts = clip.speedCurve?.points || [];
+                const pt = pts[speedEditorSelectedPointIndex];
+                if (pt) {
+                    const label = document.getElementById('curvePointSpeedLabel');
+                    const slider = document.getElementById('curvePointSpeedSlider');
+                    const numInp = document.getElementById('curvePointSpeedNum');
+                    if (label) label.textContent = pt.v.toFixed(2) + '×';
+                    if (slider) slider.value = pt.v;
+                    if (numInp) numInp.value = pt.v.toFixed(2);
+                }
+            };
+            syncPointInputs();
+
+            const getEventCoords = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            };
+
+            const findPointAtCoords = (x, y) => {
+                const rect = canvas.getBoundingClientRect();
+                const width = rect.width || canvas.clientWidth || 320;
+                const height = 180;
+                const padLeft = 32;
+                const padRight = 14;
+                const padTop = 16;
+                const padBottom = 22;
+                const W = Math.max(10, width - padLeft - padRight);
+                const H = Math.max(10, height - padTop - padBottom);
+
+                const speedToY = (v) => {
+                    const logV = Math.log2(clamp(v, 0.25, 4.0));
+                    return padTop + (1 - (logV + 2) / 4) * H;
+                };
+                const tToX = (t) => padLeft + clamp(t, 0, 1) * W;
+
+                const pts = clip.speedCurve?.points || [];
+                const hitRadius = 22; // Comfortable hit area for mobile touch
+
+                for (let i = 0; i < pts.length; i++) {
+                    const px = tToX(pts[i].t);
+                    const py = speedToY(pts[i].v);
+                    const dist = Math.hypot(x - px, y - py);
+                    if (dist <= hitRadius) return i;
+                }
+                return -1;
+            };
+
+            const updatePointFromCoords = (index, x, y) => {
+                const rect = canvas.getBoundingClientRect();
+                const width = rect.width || canvas.clientWidth || 320;
+                const height = 180;
+                const padLeft = 32;
+                const padRight = 14;
+                const padTop = 16;
+                const padBottom = 22;
+                const W = Math.max(10, width - padLeft - padRight);
+                const H = Math.max(10, height - padTop - padBottom);
+
+                const pts = clip.speedCurve?.points || [];
+                if (index < 0 || index >= pts.length) return;
+
+                // Time mapping
+                if (index === 0) {
+                    pts[index].t = 0.0;
+                } else if (index === pts.length - 1) {
+                    pts[index].t = 1.0;
+                } else {
+                    const minT = (pts[index - 1]?.t || 0) + 0.02;
+                    const maxT = (pts[index + 1]?.t || 1) - 0.02;
+                    const rawT = (x - padLeft) / W;
+                    pts[index].t = clamp(rawT, minT, maxT);
+                }
+
+                // Velocity mapping: Y = padTop + (1 - (log2(v) + 2)/4) * H
+                const norm = 1 - (y - padTop) / H;
+                const logV = clamp(norm * 4 - 2, -2, 2);
+                const v = Math.pow(2, logV);
+                pts[index].v = clamp(Math.round(v * 100) / 100, 0.25, 4.0);
+
+                delete clip.speedCurve._cache;
+                clip.speedCurve.preset = 'custom';
+                syncPointInputs();
+                updateSpeedCurveLive(clip, false);
+            };
+
+            // Touch Handlers with passive: false to prevent scrolling
+            const onTouchStart = (e) => {
+                const { x, y } = getEventCoords(e);
+                const idx = findPointAtCoords(x, y);
+                if (idx >= 0) {
+                    e.preventDefault();
+                    speedEditorActiveDragIndex = idx;
+                    speedEditorSelectedPointIndex = idx;
+                    syncPointInputs();
+                    drawSpeedCurveCanvas(canvas, clip);
+                }
+            };
+
+            const onTouchMove = (e) => {
+                if (speedEditorActiveDragIndex !== null) {
+                    e.preventDefault();
+                    const { x, y } = getEventCoords(e);
+                    updatePointFromCoords(speedEditorActiveDragIndex, x, y);
+                }
+            };
+
+            const onTouchEnd = () => {
+                if (speedEditorActiveDragIndex !== null) {
+                    speedEditorActiveDragIndex = null;
+                    recordEdit();
+                    updateSpeedCurveLive(clip, true);
+                }
+            };
+
+            // Pointer Handlers for desktop mouse
+            const onPointerDown = (e) => {
+                if (e.pointerType === 'touch') return; // Handled by touch events
+                const { x, y } = getEventCoords(e);
+                const idx = findPointAtCoords(x, y);
+                if (idx >= 0) {
+                    speedEditorActiveDragIndex = idx;
+                    speedEditorSelectedPointIndex = idx;
+                    syncPointInputs();
+                    drawSpeedCurveCanvas(canvas, clip);
+                    canvas.setPointerCapture?.(e.pointerId);
+                }
+            };
+
+            const onPointerMove = (e) => {
+                if (e.pointerType === 'touch') return;
+                if (speedEditorActiveDragIndex !== null) {
+                    const { x, y } = getEventCoords(e);
+                    updatePointFromCoords(speedEditorActiveDragIndex, x, y);
+                }
+            };
+
+            const onPointerUp = (e) => {
+                if (e.pointerType === 'touch') return;
+                if (speedEditorActiveDragIndex !== null) {
+                    speedEditorActiveDragIndex = null;
+                    recordEdit();
+                    updateSpeedCurveLive(clip, true);
+                }
+            };
+
+            canvas.onpointerdown = onPointerDown;
+            canvas.onpointermove = onPointerMove;
+            canvas.onpointerup = onPointerUp;
+            canvas.onpointercancel = onPointerUp;
+
+            canvas.ontouchstart = onTouchStart;
+            canvas.ontouchmove = onTouchMove;
+            canvas.ontouchend = onTouchEnd;
+            canvas.ontouchcancel = onTouchEnd;
         }
 
         function setClipVolume(clip, volVal) {
@@ -2038,18 +2928,34 @@
             // 3. Playback Speed Presets Section
             const speedSec = document.createElement('div');
             speedSec.style.marginBottom = '14px';
+            const isCurve = clip.speedMode === 'curve';
+            const curvePreset = clip.speedCurve?.preset || 'Custom';
             speedSec.innerHTML = `
-                <div class="prop-section-title" style="margin-bottom:6px;">⏩ Playback Speed</div>
-                <div class="chip-grid" style="margin-bottom:8px;">
-                    <button class="chip-option ${Math.abs(curSpeed - 0.5) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 0.5)">🐢 0.5× Slow</button>
-                    <button class="chip-option ${Math.abs(curSpeed - 1.0) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 1.0)">▶ 1.0× Normal</button>
-                    <button class="chip-option ${Math.abs(curSpeed - 1.5) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 1.5)">⚡ 1.5× Fast</button>
-                    <button class="chip-option ${Math.abs(curSpeed - 2.0) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 2.0)">🚀 2.0× Hyper</button>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div class="prop-section-title" style="margin-bottom:0;">⏩ Playback Speed</div>
+                    <span style="font-size:0.72rem;padding:2px 6px;border-radius:4px;background:${isCurve ? 'rgba(168,85,247,0.15)' : 'rgba(56,189,248,0.15)'};color:${isCurve ? '#c084fc' : '#38bdf8'};font-weight:700;">
+                        ${isCurve ? `📈 Curve: ${curvePreset}` : `⚡ ${curSpeed.toFixed(2)}×`}
+                    </span>
                 </div>
-                <div class="prop-row">
-                    <span class="prop-label">Speed <span id="inspSpeedVal">${curSpeed.toFixed(1)}×</span></span>
-                    <input class="prop-input" type="range" min="0.25" max="4.0" step="0.05" value="${curSpeed}" aria-label="Video clip speed multiplier" oninput="setClipSpeed(selectedClip, this.value); document.getElementById('inspSpeedVal').textContent=parseFloat(this.value).toFixed(2)+'×';"/>
-                </div>
+                ${isCurve ? `
+                    <div style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.25);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:0.78rem;color:var(--text-secondary);">
+                        Velocity ramping active with <strong>${clip.speedCurve?.points?.length || 0} control points</strong>.
+                    </div>
+                ` : `
+                    <div class="chip-grid" style="margin-bottom:8px;">
+                        <button class="chip-option ${Math.abs(curSpeed - 0.5) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 0.5)">🐢 0.5×</button>
+                        <button class="chip-option ${Math.abs(curSpeed - 1.0) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 1.0)">▶ 1.0×</button>
+                        <button class="chip-option ${Math.abs(curSpeed - 1.5) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 1.5)">⚡ 1.5×</button>
+                        <button class="chip-option ${Math.abs(curSpeed - 2.0) < 0.05 ? 'active' : ''}" onclick="setClipSpeed(selectedClip, 2.0)">🚀 2.0×</button>
+                    </div>
+                    <div class="prop-row" style="margin-bottom:8px;">
+                        <span class="prop-label">Speed <span id="inspSpeedVal">${curSpeed.toFixed(2)}×</span></span>
+                        <input class="prop-input" type="range" min="0.25" max="4.0" step="0.05" value="${curSpeed}" aria-label="Video clip speed multiplier" oninput="setClipSpeed(selectedClip, this.value); document.getElementById('inspSpeedVal').textContent=parseFloat(this.value).toFixed(2)+'×';"/>
+                    </div>
+                `}
+                <button class="music-btn" style="background:rgba(56,189,248,0.12);border-color:#38bdf8;color:#38bdf8;font-weight:700;padding:8px 10px;" onclick="setTool('speed', true)" title="Open Speed & Velocity Curve Editor">
+                    📈 Open Speed Curve & Velocity Editor
+                </button>
             `;
             section.appendChild(speedSec);
 
@@ -3471,6 +4377,9 @@
 
             if (canonicalName === 'media') {
                 renderMediaClipsSummary();
+            }
+            if (canonicalName === 'speed' || name === 'speed') {
+                mountSpeedEditorUI();
             }
             if (canonicalName === 'trim' || name === 'trim') {
                 const clip = getActiveClip();
@@ -4932,13 +5841,13 @@
         }
 
         function speedAtTime(clip, time) {
-            const points = (clip?.speedSegments || []).filter(item => Number.isFinite(item.time)).sort((a, b) => a.time - b.time);
-            let speed = 1;
-            for (const point of points) {
-                if (point.time > time) break;
-                speed = clamp(Number(point.speed) || 1, 0.1, 8);
+            if (!clip) return 1.0;
+            if (clip.speedMode === 'curve' && clip.speedCurve && window.ClipMagicCore?.SpeedEngine) {
+                const trimStart = clamp(Number(clip.trimStart) || 0, 0, getClipSourceDuration(clip));
+                const sourceLocal = Math.max(0, time - trimStart);
+                return window.ClipMagicCore.SpeedEngine.speedAtSourceLocal(clip, sourceLocal);
             }
-            return speed;
+            return clamp(Number(clip.speed) || 1.0, 0.25, 4.0);
         }
 
         function updatePreviewVisuals() {
@@ -6834,10 +7743,9 @@
             let maxEnd = 0;
             (projectState.tracks || []).forEach(track => {
                 (track.clips || []).forEach(clip => {
-                    const srcDur = getClipSourceDuration(clip);
-                    const trimStart = Number.isFinite(clip.trimStart) ? clip.trimStart : 0;
-                    const trimEnd = Number.isFinite(clip.trimEnd) ? clip.trimEnd : srcDur;
-                    const dur = Math.max(0.01, trimEnd - trimStart);
+                    const dur = window.ClipMagicCore?.TimelineEngine
+                        ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(clip)
+                        : Math.max(0.01, ((clip.trimEnd || 10) - (clip.trimStart || 0)) / (clip.speed || 1));
                     const end = (clip.start || 0) + dur;
                     if (end > maxEnd) maxEnd = end;
                 });
@@ -6850,8 +7758,10 @@
             const videoTracks = (projectState.tracks || []).filter(t => t.type === 'video');
             for (const vt of videoTracks) {
                 const found = (vt.clips || []).find(c => {
-                    const dur = Math.max(MIN_TRIM_SECONDS, (c.trimEnd || c.duration || 1) - (c.trimStart || 0));
-                    return time >= (c.start || 0) && time <= (c.start || 0) + dur;
+                    const dur = window.ClipMagicCore?.TimelineEngine
+                        ? window.ClipMagicCore.TimelineEngine.calculateClipDuration(c)
+                        : Math.max(MIN_TRIM_SECONDS, ((c.trimEnd || c.duration || 1) - (c.trimStart || 0)) / (c.speed || 1));
+                    return time >= (c.start || 0) && time < (c.start || 0) + dur;
                 });
                 if (found) return found;
             }
@@ -6937,7 +7847,11 @@
                 if (baseVid && activeClip && activeClip.type !== 'image' && !baseVid.paused && !baseVid.seeking && baseVid.readyState >= 2) {
                     const clipStart = Number(activeClip.start) || 0;
                     const trimStart = Number(activeClip.trimStart) || 0;
-                    timelinePlayheadTime = clipStart + Math.max(0, baseVid.currentTime - trimStart);
+                    const srcLocal = Math.max(0, baseVid.currentTime - trimStart);
+                    const outLocal = window.ClipMagicCore?.SpeedEngine
+                        ? window.ClipMagicCore.SpeedEngine.sourceTimeToOutputLocal(activeClip, srcLocal)
+                        : (activeClip.speed ? srcLocal / activeClip.speed : srcLocal);
+                    timelinePlayheadTime = clipStart + outLocal;
                 } else if (baseVid && baseVid.seeking) {
                     // Hold playhead steady while hardware video decoder seeks target frame
                 } else {

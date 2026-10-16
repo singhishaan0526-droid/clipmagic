@@ -48,6 +48,28 @@ export interface TransitionConfig {
     duration: number;      // Duration in seconds (0.1 to 3.0)
 }
 
+export type SpeedMode = 'normal' | 'curve';
+
+export type SpeedPresetType =
+    | 'custom'
+    | 'montage'
+    | 'hero'
+    | 'bullet'
+    | 'flash-in'
+    | 'flash-out'
+    | 'smooth-slow';
+
+export interface SpeedCurvePoint {
+    t: number;             // Normalized source time (0.0 to 1.0)
+    v: number;             // Playback speed multiplier (0.25 to 4.0)
+}
+
+export interface SpeedCurveData {
+    preset: SpeedPresetType;
+    points: SpeedCurvePoint[];
+    smoothSlowMotion?: boolean; // Frame blending for slow motion
+}
+
 export interface SpeedSegment {
     time: number;          // Seconds from clip source start
     speed: number;         // 0.1 to 100.0
@@ -73,6 +95,10 @@ export interface BaseClip {
     keyframes?: KeyframeData[];
     transform?: ClipTransform;
     speed?: number;        // Constant playback speed (default 1.0)
+    speedMode?: SpeedMode; // 'normal' or 'curve'
+    speedCurve?: SpeedCurveData;
+    speedAudioPitch?: boolean; // Maintain pitch when speed changes (default true)
+    speedAudioMute?: boolean;  // Mute audio during speed ramp
     speedSegments?: SpeedSegment[];
     prevVolume?: number;   // Used for unmuting toggle
 }

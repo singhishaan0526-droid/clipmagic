@@ -20,6 +20,7 @@ export * from './features/keyframes';
 export * from './features/audio';
 export * from './features/filters';
 export * from './features/overlays';
+export * from './features/speed';
 
 // Export Engine
 export * from './export/render-engine';
@@ -35,6 +36,7 @@ import { KeyframeEngine } from './features/keyframes';
 import { AudioEngine } from './features/audio';
 import { FilterEngine } from './features/filters';
 import { OverlayEngine } from './features/overlays';
+import { SpeedEngine } from './features/speed';
 import { RenderEngine } from './export/render-engine';
 
 export const ClipMagicCore = {
@@ -47,6 +49,7 @@ export const ClipMagicCore = {
     AudioEngine,
     FilterEngine,
     OverlayEngine,
+    SpeedEngine,
     RenderEngine,
 
     // Project Helpers
@@ -72,6 +75,7 @@ if (typeof window !== 'undefined') {
     win.AudioEngine = AudioEngine;
     win.FilterEngine = FilterEngine;
     win.OverlayEngine = OverlayEngine;
+    win.SpeedEngine = SpeedEngine;
     win.RenderEngine = RenderEngine;
 }
 

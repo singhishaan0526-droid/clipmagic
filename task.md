@@ -52,3 +52,19 @@
 - [x] Q10: Browser FFmpeg export modal, presets (TikTok, YouTube, Standard), and download verification
 - [x] Q11: Fault tolerance: missing asset fallbacks, offline audio synthesis, storage warnings
 - [x] Q12: Cross-viewport responsive testing across 320px, 390px, 844x390, 768px, and 1280px widths
+
+## Phase 9: Speed Ramping & Velocity Editor (CapCut-Inspired)
+- [x] S1: Mathematical speed curve engine with Fritsch-Carlson Monotonic Cubic Hermite (PCHIP) interpolation
+- [x] S2: High-density numerical integration ($N=200$) for output duration $\int_0^{D_s} \frac{1}{v(\tau)} d\tau$
+- [x] S3: Bidirectional time mapping (`outputTimeToSourceLocal` & `sourceTimeToOutputLocal`) via binary search
+- [x] S4: 7 ready-made velocity presets (`Montage`, `Hero`, `Bullet`, `Flash In`, `Flash Out`, `Smooth Slow`, `Custom`)
+- [x] S5: Interactive canvas speed curve graph with logarithmic vertical scale, reference 1.0x line, and glowing curve
+- [x] S6: Pointer & touch drag interaction with `touch-action: none`, `e.preventDefault()`, point add/delete/reset
+- [x] S7: Normal Speed mode with quick chips (0.25x to 4.0x) and continuous slider/numeric inputs
+- [x] S8: Ripple timeline updates shifting subsequent clips while preserving background audio tracks
+- [x] S9: Preview compositor dynamic `playbackRate` scheduling and playhead source-frame scrubbing
+- [x] S10: FFmpeg export piecewise `setpts` expressions, `fps` regulation, `tblend` slow-mo blending, and `atempo` audio chaining
+- [x] S11: Audio pitch preservation option and clip audio mute option
+- [x] S12: Mobile responsive bottom sheet (320px–767px) with touch-friendly hit areas and preview visibility
+- [x] S13: Unit tests (7 automated tests in Test Suite 10, 47/47 passing) and live browser DevTools verification
+
